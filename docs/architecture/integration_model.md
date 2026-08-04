@@ -18,6 +18,7 @@ Recorder is responsible for parsing its internal EventEnvelope and producing pub
 # In Recorder repo (not Contracts)
 from binance_market_data_contracts import DepthUpdate
 
+
 def to_public_contract(envelope: EventEnvelope) -> DepthUpdate:
     return DepthUpdate(
         metadata=to_metadata(envelope),
@@ -55,8 +56,8 @@ History reads internal storage and produces public contract instances:
 # In History repo (not Contracts)
 from binance_market_data_contracts import DepthUpdate, HistoricalDatasetDescriptor
 
-def read_dataset(descriptor: HistoricalDatasetDescriptor) -> Iterator[DepthUpdate]:
-    ...
+
+def read_dataset(descriptor: HistoricalDatasetDescriptor) -> Iterator[DepthUpdate]: ...
 ```
 
 ## Contracts NEVER
