@@ -1,0 +1,160 @@
+{
+  "$defs": {
+    "Market": {
+      "enum": [
+        "SPOT",
+        "USD_M_PERPETUAL"
+      ],
+      "title": "Market",
+      "type": "string"
+    },
+    "PriceLevel": {
+      "additionalProperties": false,
+      "description": "A single price level in the order book.\n\nquantity represents the absolute quantity at this price level after the update.\nquantity == \"0\" means this price level should be removed.",
+      "properties": {
+        "price": {
+          "title": "Price"
+        },
+        "quantity": {
+          "title": "Quantity"
+        }
+      },
+      "required": [
+        "price",
+        "quantity"
+      ],
+      "title": "PriceLevel",
+      "type": "object"
+    },
+    "QualityFlag": {
+      "description": "Quality flags describe data facts — what is observed about the data.\n\nThese are distinct from ReasonCode which explains Health state judgments.",
+      "enum": [
+        "DUPLICATE",
+        "OUT_OF_ORDER",
+        "SEQUENCE_GAP",
+        "ORDERBOOK_RESYNC",
+        "SNAPSHOT_BRIDGE_PENDING",
+        "SNAPSHOT_TOO_OLD",
+        "BOOTSTRAP_BUFFER_OVERFLOW",
+        "RECOVERED_TAIL",
+        "MALFORMED_PAYLOAD",
+        "EXCHANGE_TIME_MISSING",
+        "RECEIVE_CLOCK_DISCONTINUITY",
+        "SLOW_CONSUMER_GAP",
+        "PRODUCER_RESTART",
+        "OVERLAP",
+        "IDENTITY_CONFLICT",
+        "CROSSED_BOOK"
+      ],
+      "title": "QualityFlag",
+      "type": "string"
+    },
+    "Venue": {
+      "enum": [
+        "BINANCE"
+      ],
+      "title": "Venue",
+      "type": "string"
+    }
+  },
+  "$id": "binance-market-data/exchange-depth-snapshot.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "REST depth snapshot from Binance.\n\nA point-in-time limited-depth snapshot used for initialization,\nrecovery, and validation. This is NOT a continuous full-depth stream.",
+  "properties": {
+    "asks": {
+      "description": "Snapshot ask levels",
+      "items": {
+        "$ref": "#/$defs/PriceLevel"
+      },
+      "type": "array"
+    },
+    "bids": {
+      "description": "Snapshot bid levels",
+      "items": {
+        "$ref": "#/$defs/PriceLevel"
+      },
+      "type": "array"
+    },
+    "exchange_transaction_time_ms": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Exchange transaction time in milliseconds"
+    },
+    "last_update_id": {
+      "description": "Last update ID at time of snapshot",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "market": {
+      "$ref": "#/$defs/Market"
+    },
+    "producer": {
+      "type": "string"
+    },
+    "producer_version": {
+      "type": "string"
+    },
+    "quality_flags": {
+      "description": "Quality flags for this snapshot",
+      "items": {
+        "$ref": "#/$defs/QualityFlag"
+      },
+      "type": "array"
+    },
+    "receive_monotonic_ns": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Monotonic receive time in nanoseconds"
+    },
+    "receive_time_utc_ns": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "UTC receive time in nanoseconds"
+    },
+    "request_id": {},
+    "schema_version": {
+      "description": "Contract version (e.g. 'exchange-depth-snapshot.v1')",
+      "type": "string"
+    },
+    "symbol": {},
+    "venue": {
+      "$ref": "#/$defs/Venue"
+    }
+  },
+  "required": [
+    "venue",
+    "market",
+    "symbol",
+    "schema_version",
+    "producer",
+    "producer_version",
+    "request_id",
+    "last_update_id"
+  ],
+  "type": "object"
+}

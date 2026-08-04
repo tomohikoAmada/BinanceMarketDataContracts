@@ -1,0 +1,93 @@
+{
+  "$defs": {
+    "CommandType": {
+      "enum": [
+        "GET_STATUS",
+        "VALIDATE_DATA",
+        "TRIGGER_ARCHIVE",
+        "TRIGGER_RESYNC",
+        "GENERATE_DIAGNOSTIC_BUNDLE"
+      ],
+      "title": "CommandType",
+      "type": "string"
+    }
+  },
+  "$id": "binance-market-data/control-command.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "DRAFT — Operational control command.\n\nCommands are limited to operational actions:\nstatus queries, data validation, archive triggering, resync, and diagnostics.\n\nTrading, account, position, and strategy commands are FORBIDDEN.",
+  "properties": {
+    "command_id": {
+      "description": "Unique command identifier",
+      "type": "string"
+    },
+    "command_type": {
+      "$ref": "#/$defs/CommandType"
+    },
+    "idempotency_key": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Idempotency key — duplicated commands with same key have no effect"
+    },
+    "parameters": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Command parameters as key-value pairs. Values are strings for schema stability."
+    },
+    "requested_at": {
+      "description": "ISO-8601 UTC timestamp when the command was requested",
+      "type": "string"
+    },
+    "requester": {
+      "description": "Identity of the requester (user or system)",
+      "type": "string"
+    },
+    "schema_version": {
+      "default": "control-command.v1",
+      "description": "Contract schema version",
+      "type": "string"
+    },
+    "target": {
+      "description": "Target module or resource",
+      "type": "string"
+    },
+    "timeout_seconds": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Command timeout in seconds"
+    }
+  },
+  "required": [
+    "command_id",
+    "command_type",
+    "target",
+    "requested_at",
+    "requester"
+  ],
+  "type": "object"
+}

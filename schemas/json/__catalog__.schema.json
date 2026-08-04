@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "contracts": {
+    "agg-trade.v1": {
+      "consumer": "all modules",
+      "filename": "agg-trade.v1.schema.json",
+      "producer": "recorder or gateway",
+      "schema_id": "binance-market-data/agg-trade.v1.schema.json",
+      "status": "PROPOSED"
+    },
+    "book-ticker.v1": {
+      "consumer": "all modules",
+      "filename": "book-ticker.v1.schema.json",
+      "producer": "recorder or gateway",
+      "schema_id": "binance-market-data/book-ticker.v1.schema.json",
+      "status": "PROPOSED"
+    },
+    "command-result.v1": {
+      "consumer": null,
+      "filename": "command-result.v1.schema.json",
+      "producer": null,
+      "schema_id": "binance-market-data/command-result.v1.schema.json",
+      "status": "DRAFT"
+    },
+    "control-command.v1": {
+      "consumer": null,
+      "filename": "control-command.v1.schema.json",
+      "producer": null,
+      "schema_id": "binance-market-data/control-command.v1.schema.json",
+      "status": "DRAFT"
+    },
+    "data-health-snapshot.v1": {
+      "consumer": "view, control, risk",
+      "filename": "data-health-snapshot.v1.schema.json",
+      "producer": "health",
+      "schema_id": "binance-market-data/data-health-snapshot.v1.schema.json",
+      "status": "PROPOSED"
+    },
+    "depth-update.v1": {
+      "consumer": "all modules",
+      "filename": "depth-update.v1.schema.json",
+      "producer": "recorder or gateway",
+      "schema_id": "binance-market-data/depth-update.v1.schema.json",
+      "status": "PROPOSED"
+    },
+    "exchange-depth-snapshot.v1": {
+      "consumer": "order book, history",
+      "filename": "exchange-depth-snapshot.v1.schema.json",
+      "producer": "recorder or gateway",
+      "schema_id": "binance-market-data/exchange-depth-snapshot.v1.schema.json",
+      "status": "PROPOSED"
+    },
+    "historical-dataset-descriptor.v1": {
+      "consumer": null,
+      "filename": "historical-dataset-descriptor.v1.schema.json",
+      "producer": null,
+      "schema_id": "binance-market-data/historical-dataset-descriptor.v1.schema.json",
+      "status": "DRAFT"
+    },
+    "local-order-book-snapshot.v1": {
+      "consumer": "view, health",
+      "filename": "local-order-book-snapshot.v1.schema.json",
+      "producer": "gateway or replay",
+      "schema_id": "binance-market-data/local-order-book-snapshot.v1.schema.json",
+      "status": "PROPOSED"
+    },
+    "market-state-snapshot.v1": {
+      "consumer": "view, strategy",
+      "filename": "market-state-snapshot.v1.schema.json",
+      "producer": "projection or gateway",
+      "schema_id": "binance-market-data/market-state-snapshot.v1.schema.json",
+      "status": "PROPOSED"
+    },
+    "replay-query.v1": {
+      "consumer": null,
+      "filename": "replay-query.v1.schema.json",
+      "producer": null,
+      "schema_id": "binance-market-data/replay-query.v1.schema.json",
+      "status": "DRAFT"
+    },
+    "telemetry.v1": {
+      "consumer": null,
+      "filename": "telemetry.v1.schema.json",
+      "producer": null,
+      "schema_id": "binance-market-data/telemetry.v1.schema.json",
+      "status": "DRAFT"
+    }
+  },
+  "description": "Auto-generated schema catalog. Do not edit manually.",
+  "title": "BinanceMarketData Contract Schema Catalog"
+}

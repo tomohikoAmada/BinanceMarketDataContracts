@@ -1,0 +1,36 @@
+{
+  "overall_state": "DEGRADED",
+  "venue": "BINANCE",
+  "market": "SPOT",
+  "symbol": "BTCUSDT",
+  "schema_version": "data-health-snapshot.v1",
+  "connection_state": "CONNECTED",
+  "last_message_age_ms": 5000,
+  "receive_latency": {
+    "count": 200,
+    "min_ms": 20.0,
+    "max_ms": 500.0,
+    "p50_ms": 100.0,
+    "p95_ms": 300.0,
+    "p99_ms": 450.0,
+    "window_start_utc_ns": 1690000060000000000,
+    "window_end_utc_ns": 1690000120000000000
+  },
+  "publish_latency": {
+    "count": 0,
+    "min_ms": null,
+    "max_ms": null,
+    "p50_ms": null,
+    "p95_ms": null,
+    "p99_ms": null,
+    "window_start_utc_ns": 1690000060000000000,
+    "window_end_utc_ns": 1690000120000000000
+  },
+  "sequence_gap_count": 3,
+  "resync_state": "RESYNC_NEEDED",
+  "book_synchronized": false,
+  "recorder_alive": true,
+  "gateway_alive": true,
+  "reason_codes": ["SEQUENCE_GAP_DETECTED", "LAST_MESSAGE_AGE_HIGH", "BOOK_NOT_SYNCHRONIZED"],
+  "observed_time_utc_ns": 1690000120000000000
+}

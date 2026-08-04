@@ -1,0 +1,27 @@
+{
+  "venue": "BINANCE",
+  "market": "SPOT",
+  "symbol": "BTCUSDT",
+  "schema_version": "market-state-snapshot.v1",
+  "producer": "projection",
+  "producer_version": "0.1.0",
+  "best_bid_price": "29500.00",
+  "best_bid_quantity": "1.50000000",
+  "best_ask_price": "29501.00",
+  "best_ask_quantity": "2.00000000",
+  "mid_price": "29500.50",
+  "spread": "1.00",
+  "microprice": null,
+  "top_n_depth": [
+    {"price": "29500.00", "quantity": "1.50000000"},
+    {"price": "29499.00", "quantity": "2.00000000"}
+  ],
+  "mark_price": null,
+  "index_price": null,
+  "funding_rate": null,
+  "funding_time": null,
+  "open_interest": null,
+  "generated_time_utc_ns": 1690000010000000000,
+  "data_freshness_ms": 100,
+  "book_synchronized": true
+}

@@ -1,0 +1,386 @@
+{
+  "$defs": {
+    "BookMetrics": {
+      "additionalProperties": false,
+      "description": "Order book-related telemetry data.",
+      "properties": {
+        "sync_latency_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sync Latency Ms"
+        },
+        "synchronized": {
+          "title": "Synchronized",
+          "type": "boolean"
+        },
+        "type": {
+          "const": "book",
+          "default": "book",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "synchronized"
+      ],
+      "title": "BookMetrics",
+      "type": "object"
+    },
+    "ConnectionMetrics": {
+      "additionalProperties": false,
+      "description": "Connection-related telemetry data.",
+      "properties": {
+        "connected": {
+          "title": "Connected",
+          "type": "boolean"
+        },
+        "last_message_age_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Message Age Ms"
+        },
+        "reconnect_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Reconnect Count",
+          "type": "integer"
+        },
+        "type": {
+          "const": "connection",
+          "default": "connection",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "connected"
+      ],
+      "title": "ConnectionMetrics",
+      "type": "object"
+    },
+    "LatencyMetrics": {
+      "additionalProperties": false,
+      "description": "Latency-related telemetry data.",
+      "properties": {
+        "publish_lag_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Publish Lag Ms"
+        },
+        "receive_lag_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receive Lag Ms"
+        },
+        "type": {
+          "const": "latency",
+          "default": "latency",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "title": "LatencyMetrics",
+      "type": "object"
+    },
+    "Market": {
+      "enum": [
+        "SPOT",
+        "USD_M_PERPETUAL"
+      ],
+      "title": "Market",
+      "type": "string"
+    },
+    "QualityFlag": {
+      "description": "Quality flags describe data facts — what is observed about the data.\n\nThese are distinct from ReasonCode which explains Health state judgments.",
+      "enum": [
+        "DUPLICATE",
+        "OUT_OF_ORDER",
+        "SEQUENCE_GAP",
+        "ORDERBOOK_RESYNC",
+        "SNAPSHOT_BRIDGE_PENDING",
+        "SNAPSHOT_TOO_OLD",
+        "BOOTSTRAP_BUFFER_OVERFLOW",
+        "RECOVERED_TAIL",
+        "MALFORMED_PAYLOAD",
+        "EXCHANGE_TIME_MISSING",
+        "RECEIVE_CLOCK_DISCONTINUITY",
+        "SLOW_CONSUMER_GAP",
+        "PRODUCER_RESTART",
+        "OVERLAP",
+        "IDENTITY_CONFLICT",
+        "CROSSED_BOOK"
+      ],
+      "title": "QualityFlag",
+      "type": "string"
+    },
+    "QueueMetrics": {
+      "additionalProperties": false,
+      "description": "Queue-related telemetry data.",
+      "properties": {
+        "dropped": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Dropped",
+          "type": "integer"
+        },
+        "queue_depth": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Queue Depth",
+          "type": "integer"
+        },
+        "type": {
+          "const": "queue",
+          "default": "queue",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "title": "QueueMetrics",
+      "type": "object"
+    },
+    "SequenceMetrics": {
+      "additionalProperties": false,
+      "description": "Sequence-related telemetry data.",
+      "properties": {
+        "duplicate_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Duplicate Count",
+          "type": "integer"
+        },
+        "last_update_id": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Update Id"
+        },
+        "out_of_order_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Out Of Order Count",
+          "type": "integer"
+        },
+        "type": {
+          "const": "sequence",
+          "default": "sequence",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "title": "SequenceMetrics",
+      "type": "object"
+    },
+    "SystemMetrics": {
+      "additionalProperties": false,
+      "description": "System resource telemetry data.",
+      "properties": {
+        "cpu_percent": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cpu Percent"
+        },
+        "disk_free_gb": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Disk Free Gb"
+        },
+        "memory_mb": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Memory Mb"
+        },
+        "type": {
+          "const": "system",
+          "default": "system",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "title": "SystemMetrics",
+      "type": "object"
+    },
+    "TelemetryType": {
+      "enum": [
+        "CONNECTION",
+        "SEQUENCE",
+        "LATENCY",
+        "QUEUE",
+        "BOOK",
+        "SYSTEM",
+        "CUSTOM"
+      ],
+      "title": "TelemetryType",
+      "type": "string"
+    }
+  },
+  "$id": "binance-market-data/telemetry.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "DRAFT — Telemetry envelope for Gateway and Recorder.\n\nUses a discriminated union for metrics payload. Adding a new metric type\nis generally compatible. Changing the discriminator is BREAKING.",
+  "properties": {
+    "market": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Market"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "metrics": {
+      "anyOf": [
+        {
+          "discriminator": {
+            "mapping": {
+              "book": "#/$defs/BookMetrics",
+              "connection": "#/$defs/ConnectionMetrics",
+              "latency": "#/$defs/LatencyMetrics",
+              "queue": "#/$defs/QueueMetrics",
+              "sequence": "#/$defs/SequenceMetrics",
+              "system": "#/$defs/SystemMetrics"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ConnectionMetrics"
+            },
+            {
+              "$ref": "#/$defs/SequenceMetrics"
+            },
+            {
+              "$ref": "#/$defs/LatencyMetrics"
+            },
+            {
+              "$ref": "#/$defs/QueueMetrics"
+            },
+            {
+              "$ref": "#/$defs/BookMetrics"
+            },
+            {
+              "$ref": "#/$defs/SystemMetrics"
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Telemetry data payload"
+    },
+    "observed_time_utc_ns": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "UTC time of observation (ns)"
+    },
+    "quality_flags": {
+      "description": "Quality flags for this telemetry sample",
+      "items": {
+        "$ref": "#/$defs/QualityFlag"
+      },
+      "type": "array"
+    },
+    "source_instance_id": {
+      "description": "Instance identifier",
+      "type": "string"
+    },
+    "source_module": {
+      "description": "Source module name (e.g. 'gateway', 'recorder')",
+      "type": "string"
+    },
+    "symbol": {
+      "anyOf": [
+        {},
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "telemetry_type": {
+      "$ref": "#/$defs/TelemetryType"
+    }
+  },
+  "required": [
+    "telemetry_type",
+    "source_module",
+    "source_instance_id"
+  ],
+  "type": "object"
+}

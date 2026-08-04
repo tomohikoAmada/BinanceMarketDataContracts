@@ -1,0 +1,158 @@
+{
+  "$defs": {
+    "Market": {
+      "enum": [
+        "SPOT",
+        "USD_M_PERPETUAL"
+      ],
+      "title": "Market",
+      "type": "string"
+    },
+    "ReliabilityState": {
+      "enum": [
+        "COMPLETE",
+        "COMPLETE_WITH_DUPLICATES",
+        "DEGRADED",
+        "GAP_PRESENT",
+        "UNRELIABLE",
+        "UNKNOWN"
+      ],
+      "title": "ReliabilityState",
+      "type": "string"
+    },
+    "Stream": {
+      "enum": [
+        "DIFF_DEPTH",
+        "AGG_TRADE",
+        "BOOK_TICKER",
+        "DEPTH_SNAPSHOT"
+      ],
+      "title": "Stream",
+      "type": "string"
+    }
+  },
+  "$id": "binance-market-data/historical-dataset-descriptor.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "DRAFT — Describes a queryable, replayable historical dataset.\n\nDoes not expose archive mountpoints, catalog tables, or internal file paths.",
+  "properties": {
+    "dataset_id": {
+      "description": "Unique identifier for this dataset",
+      "type": "string"
+    },
+    "end_time": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Dataset end time (ISO-8601 UTC)"
+    },
+    "gap_count": {
+      "default": 0,
+      "description": "Number of gaps in the dataset",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "gap_intervals": {
+      "description": "Gap interval descriptions (ISO-8601 pairs)",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "manifest_hash": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Hash of the dataset manifest"
+    },
+    "market": {
+      "$ref": "#/$defs/Market"
+    },
+    "partitions": {
+      "default": 1,
+      "description": "Number of partitions",
+      "minimum": 1,
+      "type": "integer"
+    },
+    "producer": {
+      "default": "recorder",
+      "description": "Producer module",
+      "type": "string"
+    },
+    "producer_version": {
+      "description": "Producer version",
+      "type": "string"
+    },
+    "query_capabilities": {
+      "description": "Supported query types (e.g. 'time_range', 'seek')",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "reliability_state": {
+      "$ref": "#/$defs/ReliabilityState",
+      "default": "UNKNOWN",
+      "description": "Overall reliability assessment"
+    },
+    "replay_capabilities": {
+      "description": "Supported replay modes (e.g. 'receive_time_order', 'exchange_time_order')",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "description": "Contract schema version",
+      "type": "string"
+    },
+    "source_manifests": {
+      "description": "Source manifest references",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "start_time": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Dataset start time (ISO-8601 UTC)"
+    },
+    "streams": {
+      "description": "Streams included in this dataset",
+      "items": {
+        "$ref": "#/$defs/Stream"
+      },
+      "type": "array"
+    },
+    "symbol": {}
+  },
+  "required": [
+    "dataset_id",
+    "market",
+    "symbol",
+    "streams",
+    "schema_version",
+    "producer_version"
+  ],
+  "type": "object"
+}

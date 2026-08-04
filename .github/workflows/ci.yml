@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "feat/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Ruff check
+        run: ruff check .
+      - name: Ruff format check
+        run: ruff format --check .
+      - name: mypy
+        run: mypy src
+      - name: pytest
+        run: pytest -q
+      - name: Schema export
+        run: python -m binance_market_data_contracts.schema_export
+      - name: Schema drift check
+        run: git diff --exit-code -- schemas/json
+      - name: Build package
+        run: python -m build
+      - name: Twine check
+        run: python -m twine check dist/*

@@ -1,0 +1,227 @@
+{
+  "$defs": {
+    "EventMetadata": {
+      "additionalProperties": false,
+      "description": "Metadata envelope for all market events.\n\nAll times use the unit-embedded naming convention.\nMissing exchange times use None, never 0.",
+      "properties": {
+        "connection_id": {
+          "description": "Unique identifier for this connection session",
+          "title": "Connection Id"
+        },
+        "exchange_event_time_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Exchange-assigned event time in milliseconds",
+          "title": "Exchange Event Time Ms"
+        },
+        "exchange_trade_time_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Exchange-assigned trade time in milliseconds",
+          "title": "Exchange Trade Time Ms"
+        },
+        "exchange_transaction_time_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Exchange-assigned transaction time in milliseconds",
+          "title": "Exchange Transaction Time Ms"
+        },
+        "market": {
+          "$ref": "#/$defs/Market"
+        },
+        "producer": {
+          "description": "Producer module name (e.g. 'recorder', 'gateway')",
+          "title": "Producer",
+          "type": "string"
+        },
+        "producer_version": {
+          "description": "Producer module version",
+          "title": "Producer Version",
+          "type": "string"
+        },
+        "quality_flags": {
+          "description": "Quality flags describing observed data facts",
+          "items": {
+            "$ref": "#/$defs/QualityFlag"
+          },
+          "title": "Quality Flags",
+          "type": "array"
+        },
+        "receive_monotonic_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Monotonic clock receive time in nanoseconds",
+          "title": "Receive Monotonic Ns"
+        },
+        "receive_time_utc_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "UTC wall clock receive time in nanoseconds",
+          "title": "Receive Time Utc Ns"
+        },
+        "schema_version": {
+          "description": "Contract version (e.g. 'depth-update.v1')",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "stream": {
+          "$ref": "#/$defs/Stream"
+        },
+        "symbol": {
+          "title": "Symbol"
+        },
+        "venue": {
+          "$ref": "#/$defs/Venue"
+        }
+      },
+      "required": [
+        "venue",
+        "market",
+        "symbol",
+        "stream",
+        "producer",
+        "producer_version",
+        "schema_version",
+        "connection_id"
+      ],
+      "title": "EventMetadata",
+      "type": "object"
+    },
+    "Market": {
+      "enum": [
+        "SPOT",
+        "USD_M_PERPETUAL"
+      ],
+      "title": "Market",
+      "type": "string"
+    },
+    "QualityFlag": {
+      "description": "Quality flags describe data facts — what is observed about the data.\n\nThese are distinct from ReasonCode which explains Health state judgments.",
+      "enum": [
+        "DUPLICATE",
+        "OUT_OF_ORDER",
+        "SEQUENCE_GAP",
+        "ORDERBOOK_RESYNC",
+        "SNAPSHOT_BRIDGE_PENDING",
+        "SNAPSHOT_TOO_OLD",
+        "BOOTSTRAP_BUFFER_OVERFLOW",
+        "RECOVERED_TAIL",
+        "MALFORMED_PAYLOAD",
+        "EXCHANGE_TIME_MISSING",
+        "RECEIVE_CLOCK_DISCONTINUITY",
+        "SLOW_CONSUMER_GAP",
+        "PRODUCER_RESTART",
+        "OVERLAP",
+        "IDENTITY_CONFLICT",
+        "CROSSED_BOOK"
+      ],
+      "title": "QualityFlag",
+      "type": "string"
+    },
+    "Stream": {
+      "enum": [
+        "DIFF_DEPTH",
+        "AGG_TRADE",
+        "BOOK_TICKER",
+        "DEPTH_SNAPSHOT"
+      ],
+      "title": "Stream",
+      "type": "string"
+    },
+    "Venue": {
+      "enum": [
+        "BINANCE"
+      ],
+      "title": "Venue",
+      "type": "string"
+    }
+  },
+  "$id": "binance-market-data/agg-trade.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Binance aggregated trade.\n\nRepresents an aggregated trade where a taker order was filled\nagainst one or more resting orders at the same price.\n\nThe metadata.stream MUST be AGG_TRADE.",
+  "properties": {
+    "aggregate_trade_id": {
+      "description": "Aggregate trade ID from the exchange",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "buyer_is_maker": {
+      "description": "True if the buyer was the maker (trade initiated by seller)",
+      "type": "boolean"
+    },
+    "first_trade_id": {
+      "description": "First individual trade ID in this aggregate",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "last_trade_id": {
+      "description": "Last individual trade ID in this aggregate",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "metadata": {
+      "$ref": "#/$defs/EventMetadata"
+    },
+    "price": {},
+    "quantity": {
+      "description": "Total quantity of the aggregate trade (> 0)"
+    },
+    "trade_time_ms": {
+      "description": "Trade time in milliseconds",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "metadata",
+    "aggregate_trade_id",
+    "price",
+    "quantity",
+    "first_trade_id",
+    "last_trade_id",
+    "trade_time_ms",
+    "buyer_is_maker"
+  ],
+  "type": "object"
+}

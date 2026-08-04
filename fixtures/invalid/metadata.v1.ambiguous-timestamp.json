@@ -1,0 +1,17 @@
+{
+  "venue": "BINANCE",
+  "market": "SPOT",
+  "symbol": "BTCUSDT",
+  "schema_version": "exchange-depth-snapshot.v1",
+  "producer": "recorder",
+  "producer_version": "0.1.0",
+  "request_id": "test",
+  "last_update_id": 1,
+  "bids": [],
+  "asks": [],
+  "exchange_transaction_time_ms": 1690000009000,
+  "receive_time_utc_ns": 1690000009000000000,
+  "receive_monotonic_ns": 9000000001,
+  "quality_flags": [],
+  "timestamp": 1234567890
+}

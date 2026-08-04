@@ -1,0 +1,23 @@
+{
+  "metadata": {
+    "venue": "BINANCE",
+    "market": "SPOT",
+    "symbol": "BTCUSDT",
+    "stream": "DIFF_DEPTH",
+    "producer": "gateway",
+    "producer_version": "0.1.0",
+    "schema_version": "depth-update.v1",
+    "connection_id": "conn-empty-test-001",
+    "exchange_event_time_ms": 1690000003000,
+    "exchange_trade_time_ms": null,
+    "exchange_transaction_time_ms": null,
+    "receive_time_utc_ns": 1690000003000000000,
+    "receive_monotonic_ns": 3000000001,
+    "quality_flags": []
+  },
+  "first_update_id": 1,
+  "final_update_id": 1,
+  "previous_final_update_id": null,
+  "bids": [],
+  "asks": []
+}

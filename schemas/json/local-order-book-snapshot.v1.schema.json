@@ -1,0 +1,292 @@
+{
+  "$defs": {
+    "GapDescriptor": {
+      "additionalProperties": false,
+      "description": "Structured description of a sequence gap.\n\nRecords what stream was affected, when the gap was detected,\nthe gap boundaries, the reason, and the recovery state.",
+      "properties": {
+        "detected_at_utc_ns": {
+          "description": "UTC time when the gap was detected (ns)",
+          "minimum": 0,
+          "title": "Detected At Utc Ns",
+          "type": "integer"
+        },
+        "next_sequence": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "First known sequence after the gap",
+          "title": "Next Sequence"
+        },
+        "previous_sequence": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Last known sequence before the gap",
+          "title": "Previous Sequence"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReasonCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Reason for the gap"
+        },
+        "recovery_state": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Current recovery state (e.g. 'RESYNC_IN_PROGRESS', 'RECOVERED')",
+          "title": "Recovery State"
+        },
+        "stream": {
+          "$ref": "#/$defs/Stream",
+          "description": "The stream in which the gap was detected"
+        }
+      },
+      "required": [
+        "stream",
+        "detected_at_utc_ns"
+      ],
+      "title": "GapDescriptor",
+      "type": "object"
+    },
+    "Market": {
+      "enum": [
+        "SPOT",
+        "USD_M_PERPETUAL"
+      ],
+      "title": "Market",
+      "type": "string"
+    },
+    "PriceLevel": {
+      "additionalProperties": false,
+      "description": "A single price level in the order book.\n\nquantity represents the absolute quantity at this price level after the update.\nquantity == \"0\" means this price level should be removed.",
+      "properties": {
+        "price": {
+          "title": "Price"
+        },
+        "quantity": {
+          "title": "Quantity"
+        }
+      },
+      "required": [
+        "price",
+        "quantity"
+      ],
+      "title": "PriceLevel",
+      "type": "object"
+    },
+    "QualityFlag": {
+      "description": "Quality flags describe data facts — what is observed about the data.\n\nThese are distinct from ReasonCode which explains Health state judgments.",
+      "enum": [
+        "DUPLICATE",
+        "OUT_OF_ORDER",
+        "SEQUENCE_GAP",
+        "ORDERBOOK_RESYNC",
+        "SNAPSHOT_BRIDGE_PENDING",
+        "SNAPSHOT_TOO_OLD",
+        "BOOTSTRAP_BUFFER_OVERFLOW",
+        "RECOVERED_TAIL",
+        "MALFORMED_PAYLOAD",
+        "EXCHANGE_TIME_MISSING",
+        "RECEIVE_CLOCK_DISCONTINUITY",
+        "SLOW_CONSUMER_GAP",
+        "PRODUCER_RESTART",
+        "OVERLAP",
+        "IDENTITY_CONFLICT",
+        "CROSSED_BOOK"
+      ],
+      "title": "QualityFlag",
+      "type": "string"
+    },
+    "ReasonCode": {
+      "description": "Reason codes explain Health state judgments — why a state was chosen.\n\nThese are distinct from QualityFlag which describes data facts.",
+      "enum": [
+        "CONNECTION_LOST",
+        "CONNECTION_RESUMED",
+        "PING_TIMEOUT",
+        "LAST_MESSAGE_AGE_HIGH",
+        "RECEIVE_LATENCY_HIGH",
+        "PUBLISH_LATENCY_HIGH",
+        "SEQUENCE_GAP_DETECTED",
+        "SEQUENCE_GAP_TOO_LARGE",
+        "RESYNC_IN_PROGRESS",
+        "RESYNC_FAILED",
+        "BOOK_NOT_SYNCHRONIZED",
+        "BOOK_CROSSED",
+        "BOOK_EMPTY",
+        "RECORDER_STALLED",
+        "GATEWAY_STALLED",
+        "DIVERGENCE_DETECTED",
+        "DISK_SPACE_LOW",
+        "QUEUE_BACKLOG",
+        "ARCHIVE_BACKLOG",
+        "CONFIGURATION_ERROR"
+      ],
+      "title": "ReasonCode",
+      "type": "string"
+    },
+    "Stream": {
+      "enum": [
+        "DIFF_DEPTH",
+        "AGG_TRADE",
+        "BOOK_TICKER",
+        "DEPTH_SNAPSHOT"
+      ],
+      "title": "Stream",
+      "type": "string"
+    },
+    "Venue": {
+      "enum": [
+        "BINANCE"
+      ],
+      "title": "Venue",
+      "type": "string"
+    }
+  },
+  "$id": "binance-market-data/local-order-book-snapshot.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Locally reconstructed order book snapshot.\n\nRepresents the state of a locally-reconstructed order book at a point in time,\nbuilt from an ExchangeDepthSnapshot and subsequent DepthUpdate events.",
+  "properties": {
+    "asks": {
+      "description": "Current ask levels",
+      "items": {
+        "$ref": "#/$defs/PriceLevel"
+      },
+      "type": "array"
+    },
+    "bids": {
+      "description": "Current bid levels",
+      "items": {
+        "$ref": "#/$defs/PriceLevel"
+      },
+      "type": "array"
+    },
+    "depth_limit": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Depth limit applied, if any"
+    },
+    "generated_monotonic_ns": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Monotonic time when this snapshot was generated (ns)"
+    },
+    "generated_time_utc_ns": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "UTC time when this snapshot was generated (ns)"
+    },
+    "last_gap": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GapDescriptor"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "The most recent gap, if one exists"
+    },
+    "last_update_id": {
+      "description": "Last applied update ID",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "market": {
+      "$ref": "#/$defs/Market"
+    },
+    "producer": {
+      "type": "string"
+    },
+    "producer_version": {
+      "type": "string"
+    },
+    "quality_flags": {
+      "description": "Quality flags for this order book state",
+      "items": {
+        "$ref": "#/$defs/QualityFlag"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "description": "Contract version (e.g. 'local-order-book-snapshot.v1')",
+      "type": "string"
+    },
+    "source": {
+      "description": "Source of the snapshot (e.g. 'gateway', 'replay')",
+      "type": "string"
+    },
+    "symbol": {},
+    "synchronized": {
+      "description": "Whether the order book is currently synchronized with the exchange",
+      "type": "boolean"
+    },
+    "venue": {
+      "$ref": "#/$defs/Venue"
+    }
+  },
+  "required": [
+    "venue",
+    "market",
+    "symbol",
+    "schema_version",
+    "producer",
+    "producer_version",
+    "source",
+    "last_update_id",
+    "synchronized"
+  ],
+  "type": "object"
+}

@@ -1,0 +1,36 @@
+{
+  "overall_state": "HEALTHY",
+  "venue": "BINANCE",
+  "market": "SPOT",
+  "symbol": "BTCUSDT",
+  "schema_version": "data-health-snapshot.v1",
+  "connection_state": "CONNECTED",
+  "last_message_age_ms": 50,
+  "receive_latency": {
+    "count": 100,
+    "min_ms": 10.5,
+    "max_ms": 250.0,
+    "p50_ms": 45.0,
+    "p95_ms": 120.0,
+    "p99_ms": 200.0,
+    "window_start_utc_ns": 1690000000000000000,
+    "window_end_utc_ns": 1690000060000000000
+  },
+  "publish_latency": {
+    "count": 100,
+    "min_ms": 1.0,
+    "max_ms": 15.0,
+    "p50_ms": 3.0,
+    "p95_ms": 8.0,
+    "p99_ms": 12.0,
+    "window_start_utc_ns": 1690000000000000000,
+    "window_end_utc_ns": 1690000060000000000
+  },
+  "sequence_gap_count": 0,
+  "resync_state": "SYNCED",
+  "book_synchronized": true,
+  "recorder_alive": true,
+  "gateway_alive": true,
+  "reason_codes": [],
+  "observed_time_utc_ns": 1690000060000000000
+}

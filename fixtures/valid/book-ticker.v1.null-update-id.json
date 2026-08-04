@@ -1,0 +1,23 @@
+{
+  "metadata": {
+    "venue": "BINANCE",
+    "market": "SPOT",
+    "symbol": "BTCUSDT",
+    "stream": "BOOK_TICKER",
+    "producer": "gateway",
+    "producer_version": "0.1.0",
+    "schema_version": "book-ticker.v1",
+    "connection_id": "conn-book-002",
+    "exchange_event_time_ms": 1690000007000,
+    "exchange_trade_time_ms": null,
+    "exchange_transaction_time_ms": null,
+    "receive_time_utc_ns": 1690000007000000000,
+    "receive_monotonic_ns": 7000000001,
+    "quality_flags": []
+  },
+  "update_id": null,
+  "best_bid_price": "29500.00",
+  "best_bid_quantity": "0.00000000",
+  "best_ask_price": "29501.00",
+  "best_ask_quantity": "1.00000000"
+}

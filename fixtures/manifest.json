@@ -1,0 +1,254 @@
+{
+  "fixtures": [
+    {
+      "path": "valid/depth-update.v1.spot.json",
+      "contract_name": "depth-update.v1",
+      "schema_version": "depth-update.v1",
+      "python_type": "DepthUpdate",
+      "valid": true,
+      "scenario": "BTCUSDT Spot depth update with multiple bid/ask levels and a removed level (quantity=0)",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/depth-update.v1.usdm.json",
+      "contract_name": "depth-update.v1",
+      "schema_version": "depth-update.v1",
+      "python_type": "DepthUpdate",
+      "valid": true,
+      "scenario": "BTCUSDT USD-M perpetual diff depth with previous_final_update_id and DUPLICATE quality flag",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/depth-update.v1.empty-bids.json",
+      "contract_name": "depth-update.v1",
+      "schema_version": "depth-update.v1",
+      "python_type": "DepthUpdate",
+      "valid": true,
+      "scenario": "Empty bids and asks — legally valid at contract level",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/agg-trade.v1.json",
+      "contract_name": "agg-trade.v1",
+      "schema_version": "agg-trade.v1",
+      "python_type": "AggTrade",
+      "valid": true,
+      "scenario": "BTCUSDT Spot aggregated trade with three individual trades",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/agg-trade.v1.same-ids.json",
+      "contract_name": "agg-trade.v1",
+      "schema_version": "agg-trade.v1",
+      "python_type": "AggTrade",
+      "valid": true,
+      "scenario": "Aggregated trade where first_trade_id equals last_trade_id (single trade aggregated)",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/book-ticker.v1.json",
+      "contract_name": "book-ticker.v1",
+      "schema_version": "book-ticker.v1",
+      "python_type": "BookTicker",
+      "valid": true,
+      "scenario": "BTCUSDT Spot book ticker with normal bid/ask spread",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/book-ticker.v1.null-update-id.json",
+      "contract_name": "book-ticker.v1",
+      "schema_version": "book-ticker.v1",
+      "python_type": "BookTicker",
+      "valid": true,
+      "scenario": "Book ticker with null update_id (exchange product does not provide it)",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/book-ticker.v1.crossed.json",
+      "contract_name": "book-ticker.v1",
+      "schema_version": "book-ticker.v1",
+      "python_type": "BookTicker",
+      "valid": true,
+      "scenario": "Crossed book (bid >= ask) — accepted at contract level, reported via CROSSED_BOOK quality flag",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/exchange-depth-snapshot.v1.json",
+      "contract_name": "exchange-depth-snapshot.v1",
+      "schema_version": "exchange-depth-snapshot.v1",
+      "python_type": "ExchangeDepthSnapshot",
+      "valid": true,
+      "scenario": "BTCUSDT Spot REST depth snapshot with three bid and two ask levels",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/local-order-book-snapshot.v1.json",
+      "contract_name": "local-order-book-snapshot.v1",
+      "schema_version": "local-order-book-snapshot.v1",
+      "python_type": "LocalOrderBookSnapshot",
+      "valid": true,
+      "scenario": "Synchronized local order book snapshot from gateway with depth_limit=100",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/local-order-book-snapshot.v1.with-gap.json",
+      "contract_name": "local-order-book-snapshot.v1",
+      "schema_version": "local-order-book-snapshot.v1",
+      "python_type": "LocalOrderBookSnapshot",
+      "valid": true,
+      "scenario": "Desynchronized local order book with a GapDescriptor indicating SEQUENCE_GAP and resync in progress",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/market-state-snapshot.v1.json",
+      "contract_name": "market-state-snapshot.v1",
+      "schema_version": "market-state-snapshot.v1",
+      "python_type": "MarketStateSnapshot",
+      "valid": true,
+      "scenario": "BTCUSDT Spot market state snapshot with mid, spread, and top-N depth",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/data-health-snapshot.v1.json",
+      "contract_name": "data-health-snapshot.v1",
+      "schema_version": "data-health-snapshot.v1",
+      "python_type": "DataHealthSnapshot",
+      "valid": true,
+      "scenario": "HEALTHY data health snapshot with all systems operational and no gaps",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/data-health-snapshot.v1.degraded.json",
+      "contract_name": "data-health-snapshot.v1",
+      "schema_version": "data-health-snapshot.v1",
+      "python_type": "DataHealthSnapshot",
+      "valid": true,
+      "scenario": "DEGRADED data health with sequence gaps, high message age, and zero-count publish latency",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "invalid/depth-update.v1.float-price.json",
+      "contract_name": "depth-update.v1",
+      "schema_version": "depth-update.v1",
+      "python_type": "DepthUpdate",
+      "valid": false,
+      "scenario": "Price field uses float instead of string",
+      "expected_error_code": "value_error",
+      "expected_error_path": "bids.0.price"
+    },
+    {
+      "path": "invalid/depth-update.v1.final-before-first.json",
+      "contract_name": "depth-update.v1",
+      "schema_version": "depth-update.v1",
+      "python_type": "DepthUpdate",
+      "valid": false,
+      "scenario": "final_update_id (5) is less than first_update_id (10)",
+      "expected_error_code": "value_error",
+      "expected_error_path": ""
+    },
+    {
+      "path": "invalid/depth-update.v1.negative-update-id.json",
+      "contract_name": "depth-update.v1",
+      "schema_version": "depth-update.v1",
+      "python_type": "DepthUpdate",
+      "valid": false,
+      "scenario": "first_update_id is negative (-1)",
+      "expected_error_code": "greater_than_equal",
+      "expected_error_path": "first_update_id"
+    },
+    {
+      "path": "invalid/depth-update.v1.scientific-notation.json",
+      "contract_name": "depth-update.v1",
+      "schema_version": "depth-update.v1",
+      "python_type": "DepthUpdate",
+      "valid": false,
+      "scenario": "Price uses scientific notation '1e3' which is rejected",
+      "expected_error_code": "value_error",
+      "expected_error_path": "bids.0.price"
+    },
+    {
+      "path": "invalid/depth-update.v1.leading-plus.json",
+      "contract_name": "depth-update.v1",
+      "schema_version": "depth-update.v1",
+      "python_type": "DepthUpdate",
+      "valid": false,
+      "scenario": "Price has leading plus sign '+29500.00'",
+      "expected_error_code": "value_error",
+      "expected_error_path": "bids.0.price"
+    },
+    {
+      "path": "invalid/depth-update.v1.negative-quantity.json",
+      "contract_name": "depth-update.v1",
+      "schema_version": "depth-update.v1",
+      "python_type": "DepthUpdate",
+      "valid": false,
+      "scenario": "Quantity is negative float (-1.0) — also rejected as non-string",
+      "expected_error_code": "value_error",
+      "expected_error_path": "bids.0.quantity"
+    },
+    {
+      "path": "invalid/agg-trade.v1.missing-metadata.json",
+      "contract_name": "agg-trade.v1",
+      "schema_version": "agg-trade.v1",
+      "python_type": "AggTrade",
+      "valid": false,
+      "scenario": "Missing required metadata field",
+      "expected_error_code": "missing",
+      "expected_error_path": "metadata"
+    },
+    {
+      "path": "invalid/agg-trade.v1.zero-price.json",
+      "contract_name": "agg-trade.v1",
+      "schema_version": "agg-trade.v1",
+      "python_type": "AggTrade",
+      "valid": false,
+      "scenario": "Price is '0' which is not > 0",
+      "expected_error_code": "value_error",
+      "expected_error_path": "price"
+    },
+    {
+      "path": "invalid/book-ticker.v1.unknown-field.json",
+      "contract_name": "book-ticker.v1",
+      "schema_version": "book-ticker.v1",
+      "python_type": "BookTicker",
+      "valid": false,
+      "scenario": "Unknown field 'unknown_field' should be rejected by extra=forbid",
+      "expected_error_code": "extra_forbidden",
+      "expected_error_path": "unknown_field"
+    },
+    {
+      "path": "invalid/book-ticker.v1.negative-quantity.json",
+      "contract_name": "book-ticker.v1",
+      "schema_version": "book-ticker.v1",
+      "python_type": "BookTicker",
+      "valid": false,
+      "scenario": "Quantity string '-1.0' starts with '-' which does not match the decimal pattern",
+      "expected_error_code": "value_error",
+      "expected_error_path": "best_ask_quantity"
+    },
+    {
+      "path": "invalid/metadata.v1.ambiguous-timestamp.json",
+      "contract_name": "exchange-depth-snapshot.v1",
+      "schema_version": "exchange-depth-snapshot.v1",
+      "python_type": "ExchangeDepthSnapshot",
+      "valid": false,
+      "scenario": "Unknown field 'timestamp' (ambiguous name forbidden) should be rejected",
+      "expected_error_code": "extra_forbidden",
+      "expected_error_path": "timestamp"
+    }
+  ]
+}

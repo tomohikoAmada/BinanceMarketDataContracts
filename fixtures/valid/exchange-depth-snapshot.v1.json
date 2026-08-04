@@ -1,0 +1,23 @@
+{
+  "venue": "BINANCE",
+  "market": "SPOT",
+  "symbol": "BTCUSDT",
+  "schema_version": "exchange-depth-snapshot.v1",
+  "producer": "recorder",
+  "producer_version": "0.1.0",
+  "request_id": "req-snapshot-001",
+  "last_update_id": 50001,
+  "bids": [
+    {"price": "29500.00", "quantity": "1.50000000"},
+    {"price": "29499.00", "quantity": "2.00000000"},
+    {"price": "29498.00", "quantity": "0.75000000"}
+  ],
+  "asks": [
+    {"price": "29501.00", "quantity": "1.00000000"},
+    {"price": "29502.00", "quantity": "3.00000000"}
+  ],
+  "exchange_transaction_time_ms": 1690000009000,
+  "receive_time_utc_ns": 1690000009000000000,
+  "receive_monotonic_ns": 9000000001,
+  "quality_flags": []
+}

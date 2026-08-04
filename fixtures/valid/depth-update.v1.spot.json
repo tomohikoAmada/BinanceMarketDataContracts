@@ -1,0 +1,30 @@
+{
+  "metadata": {
+    "venue": "BINANCE",
+    "market": "SPOT",
+    "symbol": "BTCUSDT",
+    "stream": "DIFF_DEPTH",
+    "producer": "recorder",
+    "producer_version": "0.1.0",
+    "schema_version": "depth-update.v1",
+    "connection_id": "conn-spot-btcusdt-001",
+    "exchange_event_time_ms": 1690000000123,
+    "exchange_trade_time_ms": null,
+    "exchange_transaction_time_ms": 1690000000456,
+    "receive_time_utc_ns": 1690000001000000000,
+    "receive_monotonic_ns": 1000000001,
+    "quality_flags": []
+  },
+  "first_update_id": 1001,
+  "final_update_id": 1005,
+  "previous_final_update_id": null,
+  "bids": [
+    {"price": "29500.50", "quantity": "1.23450000"},
+    {"price": "29500.00", "quantity": "2.50000000"},
+    {"price": "29499.90", "quantity": "0.00000000"}
+  ],
+  "asks": [
+    {"price": "29501.00", "quantity": "0.75000000"},
+    {"price": "29502.50", "quantity": "1.00000000"}
+  ]
+}

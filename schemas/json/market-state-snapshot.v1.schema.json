@@ -1,0 +1,229 @@
+{
+  "$defs": {
+    "Market": {
+      "enum": [
+        "SPOT",
+        "USD_M_PERPETUAL"
+      ],
+      "title": "Market",
+      "type": "string"
+    },
+    "PriceLevel": {
+      "additionalProperties": false,
+      "description": "A single price level in the order book.\n\nquantity represents the absolute quantity at this price level after the update.\nquantity == \"0\" means this price level should be removed.",
+      "properties": {
+        "price": {
+          "title": "Price"
+        },
+        "quantity": {
+          "title": "Quantity"
+        }
+      },
+      "required": [
+        "price",
+        "quantity"
+      ],
+      "title": "PriceLevel",
+      "type": "object"
+    },
+    "Venue": {
+      "enum": [
+        "BINANCE"
+      ],
+      "title": "Venue",
+      "type": "string"
+    }
+  },
+  "$id": "binance-market-data/market-state-snapshot.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Strategy-independent market state projection.\n\nContains derived market facts: best bid/ask, mid, spread, microprice,\nrecent trades, top-N depth, mark/index, funding, OI.\nDoes NOT contain predictions, alpha, or trading signals.",
+  "properties": {
+    "best_ask_price": {
+      "anyOf": [
+        {},
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "best_ask_quantity": {
+      "anyOf": [
+        {},
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "best_bid_price": {
+      "anyOf": [
+        {},
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "best_bid_quantity": {
+      "anyOf": [
+        {},
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "book_synchronized": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Whether the order book is synchronized"
+    },
+    "data_freshness_ms": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Age of the underlying data in milliseconds"
+    },
+    "funding_rate": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Current funding rate as a string (e.g. '0.0001')"
+    },
+    "funding_time": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Next funding time in milliseconds"
+    },
+    "generated_time_utc_ns": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "UTC time when this snapshot was generated (ns)"
+    },
+    "index_price": {
+      "anyOf": [
+        {},
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "mark_price": {
+      "anyOf": [
+        {},
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "market": {
+      "$ref": "#/$defs/Market"
+    },
+    "microprice": {
+      "anyOf": [
+        {},
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "mid_price": {
+      "anyOf": [
+        {},
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "open_interest": {
+      "anyOf": [
+        {},
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "producer": {
+      "type": "string"
+    },
+    "producer_version": {
+      "type": "string"
+    },
+    "schema_version": {
+      "description": "Contract version (e.g. 'market-state-snapshot.v1')",
+      "type": "string"
+    },
+    "spread": {
+      "anyOf": [
+        {},
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "symbol": {},
+    "top_n_depth": {
+      "description": "Top-N depth levels",
+      "items": {
+        "$ref": "#/$defs/PriceLevel"
+      },
+      "type": "array"
+    },
+    "venue": {
+      "$ref": "#/$defs/Venue"
+    }
+  },
+  "required": [
+    "venue",
+    "market",
+    "symbol",
+    "schema_version",
+    "producer",
+    "producer_version"
+  ],
+  "type": "object"
+}
