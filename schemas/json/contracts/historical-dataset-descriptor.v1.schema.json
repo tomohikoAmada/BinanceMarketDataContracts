@@ -31,35 +31,35 @@
       "type": "string"
     }
   },
-  "$id": "binance-market-data/historical-dataset-descriptor.v1.schema.json",
+  "$id": "urn:binance-market-data-contracts:historical-dataset-descriptor.v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "DRAFT — Describes a queryable, replayable historical dataset.\n\nDoes not expose archive mountpoints, catalog tables, or internal file paths.",
+  "description": "DRAFT — Describes a queryable, replayable historical dataset.",
   "properties": {
     "dataset_id": {
-      "description": "Unique identifier for this dataset",
+      "maxLength": 128,
+      "minLength": 1,
       "type": "string"
     },
-    "end_time": {
+    "end_time_utc_ns": {
       "anyOf": [
         {
-          "type": "string"
+          "minimum": 0,
+          "type": "integer"
         },
         {
           "type": "null"
         }
       ],
-      "default": null,
-      "description": "Dataset end time (ISO-8601 UTC)"
+      "default": null
     },
     "gap_count": {
       "default": 0,
-      "description": "Number of gaps in the dataset",
       "minimum": 0,
       "type": "integer"
     },
     "gap_intervals": {
-      "description": "Gap interval descriptions (ISO-8601 pairs)",
+      "default": [],
       "items": {
         "type": "string"
       },
@@ -74,29 +74,29 @@
           "type": "null"
         }
       ],
-      "default": null,
-      "description": "Hash of the dataset manifest"
+      "default": null
     },
     "market": {
       "$ref": "#/$defs/Market"
     },
     "partitions": {
       "default": 1,
-      "description": "Number of partitions",
       "minimum": 1,
       "type": "integer"
     },
     "producer": {
       "default": "recorder",
-      "description": "Producer module",
+      "maxLength": 256,
+      "minLength": 1,
       "type": "string"
     },
     "producer_version": {
-      "description": "Producer version",
+      "maxLength": 256,
+      "minLength": 1,
       "type": "string"
     },
     "query_capabilities": {
-      "description": "Supported query types (e.g. 'time_range', 'seek')",
+      "default": [],
       "items": {
         "type": "string"
       },
@@ -104,54 +104,57 @@
     },
     "reliability_state": {
       "$ref": "#/$defs/ReliabilityState",
-      "default": "UNKNOWN",
-      "description": "Overall reliability assessment"
+      "default": "UNKNOWN"
     },
     "replay_capabilities": {
-      "description": "Supported replay modes (e.g. 'receive_time_order', 'exchange_time_order')",
+      "default": [],
       "items": {
         "type": "string"
       },
       "type": "array"
     },
     "schema_version": {
-      "description": "Contract schema version",
+      "const": "historical-dataset-descriptor.v1",
+      "default": "historical-dataset-descriptor.v1",
       "type": "string"
     },
     "source_manifests": {
-      "description": "Source manifest references",
+      "default": [],
       "items": {
         "type": "string"
       },
       "type": "array"
     },
-    "start_time": {
+    "start_time_utc_ns": {
       "anyOf": [
         {
-          "type": "string"
+          "minimum": 0,
+          "type": "integer"
         },
         {
           "type": "null"
         }
       ],
-      "default": null,
-      "description": "Dataset start time (ISO-8601 UTC)"
+      "default": null
     },
     "streams": {
-      "description": "Streams included in this dataset",
+      "default": [],
       "items": {
         "$ref": "#/$defs/Stream"
       },
       "type": "array"
     },
-    "symbol": {}
+    "symbol": {
+      "maxLength": 20,
+      "minLength": 2,
+      "pattern": "^[A-Z0-9]+$",
+      "type": "string"
+    }
   },
   "required": [
     "dataset_id",
     "market",
     "symbol",
-    "streams",
-    "schema_version",
     "producer_version"
   ],
   "type": "object"

@@ -1,44 +1,35 @@
 """Identifier types for BinanceMarketData contracts.
 
-Provides strict, validated types for identifiers used across contracts.
+All identifier types use StringConstraints to ensure JSON Schema output
+includes minLength, maxLength, and pattern where applicable.
 """
 
-import re
 from typing import Annotated
 
-from pydantic import PlainValidator
+from pydantic import StringConstraints
 
+Symbol = Annotated[
+    str,
+    StringConstraints(
+        min_length=2,
+        max_length=20,
+        pattern=r"^[A-Z0-9]+$",
+        strip_whitespace=False,
+    ),
+]
 
-def _validate_symbol(v: object) -> str:
-    if not isinstance(v, str):
-        raise ValueError(f"symbol must be a string, got {type(v).__name__}")
-    if not re.match(r"^[A-Z0-9]{2,20}$", v):
-        raise ValueError(f"Invalid symbol format '{v}'. Must be 2-20 uppercase alphanumeric characters.")
-    return v
+NonEmptyIdentifier = Annotated[
+    str,
+    StringConstraints(
+        min_length=1,
+        max_length=128,
+        strip_whitespace=False,
+    ),
+]
 
-
-def _validate_connection_id(v: object) -> str:
-    if not isinstance(v, str):
-        raise ValueError(f"connection_id must be a string, got {type(v).__name__}")
-    stripped = v.strip()
-    if not stripped:
-        raise ValueError("connection_id must not be empty")
-    if len(stripped) > 128:
-        raise ValueError(f"connection_id too long ({len(stripped)} > 128)")
-    return stripped
-
-
-def _validate_request_id(v: object) -> str:
-    if not isinstance(v, str):
-        raise ValueError(f"request_id must be a string, got {type(v).__name__}")
-    stripped = v.strip()
-    if not stripped:
-        raise ValueError("request_id must not be empty")
-    if len(stripped) > 128:
-        raise ValueError(f"request_id too long ({len(stripped)} > 128)")
-    return stripped
-
-
-Symbol = Annotated[str, PlainValidator(_validate_symbol)]
-ConnectionId = Annotated[str, PlainValidator(_validate_connection_id)]
-RequestId = Annotated[str, PlainValidator(_validate_request_id)]
+ConnectionId = NonEmptyIdentifier
+RequestId = NonEmptyIdentifier
+DatasetId = NonEmptyIdentifier
+CommandId = NonEmptyIdentifier
+InstanceId = NonEmptyIdentifier
+SnapshotId = NonEmptyIdentifier

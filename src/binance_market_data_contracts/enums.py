@@ -1,6 +1,6 @@
 """Public enums for BinanceMarketData contracts.
 
-All enums use string values for JSON and cross-language readability.
+All enums use StrEnum for JSON and cross-language readability.
 Values are stable — adding new members is generally compatible,
 removing or renaming existing members is BREAKING.
 """
@@ -65,10 +65,7 @@ class QualityFlag(StrEnum):
 
 
 class ReasonCode(StrEnum):
-    """Reason codes explain Health state judgments — why a state was chosen.
-
-    These are distinct from QualityFlag which describes data facts.
-    """
+    """Reason codes explain Health state judgments — why a state was chosen."""
 
     CONNECTION_LOST = "CONNECTION_LOST"
     CONNECTION_RESUMED = "CONNECTION_RESUMED"
@@ -98,3 +95,42 @@ class ContractStatus(StrEnum):
     ACCEPTED = "ACCEPTED"
     DEPRECATED = "DEPRECATED"
     REMOVED = "REMOVED"
+
+
+class ConnectionState(StrEnum):
+    CONNECTING = "CONNECTING"
+    CONNECTED = "CONNECTED"
+    RECONNECTING = "RECONNECTING"
+    DISCONNECTED = "DISCONNECTED"
+    FAILED = "FAILED"
+
+
+class ResyncState(StrEnum):
+    SYNCHRONIZED = "SYNCHRONIZED"
+    RESYNC_REQUIRED = "RESYNC_REQUIRED"
+    RESYNC_IN_PROGRESS = "RESYNC_IN_PROGRESS"
+    RECOVERED = "RECOVERED"
+    RESYNC_FAILED = "RESYNC_FAILED"
+
+
+class SnapshotSource(StrEnum):
+    GATEWAY_LIVE = "GATEWAY_LIVE"
+    RECORDER_REPLAY = "RECORDER_REPLAY"
+    HISTORY_REPLAY = "HISTORY_REPLAY"
+
+
+class ReplayClock(StrEnum):
+    RECEIVE_TIME = "RECEIVE_TIME"
+    EXCHANGE_TIME = "EXCHANGE_TIME"
+
+
+class MissingExchangeTimePolicy(StrEnum):
+    ERROR = "ERROR"
+    EXCLUDE = "EXCLUDE"
+    FALLBACK_RECEIVE = "FALLBACK_RECEIVE"
+
+
+class GapPolicy(StrEnum):
+    ERROR = "ERROR"
+    INCLUDE = "INCLUDE"
+    EXCLUDE = "EXCLUDE"

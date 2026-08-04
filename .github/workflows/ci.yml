@@ -31,10 +31,23 @@ jobs:
       - name: pytest
         run: pytest -q
       - name: Schema export
-        run: python -m binance_market_data_contracts.schema_export
+        run: python -m binance_market_data_contracts.schema_export --output schemas/json
       - name: Schema drift check
         run: git diff --exit-code -- schemas/json
       - name: Build package
         run: python -m build
       - name: Twine check
         run: python -m twine check dist/*
+      - name: Wheel smoke test
+        run: |
+          python -m venv /tmp/contracts-wheel-test
+          /tmp/contracts-wheel-test/bin/python -m pip install --upgrade pip
+          /tmp/contracts-wheel-test/bin/python -m pip install dist/*.whl
+          /tmp/contracts-wheel-test/bin/python -c "
+          import binance_market_data_contracts as contracts
+          assert contracts.__version__ == '0.1.0a1'
+          assert hasattr(contracts, 'DepthUpdate')
+          print('wheel import ok')
+          "
+          /tmp/contracts-wheel-test/bin/schema-export --output /tmp/exported-schemas
+          echo "schema-export from wheel ok"

@@ -1,16 +1,18 @@
 """DRAFT — Control contracts.
 
 Defines operational control commands and their results.
-These are read-only operational commands — no trading, account, or strategy commands.
+Uses discriminated parameter types, not unrestricted dict.
 """
 
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Annotated, Literal
 
 from pydantic import Field
 
-from binance_market_data_contracts.common import ContractModel
+from binance_market_data_contracts.common import ContractModel, NonEmptyText
+from binance_market_data_contracts.identifiers import CommandId
 
 
 class CommandType(StrEnum):
@@ -30,43 +32,72 @@ class CommandStatus(StrEnum):
     TIMED_OUT = "TIMED_OUT"
 
 
+class GetStatusParameters(ContractModel):
+    type: Literal["GET_STATUS"] = "GET_STATUS"
+
+
+class ValidateDataParameters(ContractModel):
+    type: Literal["VALIDATE_DATA"] = "VALIDATE_DATA"
+    market: str | None = None
+    symbol: str | None = None
+
+
+class TriggerArchiveParameters(ContractModel):
+    type: Literal["TRIGGER_ARCHIVE"] = "TRIGGER_ARCHIVE"
+    target_date: str | None = None
+
+
+class TriggerResyncParameters(ContractModel):
+    type: Literal["TRIGGER_RESYNC"] = "TRIGGER_RESYNC"
+    market: str | None = None
+    symbol: str | None = None
+
+
+class GenerateDiagnosticBundleParameters(ContractModel):
+    type: Literal["GENERATE_DIAGNOSTIC_BUNDLE"] = "GENERATE_DIAGNOSTIC_BUNDLE"
+    include_raw: bool = False
+
+
+CommandParameters = Annotated[
+    GetStatusParameters
+    | ValidateDataParameters
+    | TriggerArchiveParameters
+    | TriggerResyncParameters
+    | GenerateDiagnosticBundleParameters,
+    Field(discriminator="type"),
+]
+
+
+class AuditMetadata(ContractModel):
+    requester: NonEmptyText
+    source: NonEmptyText = "cli"
+    trace_id: str | None = None
+    correlation_id: str | None = None
+
+
 class ControlCommand(ContractModel):
-    """DRAFT — Operational control command.
+    """DRAFT — Operational control command."""
 
-    Commands are limited to operational actions:
-    status queries, data validation, archive triggering, resync, and diagnostics.
-
-    Trading, account, position, and strategy commands are FORBIDDEN.
-    """
-
-    command_id: str = Field(..., description="Unique command identifier")
+    command_id: CommandId
     command_type: CommandType
-    target: str = Field(..., description="Target module or resource")
-    requested_at: str = Field(..., description="ISO-8601 UTC timestamp when the command was requested")
-    requester: str = Field(..., description="Identity of the requester (user or system)")
-    schema_version: str = Field(default="control-command.v1", description="Contract schema version")
-    parameters: dict[str, str] | None = Field(
-        default=None,
-        description="Command parameters as key-value pairs. Values are strings for schema stability.",
-    )
-    idempotency_key: str | None = Field(
-        default=None, description="Idempotency key — duplicated commands with same key have no effect"
-    )
-    timeout_seconds: int | None = Field(default=None, ge=1, description="Command timeout in seconds")
+    target: NonEmptyText
+    requested_at_utc_ns: int = Field(..., ge=0)
+    requester: NonEmptyText
+    schema_version: Literal["control-command.v1"] = "control-command.v1"
+    parameters: CommandParameters | None = None
+    idempotency_key: str | None = None
+    timeout_seconds: int | None = Field(default=None, ge=1)
 
 
 class CommandResult(ContractModel):
     """DRAFT — Result of a control command execution."""
 
-    command_id: str = Field(..., description="Command identifier matching the request")
+    command_id: CommandId
     status: CommandStatus
-    error_code: str | None = Field(default=None, description="Machine-readable error code on failure")
-    error_message: str | None = Field(default=None, description="Human-readable error description on failure")
-    result_summary: str | None = Field(default=None, description="Summary of the command result")
-    requested_at: str
-    executed_at: str | None = Field(default=None, description="ISO-8601 UTC timestamp when the command completed")
-    schema_version: str = Field(default="command-result.v1", description="Contract schema version")
-    audit_metadata: dict[str, str] | None = Field(
-        default=None,
-        description="Audit trail metadata (keys and values are strings for schema stability)",
-    )
+    error_code: str | None = None
+    error_message: str | None = None
+    result_summary: str | None = None
+    requested_at_utc_ns: int = Field(..., ge=0)
+    executed_at_utc_ns: int | None = Field(default=None, ge=0)
+    schema_version: Literal["command-result.v1"] = "command-result.v1"
+    audit_metadata: AuditMetadata | None = None

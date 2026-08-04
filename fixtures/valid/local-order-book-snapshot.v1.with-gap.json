@@ -2,10 +2,9 @@
   "venue": "BINANCE",
   "market": "SPOT",
   "symbol": "BTCUSDT",
-  "schema_version": "local-order-book-snapshot.v1",
   "producer": "gateway",
   "producer_version": "0.1.0",
-  "source": "gateway-live",
+  "source": "GATEWAY_LIVE",
   "last_update_id": 60010,
   "bids": [
     {"price": "29400.00", "quantity": "3.00000000"}
@@ -13,7 +12,6 @@
   "asks": [
     {"price": "29410.00", "quantity": "0.50000000"}
   ],
-  "depth_limit": null,
   "generated_time_utc_ns": 1690000011000000000,
   "generated_monotonic_ns": 11000000001,
   "synchronized": false,
@@ -22,7 +20,6 @@
     "detected_at_utc_ns": 1690000010000000000,
     "previous_sequence": 60005,
     "next_sequence": 60010,
-    "reason_code": "SEQUENCE_GAP_DETECTED",
     "recovery_state": "RESYNC_IN_PROGRESS"
   },
   "quality_flags": ["SEQUENCE_GAP", "SNAPSHOT_BRIDGE_PENDING"]

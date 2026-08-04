@@ -2,12 +2,15 @@
 
 Generates Draft 2020-12 JSON Schema files for all contracts in the registry.
 Output is byte-stable — running twice produces identical files.
+
+Usage:
+    python -m binance_market_data_contracts.schema_export --output schemas/json
 """
 
 from __future__ import annotations
 
+import argparse
 import json
-import os
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +18,6 @@ from binance_market_data_contracts.versions import CONTRACT_REGISTRY
 
 
 def _make_deterministic(schema: dict[str, Any]) -> dict[str, Any]:
-    """Remove non-deterministic fields and normalize schema."""
     schema.pop("title", None)
     if "properties" in schema:
         for prop in schema["properties"].values():
@@ -24,19 +26,22 @@ def _make_deterministic(schema: dict[str, Any]) -> dict[str, Any]:
     return schema
 
 
-def export_schemas(output_dir: str, indent: int = 2) -> list[str]:
+def export_schemas(output_dir: Path) -> list[Path]:
     """Export all registry contracts to JSON Schema files.
 
-    Returns the list of written file paths.
+    Args:
+        output_dir: Target directory for schema files.
+
+    Returns:
+        List of written file paths.
     """
-    out = Path(output_dir)
-    out.mkdir(parents=True, exist_ok=True)
-    written: list[str] = []
+    output_dir.mkdir(parents=True, exist_ok=True)
+    written: list[Path] = []
+
+    contracts_dir = output_dir / "contracts"
+    contracts_dir.mkdir(parents=True, exist_ok=True)
 
     schema_catalog: dict[str, Any] = {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "title": "BinanceMarketData Contract Schema Catalog",
-        "description": "Auto-generated schema catalog. Do not edit manually.",
         "contracts": {},
     }
 
@@ -44,40 +49,49 @@ def export_schemas(output_dir: str, indent: int = 2) -> list[str]:
         model_schema = entry.python_type.model_json_schema()
         model_schema = _make_deterministic(model_schema)
         model_schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
-        model_schema["$id"] = f"binance-market-data/{name}.schema.json"
+        model_schema["$id"] = f"urn:binance-market-data-contracts:{name}"
 
-        filename = f"{name}.schema.json"
-        filepath = out / filename
+        filepath = contracts_dir / f"{name}.schema.json"
         with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(model_schema, f, indent=indent, sort_keys=True, ensure_ascii=False)
+            json.dump(model_schema, f, indent=2, sort_keys=True, ensure_ascii=False)
             f.write("\n")
-        written.append(str(filepath))
+        written.append(filepath)
 
         schema_catalog["contracts"][name] = {
             "status": entry.status.value,
-            "producer": entry.producer,
-            "consumer": entry.consumer,
+            "producers": list(entry.producers),
+            "consumers": list(entry.consumers),
             "schema_id": model_schema["$id"],
-            "filename": filename,
+            "filename": str(filepath.relative_to(output_dir)),
         }
 
-    catalog_path = out / "__catalog__.schema.json"
+    catalog_path = output_dir / "contract-catalog.json"
     with open(catalog_path, "w", encoding="utf-8") as f:
-        json.dump(schema_catalog, f, indent=indent, sort_keys=True, ensure_ascii=False)
+        json.dump(schema_catalog, f, indent=2, sort_keys=True, ensure_ascii=False)
         f.write("\n")
-    written.append(str(catalog_path))
+    written.append(catalog_path)
 
     return written
 
 
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Export JSON Schema for all contracts")
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path.cwd() / "schemas" / "json",
+        help="Output directory for schema files (default: ./schemas/json)",
+    )
+    return parser
+
+
 def main() -> None:
-    """CLI entry point for schema export."""
-    repo_root = Path(__file__).resolve().parents[2]
-    output_dir = repo_root / "schemas" / "json"
-    written = export_schemas(str(output_dir))
-    for path in written:
-        print(f"  wrote: {os.path.relpath(path, repo_root)}")
-    print(f"Exported {len(written)} files to {output_dir}")
+    parser = build_parser()
+    args = parser.parse_args()
+    written = export_schemas(args.output.resolve())
+    for path in sorted(written):
+        print(f"  wrote: {path}")
+    print(f"Exported {len(written)} files to {args.output.resolve()}")
 
 
 if __name__ == "__main__":

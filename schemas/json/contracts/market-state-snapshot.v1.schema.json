@@ -13,10 +13,14 @@
       "description": "A single price level in the order book.\n\nquantity represents the absolute quantity at this price level after the update.\nquantity == \"0\" means this price level should be removed.",
       "properties": {
         "price": {
-          "title": "Price"
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Price",
+          "type": "string"
         },
         "quantity": {
-          "title": "Quantity"
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Quantity",
+          "type": "string"
         }
       },
       "required": [
@@ -34,14 +38,17 @@
       "type": "string"
     }
   },
-  "$id": "binance-market-data/market-state-snapshot.v1.schema.json",
+  "$id": "urn:binance-market-data-contracts:market-state-snapshot.v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Strategy-independent market state projection.\n\nContains derived market facts: best bid/ask, mid, spread, microprice,\nrecent trades, top-N depth, mark/index, funding, OI.\nDoes NOT contain predictions, alpha, or trading signals.",
+  "description": "Strategy-independent market state projection.\n\nContains derived market facts. Does NOT contain predictions, alpha, or trading signals.",
   "properties": {
     "best_ask_price": {
       "anyOf": [
-        {},
+        {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "type": "string"
+        },
         {
           "type": "null"
         }
@@ -50,7 +57,10 @@
     },
     "best_ask_quantity": {
       "anyOf": [
-        {},
+        {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "type": "string"
+        },
         {
           "type": "null"
         }
@@ -59,7 +69,10 @@
     },
     "best_bid_price": {
       "anyOf": [
-        {},
+        {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "type": "string"
+        },
         {
           "type": "null"
         }
@@ -68,7 +81,10 @@
     },
     "best_bid_quantity": {
       "anyOf": [
-        {},
+        {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "type": "string"
+        },
         {
           "type": "null"
         }
@@ -84,8 +100,7 @@
           "type": "null"
         }
       ],
-      "default": null,
-      "description": "Whether the order book is synchronized"
+      "default": null
     },
     "data_freshness_ms": {
       "anyOf": [
@@ -97,33 +112,31 @@
           "type": "null"
         }
       ],
-      "default": null,
-      "description": "Age of the underlying data in milliseconds"
+      "default": null
     },
-    "funding_rate": {
+    "depth_limit": {
       "anyOf": [
         {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "Current funding rate as a string (e.g. '0.0001')"
-    },
-    "funding_time": {
-      "anyOf": [
-        {
-          "minimum": 0,
+          "exclusiveMinimum": 0,
           "type": "integer"
         },
         {
           "type": "null"
         }
       ],
-      "default": null,
-      "description": "Next funding time in milliseconds"
+      "default": null
+    },
+    "funding_rate": {
+      "anyOf": [
+        {
+          "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "generated_time_utc_ns": {
       "anyOf": [
@@ -135,12 +148,14 @@
           "type": "null"
         }
       ],
-      "default": null,
-      "description": "UTC time when this snapshot was generated (ns)"
+      "default": null
     },
     "index_price": {
       "anyOf": [
-        {},
+        {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "type": "string"
+        },
         {
           "type": "null"
         }
@@ -149,7 +164,10 @@
     },
     "mark_price": {
       "anyOf": [
-        {},
+        {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "type": "string"
+        },
         {
           "type": "null"
         }
@@ -161,7 +179,10 @@
     },
     "microprice": {
       "anyOf": [
-        {},
+        {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "type": "string"
+        },
         {
           "type": "null"
         }
@@ -170,7 +191,22 @@
     },
     "mid_price": {
       "anyOf": [
-        {},
+        {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "next_funding_time_ms": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
         {
           "type": "null"
         }
@@ -179,7 +215,10 @@
     },
     "open_interest": {
       "anyOf": [
-        {},
+        {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "type": "string"
+        },
         {
           "type": "null"
         }
@@ -187,27 +226,47 @@
       "default": null
     },
     "producer": {
+      "maxLength": 256,
+      "minLength": 1,
       "type": "string"
     },
     "producer_version": {
+      "maxLength": 256,
+      "minLength": 1,
       "type": "string"
     },
     "schema_version": {
-      "description": "Contract version (e.g. 'market-state-snapshot.v1')",
+      "const": "market-state-snapshot.v1",
+      "default": "market-state-snapshot.v1",
       "type": "string"
     },
     "spread": {
       "anyOf": [
-        {},
+        {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "type": "string"
+        },
         {
           "type": "null"
         }
       ],
       "default": null
     },
-    "symbol": {},
-    "top_n_depth": {
-      "description": "Top-N depth levels",
+    "symbol": {
+      "maxLength": 20,
+      "minLength": 2,
+      "pattern": "^[A-Z0-9]+$",
+      "type": "string"
+    },
+    "top_asks": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/PriceLevel"
+      },
+      "type": "array"
+    },
+    "top_bids": {
+      "default": [],
       "items": {
         "$ref": "#/$defs/PriceLevel"
       },
@@ -221,7 +280,6 @@
     "venue",
     "market",
     "symbol",
-    "schema_version",
     "producer",
     "producer_version"
   ],

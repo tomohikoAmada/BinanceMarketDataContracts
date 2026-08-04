@@ -19,16 +19,17 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "pydantic>=2.0",
+    "pydantic>=2.10,<3",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.0",
-    "ruff>=0.8.0",
-    "mypy>=1.0",
-    "build>=1.0",
-    "twine>=5.0",
+    "pytest>=8,<10",
+    "ruff>=0.8,<1",
+    "mypy>=1.13,<2",
+    "build>=1,<2",
+    "twine>=5,<7",
+    "jsonschema>=4.23,<5",
 ]
 
 [project.scripts]
@@ -41,6 +42,7 @@ exclude = ["build", "dist", ".venv", "venv"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "TCH", "RUF"]
+ignore = ["TC001", "SIM102", "B007", "B011"]
 
 [tool.ruff.format]
 quote-style = "double"

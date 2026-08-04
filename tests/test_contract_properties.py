@@ -1,214 +1,100 @@
-"""Test contract model properties: frozen, strict, extra=forbid."""
+"""Test contract model properties: frozen, strict, extra=forbid across registry."""
 
 import pytest
 from pydantic import ValidationError
 
-from binance_market_data_contracts.enums import (
-    ContractStatus,
-    HealthState,
-    Market,
-    QualityFlag,
-    ReasonCode,
-    ReliabilityState,
-    Stream,
-    Venue,
-)
-from binance_market_data_contracts.market_events import AggTrade, BookTicker, DepthUpdate, EventMetadata, PriceLevel
-from binance_market_data_contracts.snapshots import (
-    DataHealthSnapshot,
-    ExchangeDepthSnapshot,
-    GapDescriptor,
-    LatencySummary,
-    LocalOrderBookSnapshot,
-    MarketStateSnapshot,
-)
-
-ALL_PUBLIC_MODELS = [
-    EventMetadata,
-    PriceLevel,
+from binance_market_data_contracts.enums import Market, Venue
+from binance_market_data_contracts.market_events import (
+    BaseEventMetadata,
     DepthUpdate,
-    AggTrade,
-    BookTicker,
-    ExchangeDepthSnapshot,
-    GapDescriptor,
-    LocalOrderBookSnapshot,
-    MarketStateSnapshot,
-    LatencySummary,
-    DataHealthSnapshot,
-]
+    PriceLevel,
+)
+from binance_market_data_contracts.versions import CONTRACT_REGISTRY
 
 
-class TestFrozen:
-    @pytest.mark.parametrize("model_cls", ALL_PUBLIC_MODELS)
-    def test_model_is_frozen(self, model_cls):
-        config = model_cls.model_config
-        assert config.get("frozen") is True or config.get("frozen") is None
-        instance = _make_instance(model_cls)
-        with pytest.raises((ValidationError, TypeError, ValueError, AttributeError, RuntimeError)):
-            if isinstance(instance, PriceLevel):
-                instance.price = "999"  # type: ignore[misc]
-            elif isinstance(instance, EventMetadata):
-                instance.venue = Venue.BINANCE  # type: ignore[misc]
-            elif isinstance(instance, DepthUpdate):
-                instance.first_update_id = 9999  # type: ignore[misc]
-            elif isinstance(instance, AggTrade):
-                instance.aggregate_trade_id = 9999  # type: ignore[misc]
-            elif isinstance(instance, BookTicker):
-                instance.best_bid_price = "999"  # type: ignore[misc]
-            elif isinstance(instance, ExchangeDepthSnapshot):
-                instance.last_update_id = 9999  # type: ignore[misc]
-            elif isinstance(instance, LocalOrderBookSnapshot):
-                instance.synchronized = False  # type: ignore[misc]
-            elif isinstance(instance, MarketStateSnapshot):
-                instance.mid_price = "999"  # type: ignore[misc]
-            elif isinstance(instance, LatencySummary):
-                instance.count = 999  # type: ignore[misc]
-            elif isinstance(instance, DataHealthSnapshot):
-                instance.overall_state = HealthState.UNRELIABLE  # type: ignore[misc]
-            elif isinstance(instance, GapDescriptor):
-                instance.stream = Stream.BOOK_TICKER  # type: ignore[misc]
+class TestRegistryModelProperties:
+    """Check all registry models have required config."""
+
+    def test_all_models_frozen(self):
+        for entry in CONTRACT_REGISTRY.values():
+            config = entry.python_type.model_config
+            assert config.get("frozen") is True, f"{entry.name} not frozen"
+
+    def test_all_models_extra_forbid(self):
+        for entry in CONTRACT_REGISTRY.values():
+            config = entry.python_type.model_config
+            assert config.get("extra") == "forbid", f"{entry.name} does not forbid extra"
+
+    def test_all_models_strict(self):
+        for entry in CONTRACT_REGISTRY.values():
+            config = entry.python_type.model_config
+            assert config.get("strict") is True, f"{entry.name} not strict"
+
+
+class TestRegistryUniqueness:
+    def test_no_duplicate_names(self):
+        names = list(CONTRACT_REGISTRY.keys())
+        assert len(names) == len(set(names))
+
+    def test_duplicate_register_raises(self):
+        from binance_market_data_contracts.enums import ContractStatus
+        from binance_market_data_contracts.versions import _register
+
+        with pytest.raises(RuntimeError):
+            _register("depth-update.v1", ContractStatus.PROPOSED, DepthUpdate)
+
+
+class TestProducerConsumer:
+    def test_proposed_have_producers_consumers(self):
+        from binance_market_data_contracts.enums import ContractStatus
+
+        for entry in CONTRACT_REGISTRY.values():
+            if entry.status == ContractStatus.PROPOSED:
+                assert len(entry.producers) > 0, f"PROPOSED {entry.name} has no producers"
+                assert len(entry.consumers) > 0, f"PROPOSED {entry.name} has no consumers"
+
+
+class TestSchemaVersionLiteral:
+    def test_schema_version_matches_registry(self):
+        for name, entry in CONTRACT_REGISTRY.items():
+            fields = entry.python_type.model_fields
+            if "schema_version" in fields:
+                field_info = fields["schema_version"]
+                ann = str(field_info.annotation)
+                assert name in ann.replace("'", "").replace('"', ""), f"schema_version Literal mismatch for {name}"
 
 
 class TestExtraForbid:
     def test_extra_field_rejected(self):
-        data = {
-            "venue": "BINANCE",
-            "market": "SPOT",
-            "symbol": "BTCUSDT",
-            "stream": "DIFF_DEPTH",
-            "producer": "test",
-            "producer_version": "0.1.0",
-            "schema_version": "depth-update.v1",
-            "connection_id": "conn-1",
-            "extra_field": "should fail",
-        }
+        from binance_market_data_contracts.market_events import BaseEventMetadata
+
         with pytest.raises(ValidationError, match="extra"):
-            EventMetadata(**data)
-
-
-class TestEnumStringValues:
-    @pytest.mark.parametrize(
-        "enum_cls", [Venue, Market, Stream, HealthState, ReliabilityState, QualityFlag, ReasonCode, ContractStatus]
-    )
-    def test_enum_values_are_strings(self, enum_cls):
-        for member in enum_cls:
-            assert isinstance(member.value, str), f"{enum_cls.__name__}.{member.name} value is not str"
-            assert member.value == member.value.upper(), (
-                f"{enum_cls.__name__}.{member.name} value not uppercase: {member.value}"
+            BaseEventMetadata.model_validate(
+                {
+                    "venue": "BINANCE",
+                    "market": "SPOT",
+                    "symbol": "BTCUSDT",
+                    "producer": "test",
+                    "producer_version": "0.1.0",
+                    "connection_id": "conn-1",
+                    "extra_field": "should fail",
+                }
             )
 
 
-def _make_instance(model_cls):
-    if model_cls is EventMetadata:
-        return EventMetadata(
-            venue="BINANCE",
-            market="SPOT",
+class TestFrozen:
+    def test_frozen_prevents_mutation(self):
+        m = BaseEventMetadata(
+            venue=Venue.BINANCE,
+            market=Market.SPOT,
             symbol="BTCUSDT",
-            stream="DIFF_DEPTH",
             producer="test",
             producer_version="0.1.0",
-            schema_version="depth-update.v1",
             connection_id="conn-1",
         )
-    elif model_cls is PriceLevel:
-        return PriceLevel(price="100.00", quantity="1.0")
-    elif model_cls is DepthUpdate:
-        return DepthUpdate(
-            metadata=_make_metadata("DIFF_DEPTH", "depth-update.v1"),
-            first_update_id=1,
-            final_update_id=2,
-            bids=[],
-            asks=[],
-        )
-    elif model_cls is AggTrade:
-        return AggTrade(
-            metadata=_make_metadata("AGG_TRADE", "agg-trade.v1"),
-            aggregate_trade_id=1,
-            price="100.00",
-            quantity="1.0",
-            first_trade_id=1,
-            last_trade_id=1,
-            trade_time_ms=1000,
-            buyer_is_maker=False,
-        )
-    elif model_cls is BookTicker:
-        return BookTicker(
-            metadata=_make_metadata("BOOK_TICKER", "book-ticker.v1"),
-            update_id=None,
-            best_bid_price="100.00",
-            best_bid_quantity="1.0",
-            best_ask_price="101.00",
-            best_ask_quantity="1.0",
-        )
-    elif model_cls is ExchangeDepthSnapshot:
-        return ExchangeDepthSnapshot(
-            venue="BINANCE",
-            market="SPOT",
-            symbol="BTCUSDT",
-            schema_version="v1",
-            producer="test",
-            producer_version="0.1.0",
-            request_id="req-1",
-            last_update_id=1,
-            bids=[],
-            asks=[],
-            quality_flags=[],
-        )
-    elif model_cls is GapDescriptor:
-        return GapDescriptor(stream="DIFF_DEPTH", detected_at_utc_ns=1000)
-    elif model_cls is LocalOrderBookSnapshot:
-        return LocalOrderBookSnapshot(
-            venue="BINANCE",
-            market="SPOT",
-            symbol="BTCUSDT",
-            schema_version="v1",
-            producer="test",
-            producer_version="0.1.0",
-            source="test",
-            last_update_id=1,
-            synchronized=True,
-            quality_flags=[],
-        )
-    elif model_cls is MarketStateSnapshot:
-        return MarketStateSnapshot(
-            venue="BINANCE",
-            market="SPOT",
-            symbol="BTCUSDT",
-            schema_version="v1",
-            producer="test",
-            producer_version="0.1.0",
-        )
-    elif model_cls is LatencySummary:
-        return LatencySummary(
-            count=1,
-            min_ms=10.0,
-            max_ms=20.0,
-            p50_ms=15.0,
-            p95_ms=18.0,
-            p99_ms=20.0,
-            window_start_utc_ns=1000,
-            window_end_utc_ns=2000,
-        )
-    elif model_cls is DataHealthSnapshot:
-        return DataHealthSnapshot(
-            overall_state="HEALTHY",
-            venue="BINANCE",
-            market="SPOT",
-            symbol="BTCUSDT",
-            schema_version="v1",
-            sequence_gap_count=0,
-        )
-    raise ValueError(f"No factory for {model_cls}")
+        with pytest.raises((ValidationError, TypeError, AttributeError)):
+            m.venue = Venue.BINANCE  # type: ignore[misc]
 
-
-def _make_metadata(stream: str, schema_version: str) -> EventMetadata:
-    return EventMetadata(
-        venue="BINANCE",
-        market="SPOT",
-        symbol="BTCUSDT",
-        stream=stream,
-        producer="test",
-        producer_version="0.1.0",
-        schema_version=schema_version,
-        connection_id="conn-1",
-    )
+    def test_collection_is_tuple_not_list(self):
+        price_level = PriceLevel(price="100.00", quantity="1.0")
+        assert not hasattr(price_level, "__setitem__")

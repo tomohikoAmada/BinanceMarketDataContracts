@@ -1,9 +1,13 @@
 {
+  "health_snapshot_id": "hs-001",
   "overall_state": "HEALTHY",
   "venue": "BINANCE",
   "market": "SPOT",
   "symbol": "BTCUSDT",
-  "schema_version": "data-health-snapshot.v1",
+  "producer": "health",
+  "producer_version": "0.1.0",
+  "source_instance_id": "health-001",
+  "stream": null,
   "connection_state": "CONNECTED",
   "last_message_age_ms": 50,
   "receive_latency": {
@@ -27,10 +31,11 @@
     "window_end_utc_ns": 1690000060000000000
   },
   "sequence_gap_count": 0,
-  "resync_state": "SYNCED",
+  "resync_state": "SYNCHRONIZED",
   "book_synchronized": true,
   "recorder_alive": true,
   "gateway_alive": true,
   "reason_codes": [],
-  "observed_time_utc_ns": 1690000060000000000
+  "observed_time_utc_ns": 1690000060000000000,
+  "quality_flags": []
 }

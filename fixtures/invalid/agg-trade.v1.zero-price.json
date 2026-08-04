@@ -3,17 +3,9 @@
     "venue": "BINANCE",
     "market": "SPOT",
     "symbol": "BTCUSDT",
-    "stream": "AGG_TRADE",
     "producer": "gateway",
     "producer_version": "0.1.0",
-    "schema_version": "agg-trade.v1",
-    "connection_id": "conn-invalid-007",
-    "exchange_event_time_ms": 1690000007000,
-    "exchange_trade_time_ms": null,
-    "exchange_transaction_time_ms": null,
-    "receive_time_utc_ns": 1690000007000000000,
-    "receive_monotonic_ns": 7000000001,
-    "quality_flags": []
+    "connection_id": "conn-invalid-007"
   },
   "aggregate_trade_id": 5001,
   "price": "0",

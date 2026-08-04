@@ -1,12 +1,12 @@
-"""Contract error types."""
+"""Contract error types.
+
+Model validation errors use pydantic.ValidationError, not custom types.
+This module provides schema-level errors only.
+"""
 
 
 class ContractError(Exception):
-    """Base class for contract-related errors."""
-
-
-class ValidationError(ContractError):
-    """A contract validation error."""
+    """Base class for contract schema-level errors."""
 
 
 class SchemaVersionError(ContractError):

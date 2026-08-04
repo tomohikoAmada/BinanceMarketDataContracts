@@ -16,15 +16,21 @@ def test_all_exports_exist():
         assert obj is not None, f"{name} is None"
 
 
-def test_accepted_types_importable():
+def test_proposed_types_importable():
     from binance_market_data_contracts import (  # noqa: F401
         AggTrade,
+        AggTradeMetadata,
+        BaseEventMetadata,
         BookTicker,
+        BookTickerMetadata,
+        ConnectionId,
+        ConnectionState,
         ContractError,
         ContractModel,
         ContractStatus,
+        DataHealthSnapshot,
         DepthUpdate,
-        EventMetadata,
+        DepthUpdateMetadata,
         ExchangeDepthSnapshot,
         GapDescriptor,
         HealthState,
@@ -37,10 +43,11 @@ def test_accepted_types_importable():
         ReasonCode,
         ReliabilityState,
         RequestId,
+        ResyncState,
         SchemaVersionError,
+        SnapshotSource,
         Stream,
         Symbol,
-        ValidationError,
         Venue,
     )
 
@@ -53,9 +60,8 @@ def test_registry_importable():
 
 
 def test_no_internal_leakage():
-    """Verify that no internal implementation classes leak into __all__."""
     import binance_market_data_contracts as pkg
 
-    forbidden = {"ReplayQuery", "HistoricalDatasetDescriptor", "TelemetryEnvelope", "ControlCommand", "CommandResult"}
-    for name in forbidden:
-        assert hasattr(pkg, name) is False or name not in __all__, f"{name} should not be in __all__"
+    draft_names = {"HistoricalDatasetDescriptor", "ReplayQuery", "TelemetryEnvelope", "ControlCommand", "CommandResult"}
+    for name in draft_names:
+        assert not hasattr(pkg, name) or name not in __all__, f"{name} should not be in __all__"

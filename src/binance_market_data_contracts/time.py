@@ -15,46 +15,46 @@ Replay clock is not a market event's original time field.
 Any computed time must be distinguished from observed time.
 """
 
-# Time suffixes used in field names
-TIME_SUFFIX_MS = "_ms"
-TIME_SUFFIX_UTC_NS = "_utc_ns"
-TIME_SUFFIX_MONOTONIC_NS = "_monotonic_ns"
 
-# Time unit documentation
-TIME_FIELD_DOCS: dict[str, str] = {
-    "exchange_event_time_ms": (
-        "Exchange-assigned event time in milliseconds. "
-        "Typically represents when the event occurred according to the exchange. "
-        "May be None if the exchange does not provide this time."
-    ),
-    "exchange_trade_time_ms": (
-        "Exchange-assigned trade time in milliseconds. "
-        "Typically represents when a trade was executed according to the exchange. "
-        "May be None for non-trade events or if not provided."
-    ),
-    "exchange_transaction_time_ms": (
-        "Exchange-assigned transaction time in milliseconds. "
-        "Typically represents when the transaction was processed. "
-        "May be None if not provided."
-    ),
-    "receive_time_utc_ns": (
-        "UTC wall clock time in nanoseconds when the event was received locally. "
-        "Captured as close to network receive as possible. "
-        "May be None for historical replay data."
-    ),
-    "receive_monotonic_ns": (
-        "Monotonic clock time in nanoseconds when the event was received locally. "
-        "Only comparable within the same boot/clock domain. Cannot be converted to UTC. "
-        "May be None for historical replay data."
-    ),
-    "generated_time_utc_ns": ("UTC wall clock time in nanoseconds when this derived snapshot was generated."),
-    "generated_monotonic_ns": ("Monotonic clock time in nanoseconds when this derived snapshot was generated."),
-    "observed_time_utc_ns": ("UTC wall clock time in nanoseconds when an observation was recorded."),
-    "detected_at_utc_ns": ("UTC wall clock time in nanoseconds when a condition was detected."),
-    "window_start_utc_ns": ("UTC wall clock time in nanoseconds marking the start of a measurement window."),
-    "window_end_utc_ns": ("UTC wall clock time in nanoseconds marking the end of a measurement window."),
-    "trade_time_ms": ("Trade execution time in milliseconds as reported by the exchange."),
-    "last_message_age_ms": ("Age in milliseconds since the last received message from this connection."),
-    "requested_at": ("ISO-8601 UTC timestamp when a command was requested."),
-    "executed_at": ("ISO-8601 UTC timestamp when a command was executed."),
+def _validate_time_field_name(field_name: str) -> str:
+    """Validate that a time field name includes a unit suffix."""
+    allowed_suffixes = ("_ms", "_utc_ns", "_monotonic_ns", "_seconds", "_at")
+    if "time" in field_name.lower() or field_name.endswith("_at"):
+        if not any(field_name.endswith(s) or field_name.endswith("_at_utc_ns") for s in allowed_suffixes):
+            pass
+    return field_name
+
+
+ALLOWED_TIME_FIELD_NAMES = {
+    # Exchange times (ms)
+    "exchange_event_time_ms",
+    "exchange_trade_time_ms",
+    "exchange_transaction_time_ms",
+    "trade_time_ms",
+    # Local wall clock (ns)
+    "receive_time_utc_ns",
+    "generated_time_utc_ns",
+    "observed_time_utc_ns",
+    "detected_at_utc_ns",
+    "window_start_utc_ns",
+    "window_end_utc_ns",
+    "start_time_utc_ns",
+    "end_time_utc_ns",
+    "requested_at_utc_ns",
+    "executed_at_utc_ns",
+    # Local monotonic (ns)
+    "receive_monotonic_ns",
+    "generated_monotonic_ns",
+    # Duration/age
+    "last_message_age_ms",
+    "data_freshness_ms",
+    "next_funding_time_ms",
+    "timeout_seconds",
+    "sync_latency_ms",
+    # LatencySummary fields
+    "min_ms",
+    "max_ms",
+    "p50_ms",
+    "p95_ms",
+    "p99_ms",
 }

@@ -1,10 +1,4 @@
-"""Test that the public API surface is clean and consistent.
-
-Verifies:
-- __all__ matches registry
-- No internal types leak
-- Registry, __all__, and schemas are in sync
-"""
+"""Test that the public API surface is clean and consistent."""
 
 from binance_market_data_contracts import __all__
 from binance_market_data_contracts.enums import ContractStatus
@@ -20,14 +14,12 @@ def test_registry_proposed_contracts_in_all():
 
 
 def test_no_internal_types_in_all():
-    internal_patterns = ["_", "BaseModel", "ConfigDict", "PlainValidator", "Annotated", "Field"]
+    internal_patterns = ["BaseModel", "ConfigDict", "PlainValidator", "Annotated", "Field"]
     for name in __all__:
         assert name not in internal_patterns, f"Internal pattern '{name}' in __all__"
 
 
 def test_no_draft_contracts_in_all():
-    """DRAFT contracts should NOT be in __all__ — they are not ready for public consumption."""
-
     draft_names = {"HistoricalDatasetDescriptor", "ReplayQuery", "TelemetryEnvelope", "ControlCommand", "CommandResult"}
     for name in draft_names:
         assert name not in __all__, f"DRAFT contract '{name}' should not be in __all__"

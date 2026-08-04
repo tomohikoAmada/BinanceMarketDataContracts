@@ -2,10 +2,9 @@
   "$defs": {
     "GapDescriptor": {
       "additionalProperties": false,
-      "description": "Structured description of a sequence gap.\n\nRecords what stream was affected, when the gap was detected,\nthe gap boundaries, the reason, and the recovery state.",
+      "description": "Structured description of a sequence gap.",
       "properties": {
         "detected_at_utc_ns": {
-          "description": "UTC time when the gap was detected (ns)",
           "minimum": 0,
           "title": "Detected At Utc Ns",
           "type": "integer"
@@ -21,7 +20,6 @@
             }
           ],
           "default": null,
-          "description": "First known sequence after the gap",
           "title": "Next Sequence"
         },
         "previous_sequence": {
@@ -35,7 +33,6 @@
             }
           ],
           "default": null,
-          "description": "Last known sequence before the gap",
           "title": "Previous Sequence"
         },
         "reason_code": {
@@ -47,25 +44,21 @@
               "type": "null"
             }
           ],
-          "default": null,
-          "description": "Reason for the gap"
+          "default": null
         },
         "recovery_state": {
           "anyOf": [
             {
-              "type": "string"
+              "$ref": "#/$defs/ResyncState"
             },
             {
               "type": "null"
             }
           ],
-          "default": null,
-          "description": "Current recovery state (e.g. 'RESYNC_IN_PROGRESS', 'RECOVERED')",
-          "title": "Recovery State"
+          "default": null
         },
         "stream": {
-          "$ref": "#/$defs/Stream",
-          "description": "The stream in which the gap was detected"
+          "$ref": "#/$defs/Stream"
         }
       },
       "required": [
@@ -88,10 +81,14 @@
       "description": "A single price level in the order book.\n\nquantity represents the absolute quantity at this price level after the update.\nquantity == \"0\" means this price level should be removed.",
       "properties": {
         "price": {
-          "title": "Price"
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Price",
+          "type": "string"
         },
         "quantity": {
-          "title": "Quantity"
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Quantity",
+          "type": "string"
         }
       },
       "required": [
@@ -125,7 +122,7 @@
       "type": "string"
     },
     "ReasonCode": {
-      "description": "Reason codes explain Health state judgments — why a state was chosen.\n\nThese are distinct from QualityFlag which describes data facts.",
+      "description": "Reason codes explain Health state judgments — why a state was chosen.",
       "enum": [
         "CONNECTION_LOST",
         "CONNECTION_RESUMED",
@@ -151,6 +148,26 @@
       "title": "ReasonCode",
       "type": "string"
     },
+    "ResyncState": {
+      "enum": [
+        "SYNCHRONIZED",
+        "RESYNC_REQUIRED",
+        "RESYNC_IN_PROGRESS",
+        "RECOVERED",
+        "RESYNC_FAILED"
+      ],
+      "title": "ResyncState",
+      "type": "string"
+    },
+    "SnapshotSource": {
+      "enum": [
+        "GATEWAY_LIVE",
+        "RECORDER_REPLAY",
+        "HISTORY_REPLAY"
+      ],
+      "title": "SnapshotSource",
+      "type": "string"
+    },
     "Stream": {
       "enum": [
         "DIFF_DEPTH",
@@ -169,20 +186,20 @@
       "type": "string"
     }
   },
-  "$id": "binance-market-data/local-order-book-snapshot.v1.schema.json",
+  "$id": "urn:binance-market-data-contracts:local-order-book-snapshot.v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Locally reconstructed order book snapshot.\n\nRepresents the state of a locally-reconstructed order book at a point in time,\nbuilt from an ExchangeDepthSnapshot and subsequent DepthUpdate events.",
+  "description": "Locally reconstructed order book snapshot.\n\nRepresents the state of a locally-reconstructed order book at a point in time.",
   "properties": {
     "asks": {
-      "description": "Current ask levels",
+      "default": [],
       "items": {
         "$ref": "#/$defs/PriceLevel"
       },
       "type": "array"
     },
     "bids": {
-      "description": "Current bid levels",
+      "default": [],
       "items": {
         "$ref": "#/$defs/PriceLevel"
       },
@@ -191,15 +208,14 @@
     "depth_limit": {
       "anyOf": [
         {
-          "minimum": 0,
+          "exclusiveMinimum": 0,
           "type": "integer"
         },
         {
           "type": "null"
         }
       ],
-      "default": null,
-      "description": "Depth limit applied, if any"
+      "default": null
     },
     "generated_monotonic_ns": {
       "anyOf": [
@@ -211,8 +227,7 @@
           "type": "null"
         }
       ],
-      "default": null,
-      "description": "Monotonic time when this snapshot was generated (ns)"
+      "default": null
     },
     "generated_time_utc_ns": {
       "anyOf": [
@@ -224,8 +239,7 @@
           "type": "null"
         }
       ],
-      "default": null,
-      "description": "UTC time when this snapshot was generated (ns)"
+      "default": null
     },
     "last_gap": {
       "anyOf": [
@@ -236,11 +250,9 @@
           "type": "null"
         }
       ],
-      "default": null,
-      "description": "The most recent gap, if one exists"
+      "default": null
     },
     "last_update_id": {
-      "description": "Last applied update ID",
       "minimum": 0,
       "type": "integer"
     },
@@ -248,29 +260,37 @@
       "$ref": "#/$defs/Market"
     },
     "producer": {
+      "maxLength": 256,
+      "minLength": 1,
       "type": "string"
     },
     "producer_version": {
+      "maxLength": 256,
+      "minLength": 1,
       "type": "string"
     },
     "quality_flags": {
-      "description": "Quality flags for this order book state",
+      "default": [],
       "items": {
         "$ref": "#/$defs/QualityFlag"
       },
       "type": "array"
     },
     "schema_version": {
-      "description": "Contract version (e.g. 'local-order-book-snapshot.v1')",
+      "const": "local-order-book-snapshot.v1",
+      "default": "local-order-book-snapshot.v1",
       "type": "string"
     },
     "source": {
-      "description": "Source of the snapshot (e.g. 'gateway', 'replay')",
+      "$ref": "#/$defs/SnapshotSource"
+    },
+    "symbol": {
+      "maxLength": 20,
+      "minLength": 2,
+      "pattern": "^[A-Z0-9]+$",
       "type": "string"
     },
-    "symbol": {},
     "synchronized": {
-      "description": "Whether the order book is currently synchronized with the exchange",
       "type": "boolean"
     },
     "venue": {
@@ -281,7 +301,6 @@
     "venue",
     "market",
     "symbol",
-    "schema_version",
     "producer",
     "producer_version",
     "source",

@@ -1,18 +1,11 @@
-"""Test that contracts package has no forbidden dependencies.
+"""Test that contracts package has no forbidden dependencies using AST."""
 
-The contracts package must not import any of:
-- recorder, gateway, health, history, view internals
-- sqlite3
-- websocket, websockets
-- fastapi, flask, starlette
-- binance SDK (binance.websocket, binance.spot, etc.)
-- aiohttp, httpx (network clients)
-"""
+import ast
+from pathlib import Path
 
-import importlib
-import sys
+SRC_DIR = Path(__file__).resolve().parent.parent / "src" / "binance_market_data_contracts"
 
-FORBIDDEN_MODULES = [
+FORBIDDEN = {
     "sqlite3",
     "websocket",
     "websockets",
@@ -22,76 +15,69 @@ FORBIDDEN_MODULES = [
     "aiohttp",
     "httpx",
     "requests",
-    "binance.websocket",
-    "binance.spot",
-    "binance.um_futures",
-    "binance.cm_futures",
-]
+    "binance",
+    "binance_market_data_recorder",
+    "binance_market_data_gateway",
+    "binance_market_data_health",
+    "binance_market_data_history",
+}
 
 
-def _get_all_imports(module_name: str) -> set[str]:
-    """Recursively collect all imports from a module."""
-    module = importlib.import_module(module_name)
-    seen = {module_name}
-    imports = set()
-    _collect(module, seen, imports)
+def _get_all_imports() -> set[str]:
+    imports: set[str] = set()
+    for py_file in SRC_DIR.rglob("*.py"):
+        with open(py_file, encoding="utf-8") as f:
+            try:
+                tree = ast.parse(f.read())
+            except SyntaxError:
+                continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    imports.add(alias.name.split(".")[0])
+            elif isinstance(node, ast.ImportFrom):
+                if node.module:
+                    imports.add(node.module.split(".")[0])
     return imports
 
 
-def _collect(module, seen, imports):
-    for name, _obj in sys.modules.copy().items():
-        if name.startswith("binance_market_data_contracts") and name not in seen:
-            seen.add(name)
-            imports.add(name)
-            try:
-                mod = sys.modules.get(name)
-                if mod and hasattr(mod, "__all__"):
-                    continue
-            except Exception:
-                pass
+def test_no_forbidden_imports():
+    all_imports = _get_all_imports()
+    found = all_imports & FORBIDDEN
+    if found:
+        adjusted = set()
+        for imp in found:
+            if imp == "binance":
+                adjusted.add(imp)
+            else:
+                adjusted.add(imp)
+    assert not (all_imports & FORBIDDEN), f"Forbidden imports found: {all_imports & FORBIDDEN}"
 
 
-def test_no_forbidden_dependencies():
-    """Check that no forbidden modules appear in contracts sys.modules when contracts is imported."""
-    forbidden_found = []
-    for mod_name in sorted(sys.modules.keys()):
-        if any(mod_name == forbidden or mod_name.startswith(forbidden + ".") for forbidden in FORBIDDEN_MODULES):
-            forbidden_found.append(mod_name)
-    if forbidden_found:
-        pass
-
-
-def test_no_recorder_dependency():
-    """Contracts must not depend on recorder internals."""
-    for mod_name in sorted(sys.modules.keys()):
-        assert not mod_name.startswith("binance_market_data_recorder"), (
-            f"Contracts depends on recorder module: {mod_name}"
-        )
-
-
-def test_no_sqlite_import():
-    assert "sqlite3" not in sys.modules or not _is_loaded_by_contracts("sqlite3")
-
-
-def test_no_websocket_import():
-    for ws_mod in ("websocket", "websockets"):
-        assert ws_mod not in sys.modules or not _is_loaded_by_contracts(ws_mod)
-
-
-def test_no_http_client_import():
-    forbidden = {"aiohttp", "fastapi", "flask", "starlette"}
-    for http_mod in forbidden:
-        assert http_mod not in sys.modules or not _is_loaded_by_contracts(http_mod)
-
-
-def test_no_binance_sdk_import():
-    for mod_name in sorted(sys.modules.keys()):
-        if mod_name.startswith("binance."):
-            assert mod_name == "binance_market_data_contracts" or mod_name.startswith(
-                "binance_market_data_contracts."
-            ), f"Contracts depends on binance module: {mod_name}"
-
-
-def _is_loaded_by_contracts(module_name: str) -> bool:
-    """Check if module was loaded by contracts package."""
-    return module_name in sys.modules
+def test_pyproject_runtime_deps_only_necessary():
+    pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
+    with open(pyproject, encoding="utf-8") as f:
+        content = f.read()
+    forbidden_runtime = {
+        "fastapi",
+        "requests",
+        "aiohttp",
+        "httpx",
+        "sqlite3",
+        "sqlalchemy",
+        "binance",
+        "websocket",
+        "websockets",
+    }
+    for dep in forbidden_runtime:
+        lines = content.split("\n")
+        in_deps = False
+        for line in lines:
+            if "[project]" in line:
+                in_deps = False
+            if "dependencies" in line and "optional" not in line:
+                in_deps = True
+            if in_deps and line.strip().startswith("[") and "dependencies" not in line:
+                in_deps = False
+            if in_deps and dep in line:
+                assert False, f"Runtime dependency '{dep}' should not be in pyproject.toml dependencies"

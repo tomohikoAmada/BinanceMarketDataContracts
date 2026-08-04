@@ -2,7 +2,6 @@
   "$defs": {
     "BookMetrics": {
       "additionalProperties": false,
-      "description": "Order book-related telemetry data.",
       "properties": {
         "sync_latency_ms": {
           "anyOf": [
@@ -36,7 +35,6 @@
     },
     "ConnectionMetrics": {
       "additionalProperties": false,
-      "description": "Connection-related telemetry data.",
       "properties": {
         "connected": {
           "title": "Connected",
@@ -76,7 +74,6 @@
     },
     "LatencyMetrics": {
       "additionalProperties": false,
-      "description": "Latency-related telemetry data.",
       "properties": {
         "publish_lag_ms": {
           "anyOf": [
@@ -147,7 +144,6 @@
     },
     "QueueMetrics": {
       "additionalProperties": false,
-      "description": "Queue-related telemetry data.",
       "properties": {
         "dropped": {
           "default": 0,
@@ -173,7 +169,6 @@
     },
     "SequenceMetrics": {
       "additionalProperties": false,
-      "description": "Sequence-related telemetry data.",
       "properties": {
         "duplicate_count": {
           "default": 0,
@@ -212,7 +207,6 @@
     },
     "SystemMetrics": {
       "additionalProperties": false,
-      "description": "System resource telemetry data.",
       "properties": {
         "cpu_percent": {
           "anyOf": [
@@ -271,17 +265,16 @@
         "LATENCY",
         "QUEUE",
         "BOOK",
-        "SYSTEM",
-        "CUSTOM"
+        "SYSTEM"
       ],
       "title": "TelemetryType",
       "type": "string"
     }
   },
-  "$id": "binance-market-data/telemetry.v1.schema.json",
+  "$id": "urn:binance-market-data-contracts:telemetry.v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "DRAFT — Telemetry envelope for Gateway and Recorder.\n\nUses a discriminated union for metrics payload. Adding a new metric type\nis generally compatible. Changing the discriminator is BREAKING.",
+  "description": "DRAFT — Telemetry envelope for Gateway and Recorder.",
   "properties": {
     "market": {
       "anyOf": [
@@ -333,8 +326,7 @@
           "type": "null"
         }
       ],
-      "default": null,
-      "description": "Telemetry data payload"
+      "default": null
     },
     "observed_time_utc_ns": {
       "anyOf": [
@@ -346,27 +338,32 @@
           "type": "null"
         }
       ],
-      "default": null,
-      "description": "UTC time of observation (ns)"
+      "default": null
     },
     "quality_flags": {
-      "description": "Quality flags for this telemetry sample",
+      "default": [],
       "items": {
         "$ref": "#/$defs/QualityFlag"
       },
       "type": "array"
     },
     "source_instance_id": {
-      "description": "Instance identifier",
+      "maxLength": 128,
+      "minLength": 1,
       "type": "string"
     },
     "source_module": {
-      "description": "Source module name (e.g. 'gateway', 'recorder')",
+      "minLength": 1,
       "type": "string"
     },
     "symbol": {
       "anyOf": [
-        {},
+        {
+          "maxLength": 20,
+          "minLength": 2,
+          "pattern": "^[A-Z0-9]+$",
+          "type": "string"
+        },
         {
           "type": "null"
         }

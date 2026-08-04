@@ -1,5 +1,31 @@
 {
   "$defs": {
+    "GapPolicy": {
+      "enum": [
+        "ERROR",
+        "INCLUDE",
+        "EXCLUDE"
+      ],
+      "title": "GapPolicy",
+      "type": "string"
+    },
+    "MissingExchangeTimePolicy": {
+      "enum": [
+        "ERROR",
+        "EXCLUDE",
+        "FALLBACK_RECEIVE"
+      ],
+      "title": "MissingExchangeTimePolicy",
+      "type": "string"
+    },
+    "ReplayClock": {
+      "enum": [
+        "RECEIVE_TIME",
+        "EXCHANGE_TIME"
+      ],
+      "title": "ReplayClock",
+      "type": "string"
+    },
     "Stream": {
       "enum": [
         "DIFF_DEPTH",
@@ -11,58 +37,57 @@
       "type": "string"
     }
   },
-  "$id": "binance-market-data/replay-query.v1.schema.json",
+  "$id": "urn:binance-market-data-contracts:replay-query.v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "DRAFT — Describes a historical replay request.\n\nOrdering rules are versioned via ordering_version.",
   "properties": {
     "clock": {
-      "default": "receive_time",
-      "description": "Clock used for ordering (e.g. 'receive_time', 'exchange_time')",
-      "type": "string"
+      "$ref": "#/$defs/ReplayClock",
+      "default": "RECEIVE_TIME"
     },
     "dataset_id": {
-      "description": "Dataset identifier to replay",
+      "maxLength": 128,
+      "minLength": 1,
       "type": "string"
     },
-    "end": {
+    "end_time_utc_ns": {
       "anyOf": [
         {
-          "type": "string"
+          "minimum": 0,
+          "type": "integer"
         },
         {
           "type": "null"
         }
       ],
-      "default": null,
-      "description": "Replay end position (ISO-8601 or seek key)"
+      "default": null
     },
     "gap_policy": {
-      "default": "report",
-      "description": "Policy for gaps: 'report', 'skip_gap', 'abort'",
-      "type": "string"
+      "$ref": "#/$defs/GapPolicy",
+      "default": "INCLUDE"
     },
     "missing_exchange_time_policy": {
-      "default": "skip",
-      "description": "Policy for events with missing exchange time: 'skip', 'error', 'use_receive_time'",
-      "type": "string"
+      "$ref": "#/$defs/MissingExchangeTimePolicy",
+      "default": "EXCLUDE"
     },
     "ordering_version": {
       "default": "1",
-      "description": "Version of the ordering rules to apply",
+      "maxLength": 256,
+      "minLength": 1,
       "type": "string"
     },
-    "start": {
+    "start_time_utc_ns": {
       "anyOf": [
         {
-          "type": "string"
+          "minimum": 0,
+          "type": "integer"
         },
         {
           "type": "null"
         }
       ],
-      "default": null,
-      "description": "Replay start position (ISO-8601 or seek key)"
+      "default": null
     },
     "streams": {
       "anyOf": [
@@ -76,8 +101,7 @@
           "type": "null"
         }
       ],
-      "default": null,
-      "description": "Streams to replay (None = all available)"
+      "default": null
     }
   },
   "required": [
