@@ -81,7 +81,7 @@
       "description": "A single price level in the order book.\n\nquantity represents the absolute quantity at this price level after the update.\nquantity == \"0\" means this price level should be removed.",
       "properties": {
         "price": {
-          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
           "title": "Price",
           "type": "string"
         },
@@ -189,7 +189,7 @@
   "$id": "urn:binance-market-data-contracts:local-order-book-snapshot.v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Locally reconstructed order book snapshot.\n\nRepresents the state of a locally-reconstructed order book at a point in time.",
+  "description": "Locally reconstructed order book snapshot.",
   "properties": {
     "asks": {
       "default": [],
@@ -230,16 +230,8 @@
       "default": null
     },
     "generated_time_utc_ns": {
-      "anyOf": [
-        {
-          "minimum": 0,
-          "type": "integer"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
+      "minimum": 0,
+      "type": "integer"
     },
     "last_gap": {
       "anyOf": [
@@ -262,11 +254,13 @@
     "producer": {
       "maxLength": 256,
       "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
       "type": "string"
     },
     "producer_version": {
       "maxLength": 256,
       "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
       "type": "string"
     },
     "quality_flags": {
@@ -278,7 +272,6 @@
     },
     "schema_version": {
       "const": "local-order-book-snapshot.v1",
-      "default": "local-order-book-snapshot.v1",
       "type": "string"
     },
     "source": {
@@ -301,10 +294,12 @@
     "venue",
     "market",
     "symbol",
+    "schema_version",
     "producer",
     "producer_version",
     "source",
     "last_update_id",
+    "generated_time_utc_ns",
     "synchronized"
   ],
   "type": "object"

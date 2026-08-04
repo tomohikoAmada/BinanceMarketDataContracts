@@ -22,7 +22,10 @@ from pydantic import (
 )
 
 DECIMAL_PATTERN = r"^(0|[1-9][0-9]*)(\.[0-9]+)?$"
+POSITIVE_DECIMAL_PATTERN = r"^(?:[1-9][0-9]*(?:\.[0-9]+)?|0\.[0-9]*[1-9][0-9]*)$"
 SIGNED_DECIMAL_PATTERN = r"^-?(0|[1-9][0-9]*)(\.[0-9]+)?$"
+NON_EMPTY_TEXT_PATTERN = r"^\S(?:.*\S)?$"
+IDENTIFIER_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$"
 
 
 def _validate_price_positive(v: str) -> str:
@@ -56,56 +59,37 @@ def _validate_quantity_positive(v: str) -> str:
 
 
 def _validate_finite_signed_decimal(v: str) -> str:
-    try:
-        Decimal(v)
-    except InvalidOperation as e:
-        raise ValueError(f"Invalid Decimal value: '{v}'") from e
+    value = Decimal(v)
+    if not value.is_finite():
+        raise ValueError("value must be finite")
+    if v.startswith("-") and value == 0:
+        raise ValueError("negative zero is not allowed")
     return v
 
 
 DecimalText = Annotated[
     str,
-    StringConstraints(
-        pattern=DECIMAL_PATTERN,
-        strip_whitespace=False,
-    ),
+    StringConstraints(pattern=DECIMAL_PATTERN, strip_whitespace=False),
+]
+
+PositiveDecimalText = Annotated[
+    str,
+    StringConstraints(pattern=POSITIVE_DECIMAL_PATTERN, strip_whitespace=False),
 ]
 
 SignedDecimalText = Annotated[
     str,
-    StringConstraints(
-        pattern=SIGNED_DECIMAL_PATTERN,
-        strip_whitespace=False,
-    ),
+    StringConstraints(pattern=SIGNED_DECIMAL_PATTERN, strip_whitespace=False),
 ]
 
-PriceString = Annotated[
-    DecimalText,
-    AfterValidator(_validate_price_positive),
-]
-
-QuantityString = Annotated[
-    DecimalText,
-    AfterValidator(_validate_quantity_non_negative),
-]
-
-PositiveQuantityString = Annotated[
-    DecimalText,
-    AfterValidator(_validate_quantity_positive),
-]
-
-SignedDecimalString = Annotated[
-    SignedDecimalText,
-    AfterValidator(_validate_finite_signed_decimal),
-]
+PriceString = Annotated[PositiveDecimalText, AfterValidator(_validate_price_positive)]
+QuantityString = Annotated[DecimalText, AfterValidator(_validate_quantity_non_negative)]
+PositiveQuantityString = Annotated[PositiveDecimalText, AfterValidator(_validate_quantity_positive)]
+SignedDecimalString = Annotated[SignedDecimalText, AfterValidator(_validate_finite_signed_decimal)]
 
 NonEmptyText = Annotated[
     str,
-    StringConstraints(
-        min_length=1,
-        max_length=256,
-        strip_whitespace=False,
-    ),
+    StringConstraints(min_length=1, max_length=256, pattern=NON_EMPTY_TEXT_PATTERN, strip_whitespace=False),
 ]
 
 

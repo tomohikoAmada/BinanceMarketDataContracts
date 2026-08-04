@@ -5,7 +5,9 @@
     "symbol": "BTCUSDT",
     "producer": "gateway",
     "producer_version": "0.1.0",
-    "connection_id": "conn-book-002"
+    "connection_id": "conn-book-002",
+    "stream": "BOOK_TICKER",
+    "schema_version": "book-ticker.v1"
   },
   "update_id": null,
   "best_bid_price": "29500.00",

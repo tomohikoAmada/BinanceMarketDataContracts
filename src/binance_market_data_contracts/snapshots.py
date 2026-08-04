@@ -1,12 +1,13 @@
 """Snapshot contracts for BinanceMarketData.
 
-Includes exchange snapshots, local order book state, market state,
-gap descriptors, latency summaries, and data health snapshots.
-All snapshot types use Literal schema_version and tuple collections.
+All snapshot types use Literal schema_version (required, no default).
+Bids are in descending price order, asks in ascending price order.
+All collections use tuples for deep immutability.
 """
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Literal
 
 from pydantic import Field, model_validator
@@ -34,16 +35,12 @@ from binance_market_data_contracts.market_events import PriceLevel
 
 
 class ExchangeDepthSnapshot(ContractModel):
-    """REST depth snapshot from Binance.
-
-    A point-in-time limited-depth snapshot used for initialization,
-    recovery, and validation. This is NOT a continuous full-depth stream.
-    """
+    """REST depth snapshot from Binance."""
 
     venue: Venue
     market: Market
     symbol: Symbol
-    schema_version: Literal["exchange-depth-snapshot.v1"] = "exchange-depth-snapshot.v1"
+    schema_version: Literal["exchange-depth-snapshot.v1"]
     producer: NonEmptyText
     producer_version: NonEmptyText
     request_id: RequestId
@@ -54,6 +51,12 @@ class ExchangeDepthSnapshot(ContractModel):
     receive_time_utc_ns: int | None = Field(default=None, ge=0)
     receive_monotonic_ns: int | None = Field(default=None, ge=0)
     quality_flags: tuple[QualityFlag, ...] = ()
+
+    @model_validator(mode="after")
+    def _validate_order(self) -> ExchangeDepthSnapshot:
+        _validate_bids_descending(self.bids)
+        _validate_asks_ascending(self.asks)
+        return self
 
 
 class GapDescriptor(ContractModel):
@@ -68,15 +71,12 @@ class GapDescriptor(ContractModel):
 
 
 class LocalOrderBookSnapshot(ContractModel):
-    """Locally reconstructed order book snapshot.
-
-    Represents the state of a locally-reconstructed order book at a point in time.
-    """
+    """Locally reconstructed order book snapshot."""
 
     venue: Venue
     market: Market
     symbol: Symbol
-    schema_version: Literal["local-order-book-snapshot.v1"] = "local-order-book-snapshot.v1"
+    schema_version: Literal["local-order-book-snapshot.v1"]
     producer: NonEmptyText
     producer_version: NonEmptyText
     source: SnapshotSource
@@ -84,23 +84,31 @@ class LocalOrderBookSnapshot(ContractModel):
     bids: tuple[PriceLevel, ...] = ()
     asks: tuple[PriceLevel, ...] = ()
     depth_limit: int | None = Field(default=None, gt=0)
-    generated_time_utc_ns: int | None = Field(default=None, ge=0)
+    generated_time_utc_ns: int = Field(..., ge=0)
     generated_monotonic_ns: int | None = Field(default=None, ge=0)
     synchronized: bool
     last_gap: GapDescriptor | None = None
     quality_flags: tuple[QualityFlag, ...] = ()
 
+    @model_validator(mode="after")
+    def _validate_order(self) -> LocalOrderBookSnapshot:
+        _validate_bids_descending(self.bids)
+        _validate_asks_ascending(self.asks)
+        if self.depth_limit is not None:
+            if len(self.bids) > self.depth_limit:
+                raise ValueError(f"bids count ({len(self.bids)}) exceeds depth_limit ({self.depth_limit})")
+            if len(self.asks) > self.depth_limit:
+                raise ValueError(f"asks count ({len(self.asks)}) exceeds depth_limit ({self.depth_limit})")
+        return self
+
 
 class MarketStateSnapshot(ContractModel):
-    """Strategy-independent market state projection.
-
-    Contains derived market facts. Does NOT contain predictions, alpha, or trading signals.
-    """
+    """Strategy-independent market state projection."""
 
     venue: Venue
     market: Market
     symbol: Symbol
-    schema_version: Literal["market-state-snapshot.v1"] = "market-state-snapshot.v1"
+    schema_version: Literal["market-state-snapshot.v1"]
     producer: NonEmptyText
     producer_version: NonEmptyText
     best_bid_price: PriceString | None = None
@@ -118,9 +126,20 @@ class MarketStateSnapshot(ContractModel):
     funding_rate: SignedDecimalString | None = None
     next_funding_time_ms: int | None = Field(default=None, ge=0)
     open_interest: QuantityString | None = None
-    generated_time_utc_ns: int | None = Field(default=None, ge=0)
+    generated_time_utc_ns: int = Field(..., ge=0)
     data_freshness_ms: int | None = Field(default=None, ge=0)
     book_synchronized: bool | None = None
+
+    @model_validator(mode="after")
+    def _validate_order(self) -> MarketStateSnapshot:
+        _validate_bids_descending(self.top_bids)
+        _validate_asks_ascending(self.top_asks)
+        if self.depth_limit is not None:
+            if len(self.top_bids) > self.depth_limit:
+                raise ValueError(f"top_bids count ({len(self.top_bids)}) exceeds depth_limit ({self.depth_limit})")
+            if len(self.top_asks) > self.depth_limit:
+                raise ValueError(f"top_asks count ({len(self.top_asks)}) exceeds depth_limit ({self.depth_limit})")
+        return self
 
 
 class LatencySummary(ContractModel):
@@ -175,18 +194,14 @@ class LatencySummary(ContractModel):
 
 
 class DataHealthSnapshot(ContractModel):
-    """Data health assessment for a market data stream.
-
-    Provides an overall health state with supporting metrics.
-    observed_time_utc_ns is required and identifies when this assessment was made.
-    """
+    """Data health assessment for a market data stream."""
 
     health_snapshot_id: SnapshotId
     overall_state: HealthState
     venue: Venue
     market: Market
     symbol: Symbol
-    schema_version: Literal["data-health-snapshot.v1"] = "data-health-snapshot.v1"
+    schema_version: Literal["data-health-snapshot.v1"]
     producer: NonEmptyText
     producer_version: NonEmptyText
     source_instance_id: InstanceId
@@ -203,3 +218,25 @@ class DataHealthSnapshot(ContractModel):
     reason_codes: tuple[ReasonCode, ...] = ()
     observed_time_utc_ns: int = Field(..., ge=0)
     quality_flags: tuple[QualityFlag, ...] = ()
+
+
+def _validate_bids_descending(bids: tuple[PriceLevel, ...]) -> None:
+    if len(bids) <= 1:
+        return
+    prev = None
+    for level in bids:
+        p = Decimal(level.price)
+        if prev is not None and p >= prev:
+            raise ValueError(f"bids must be in strictly descending price order: {level.price}")
+        prev = p
+
+
+def _validate_asks_ascending(asks: tuple[PriceLevel, ...]) -> None:
+    if len(asks) <= 1:
+        return
+    prev = None
+    for level in asks:
+        p = Decimal(level.price)
+        if prev is not None and p <= prev:
+            raise ValueError(f"asks must be in strictly ascending price order: {level.price}")
+        prev = p

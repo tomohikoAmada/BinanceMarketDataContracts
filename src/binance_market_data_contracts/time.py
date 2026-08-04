@@ -5,33 +5,20 @@ All time field names MUST include the unit suffix:
 - _utc_ns: nanoseconds UTC wall clock
 - _monotonic_ns: nanoseconds monotonic clock (same boot/clock domain only)
 
-Exchange times use milliseconds. Local high-precision times use nanoseconds.
-UTC wall clock is comparable across processes and machines.
-Monotonic clock is only comparable within the same boot/clock domain.
-
 Missing times use None, never 0.
-Historical archives have no real local receive time.
-Replay clock is not a market event's original time field.
-Any computed time must be distinguished from observed time.
 """
 
+from __future__ import annotations
 
-def _validate_time_field_name(field_name: str) -> str:
-    """Validate that a time field name includes a unit suffix."""
-    allowed_suffixes = ("_ms", "_utc_ns", "_monotonic_ns", "_seconds", "_at")
-    if "time" in field_name.lower() or field_name.endswith("_at"):
-        if not any(field_name.endswith(s) or field_name.endswith("_at_utc_ns") for s in allowed_suffixes):
-            pass
-    return field_name
+from typing import get_args, get_origin
 
+from pydantic import BaseModel
 
-ALLOWED_TIME_FIELD_NAMES = {
-    # Exchange times (ms)
+ALLOWED_TIME_FIELD_NAMES: set[str] = {
     "exchange_event_time_ms",
     "exchange_trade_time_ms",
     "exchange_transaction_time_ms",
     "trade_time_ms",
-    # Local wall clock (ns)
     "receive_time_utc_ns",
     "generated_time_utc_ns",
     "observed_time_utc_ns",
@@ -42,19 +29,72 @@ ALLOWED_TIME_FIELD_NAMES = {
     "end_time_utc_ns",
     "requested_at_utc_ns",
     "executed_at_utc_ns",
-    # Local monotonic (ns)
     "receive_monotonic_ns",
     "generated_monotonic_ns",
-    # Duration/age
     "last_message_age_ms",
     "data_freshness_ms",
     "next_funding_time_ms",
     "timeout_seconds",
     "sync_latency_ms",
-    # LatencySummary fields
     "min_ms",
     "max_ms",
     "p50_ms",
     "p95_ms",
     "p99_ms",
+    "archive_date_yyyy_mm_dd",
 }
+
+
+def is_time_like_field(name: str) -> bool:
+    return (
+        "time" in name.lower()
+        or name.endswith("_at")
+        or name.endswith("_date")
+        or name.endswith("_duration")
+        or name.endswith("_age")
+        or name.endswith("_latency")
+    )
+
+
+def walk_models(model_type: type[BaseModel]) -> set[type[BaseModel]]:
+    """Recursively discover all nested Pydantic model types."""
+    seen: set[type[BaseModel]] = {model_type}
+    queue: list[type[BaseModel]] = [model_type]
+
+    while queue:
+        current = queue.pop(0)
+        for field_info in current.model_fields.values():
+            ann = _unwrap_annotation(field_info.annotation)
+            nested = _extract_model_types(ann)
+            for nt in nested:
+                if nt not in seen:
+                    seen.add(nt)
+                    queue.append(nt)
+    return seen
+
+
+def _unwrap_annotation(ann: object) -> object:
+    """Peel Annotated wrapper if present."""
+    origin = get_origin(ann)
+    if origin is not None and hasattr(origin, "__name__") and origin.__name__ == "Annotated":
+        args = get_args(ann)
+        if args:
+            return args[0]
+    return ann
+
+
+def _extract_model_types(ann: object) -> set[type[BaseModel]]:
+    """Extract all Pydantic BaseModel subclasses from a type annotation."""
+    models: set[type[BaseModel]] = set()
+    origin = get_origin(ann)
+    args = get_args(ann)
+
+    if isinstance(ann, type) and issubclass(ann, BaseModel):
+        models.add(ann)
+
+    if origin is not None:
+        for arg in args:
+            inner = _unwrap_annotation(arg)
+            models.update(_extract_model_types(inner))
+
+    return models

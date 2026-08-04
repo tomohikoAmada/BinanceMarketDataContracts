@@ -39,6 +39,7 @@
     "dataset_id": {
       "maxLength": 128,
       "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
       "type": "string"
     },
     "end_time_utc_ns": {
@@ -88,11 +89,13 @@
       "default": "recorder",
       "maxLength": 256,
       "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
       "type": "string"
     },
     "producer_version": {
       "maxLength": 256,
       "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
       "type": "string"
     },
     "query_capabilities": {
@@ -115,7 +118,6 @@
     },
     "schema_version": {
       "const": "historical-dataset-descriptor.v1",
-      "default": "historical-dataset-descriptor.v1",
       "type": "string"
     },
     "source_manifests": {
@@ -155,6 +157,7 @@
     "dataset_id",
     "market",
     "symbol",
+    "schema_version",
     "producer_version"
   ],
   "type": "object"

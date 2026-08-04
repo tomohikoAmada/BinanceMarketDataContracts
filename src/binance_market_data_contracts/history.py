@@ -31,7 +31,7 @@ class HistoricalDatasetDescriptor(ContractModel):
     streams: tuple[Stream, ...] = ()
     start_time_utc_ns: int | None = Field(default=None, ge=0)
     end_time_utc_ns: int | None = Field(default=None, ge=0)
-    schema_version: Literal["historical-dataset-descriptor.v1"] = "historical-dataset-descriptor.v1"
+    schema_version: Literal["historical-dataset-descriptor.v1"]
     producer: NonEmptyText = "recorder"
     producer_version: NonEmptyText
     source_manifests: tuple[str, ...] = ()
@@ -45,17 +45,17 @@ class HistoricalDatasetDescriptor(ContractModel):
 
     @model_validator(mode="after")
     def _validate_times(self) -> HistoricalDatasetDescriptor:
-        if self.start_time_utc_ns is not None and self.end_time_utc_ns is not None:
-            if self.start_time_utc_ns > self.end_time_utc_ns:
-                raise ValueError("start_time_utc_ns must be <= end_time_utc_ns")
+        if (
+            self.start_time_utc_ns is not None
+            and self.end_time_utc_ns is not None
+            and self.start_time_utc_ns > self.end_time_utc_ns
+        ):
+            raise ValueError("start_time_utc_ns must be <= end_time_utc_ns")
         return self
 
 
 class ReplayQuery(ContractModel):
-    """DRAFT — Describes a historical replay request.
-
-    Ordering rules are versioned via ordering_version.
-    """
+    """DRAFT — Describes a historical replay request."""
 
     dataset_id: DatasetId
     start_time_utc_ns: int | None = Field(default=None, ge=0)
@@ -68,7 +68,10 @@ class ReplayQuery(ContractModel):
 
     @model_validator(mode="after")
     def _validate_times(self) -> ReplayQuery:
-        if self.start_time_utc_ns is not None and self.end_time_utc_ns is not None:
-            if self.start_time_utc_ns > self.end_time_utc_ns:
-                raise ValueError("start_time_utc_ns must be <= end_time_utc_ns")
+        if (
+            self.start_time_utc_ns is not None
+            and self.end_time_utc_ns is not None
+            and self.start_time_utc_ns > self.end_time_utc_ns
+        ):
+            raise ValueError("start_time_utc_ns must be <= end_time_utc_ns")
         return self

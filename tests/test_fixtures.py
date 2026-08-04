@@ -103,15 +103,19 @@ class TestInvalidFixtures:
     def test_invalid_fixture_json_schema(self, entry):
         if not HAS_JSONSCHEMA:
             pytest.skip("jsonschema not installed")
-        if entry.get("validation_scope") == "PYDANTIC_ONLY":
-            pytest.skip("PYDANTIC_ONLY semantics not in JSON Schema")
         schema = get_schemas().get(entry["contract_name"])
         if schema is None:
             pytest.skip(f"Schema not found for {entry['contract_name']}")
         payload = json.loads(load_fixture_text(entry["path"]))
         validator_cls = Draft202012Validator(schema)
         errors = list(validator_cls.iter_errors(payload))
-        assert errors, f"Expected JSON Schema validation to fail for {entry['path']}"
+        if entry.get("validation_scope") == "PYDANTIC_ONLY":
+            assert not errors, (
+                f"PYDANTIC_ONLY fixture {entry['path']} should pass JSON Schema (semantics are Pydantic-only). "
+                f"Got errors: {[e.message for e in errors]}"
+            )
+        else:
+            assert errors, f"Expected JSON Schema validation to fail for {entry['path']}"
 
 
 class TestManifestCoverage:

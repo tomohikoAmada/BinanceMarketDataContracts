@@ -13,7 +13,7 @@
       "description": "A single price level in the order book.\n\nquantity represents the absolute quantity at this price level after the update.\nquantity == \"0\" means this price level should be removed.",
       "properties": {
         "price": {
-          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
           "title": "Price",
           "type": "string"
         },
@@ -64,7 +64,7 @@
   "$id": "urn:binance-market-data-contracts:exchange-depth-snapshot.v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "REST depth snapshot from Binance.\n\nA point-in-time limited-depth snapshot used for initialization,\nrecovery, and validation. This is NOT a continuous full-depth stream.",
+  "description": "REST depth snapshot from Binance.",
   "properties": {
     "asks": {
       "default": [],
@@ -102,11 +102,13 @@
     "producer": {
       "maxLength": 256,
       "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
       "type": "string"
     },
     "producer_version": {
       "maxLength": 256,
       "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
       "type": "string"
     },
     "quality_flags": {
@@ -143,11 +145,11 @@
     "request_id": {
       "maxLength": 128,
       "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
       "type": "string"
     },
     "schema_version": {
       "const": "exchange-depth-snapshot.v1",
-      "default": "exchange-depth-snapshot.v1",
       "type": "string"
     },
     "symbol": {
@@ -164,6 +166,7 @@
     "venue",
     "market",
     "symbol",
+    "schema_version",
     "producer",
     "producer_version",
     "request_id",

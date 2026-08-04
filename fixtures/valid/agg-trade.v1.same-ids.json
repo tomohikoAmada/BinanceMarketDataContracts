@@ -6,6 +6,8 @@
     "producer": "gateway",
     "producer_version": "0.1.0",
     "connection_id": "conn-spot-agg-002",
+    "stream": "AGG_TRADE",
+    "schema_version": "agg-trade.v1",
     "exchange_event_time_ms": 1690000005000
   },
   "aggregate_trade_id": 6001,

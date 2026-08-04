@@ -6,6 +6,8 @@
     "producer": "gateway",
     "producer_version": "0.1.0",
     "connection_id": "conn-book-crossed-001",
+    "stream": "BOOK_TICKER",
+    "schema_version": "book-ticker.v1",
     "quality_flags": ["CROSSED_BOOK"]
   },
   "update_id": 8001,

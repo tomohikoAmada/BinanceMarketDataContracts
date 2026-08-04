@@ -7,20 +7,22 @@ from pydantic import ValidationError
 
 from binance_market_data_contracts.market_events import (
     AggTrade,
-    BaseEventMetadata,
     BookTicker,
     DepthUpdate,
     DepthUpdateMetadata,
+    _BaseEventMetadata,
 )
 
 
-def md_json(stream=None, **overrides):
-    """Make metadata dict for JSON input, with null for optional times."""
+def md_json(stream="DIFF_DEPTH", schema_version="depth-update.v1", **overrides):
+    """Make metadata dict for JSON input."""
     base = {
         "metadata": {
             "venue": "BINANCE",
             "market": "SPOT",
             "symbol": "BTCUSDT",
+            "stream": stream,
+            "schema_version": schema_version,
             "producer": "test",
             "producer_version": "0.1.0",
             "connection_id": "test-conn",
@@ -35,9 +37,9 @@ def md_json(stream=None, **overrides):
     return base
 
 
-class TestBaseEventMetadata:
+class TestBaseMetadata:
     def test_metadata_json_construction(self):
-        m = BaseEventMetadata.model_validate_json(
+        m = _BaseEventMetadata.model_validate_json(
             json.dumps(
                 {
                     "venue": "BINANCE",
@@ -53,7 +55,7 @@ class TestBaseEventMetadata:
         assert m.exchange_event_time_ms is None
 
     def test_missing_time_is_none(self):
-        m = BaseEventMetadata.model_validate_json(
+        m = _BaseEventMetadata.model_validate_json(
             json.dumps(
                 {
                     "venue": "BINANCE",
@@ -76,6 +78,8 @@ class TestDepthUpdateMetadata:
                     "venue": "BINANCE",
                     "market": "SPOT",
                     "symbol": "BTCUSDT",
+                    "stream": "DIFF_DEPTH",
+                    "schema_version": "depth-update.v1",
                     "producer": "test",
                     "producer_version": "0.1.0",
                     "connection_id": "conn-1",
@@ -116,7 +120,7 @@ class TestDepthUpdate:
         assert du.asks == ()
 
     def test_wrong_metadata_for_depth_update_rejected_json(self):
-        """DepthUpdate needs DepthUpdateMetadata, not BaseEventMetadata."""
+        """DepthUpdate needs DepthUpdateMetadata, not _BaseEventMetadata."""
         payload = {
             "metadata": {
                 "venue": "BINANCE",
@@ -148,7 +152,7 @@ class TestDepthUpdate:
 class TestAggTrade:
     def test_valid_agg_trade(self):
         payload = {
-            **md_json(),
+            **md_json("AGG_TRADE", "agg-trade.v1"),
             "aggregate_trade_id": 5001,
             "price": "29501.50",
             "quantity": "0.50000000",
@@ -192,7 +196,7 @@ class TestAggTrade:
 class TestBookTicker:
     def test_valid_book_ticker(self):
         payload = {
-            **md_json(),
+            **md_json("BOOK_TICKER", "book-ticker.v1"),
             "update_id": 7001,
             "best_bid_price": "29500.00",
             "best_bid_quantity": "1.5",
@@ -204,7 +208,7 @@ class TestBookTicker:
 
     def test_null_update_id_allowed(self):
         payload = {
-            **md_json(),
+            **md_json("BOOK_TICKER", "book-ticker.v1"),
             "update_id": None,
             "best_bid_price": "29500.00",
             "best_bid_quantity": "1.0",
@@ -216,7 +220,7 @@ class TestBookTicker:
 
     def test_crossed_book_accepted(self):
         payload = {
-            **md_json(),
+            **md_json("BOOK_TICKER", "book-ticker.v1"),
             "best_bid_price": "29510.00",
             "best_bid_quantity": "1.0",
             "best_ask_price": "29500.00",

@@ -13,7 +13,7 @@
       "description": "A single price level in the order book.\n\nquantity represents the absolute quantity at this price level after the update.\nquantity == \"0\" means this price level should be removed.",
       "properties": {
         "price": {
-          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
           "title": "Price",
           "type": "string"
         },
@@ -41,12 +41,12 @@
   "$id": "urn:binance-market-data-contracts:market-state-snapshot.v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Strategy-independent market state projection.\n\nContains derived market facts. Does NOT contain predictions, alpha, or trading signals.",
+  "description": "Strategy-independent market state projection.",
   "properties": {
     "best_ask_price": {
       "anyOf": [
         {
-          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
           "type": "string"
         },
         {
@@ -70,7 +70,7 @@
     "best_bid_price": {
       "anyOf": [
         {
-          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
           "type": "string"
         },
         {
@@ -139,21 +139,13 @@
       "default": null
     },
     "generated_time_utc_ns": {
-      "anyOf": [
-        {
-          "minimum": 0,
-          "type": "integer"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
+      "minimum": 0,
+      "type": "integer"
     },
     "index_price": {
       "anyOf": [
         {
-          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
           "type": "string"
         },
         {
@@ -165,7 +157,7 @@
     "mark_price": {
       "anyOf": [
         {
-          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
           "type": "string"
         },
         {
@@ -180,7 +172,7 @@
     "microprice": {
       "anyOf": [
         {
-          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
           "type": "string"
         },
         {
@@ -192,7 +184,7 @@
     "mid_price": {
       "anyOf": [
         {
-          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
           "type": "string"
         },
         {
@@ -228,16 +220,17 @@
     "producer": {
       "maxLength": 256,
       "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
       "type": "string"
     },
     "producer_version": {
       "maxLength": 256,
       "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
       "type": "string"
     },
     "schema_version": {
       "const": "market-state-snapshot.v1",
-      "default": "market-state-snapshot.v1",
       "type": "string"
     },
     "spread": {
@@ -280,8 +273,10 @@
     "venue",
     "market",
     "symbol",
+    "schema_version",
     "producer",
-    "producer_version"
+    "producer_version",
+    "generated_time_utc_ns"
   ],
   "type": "object"
 }

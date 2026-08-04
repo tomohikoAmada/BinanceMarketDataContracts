@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from binance_market_data_contracts.enums import Market, Venue
-from binance_market_data_contracts.market_events import BaseEventMetadata
+from binance_market_data_contracts.market_events import _BaseEventMetadata
 from binance_market_data_contracts.time import ALLOWED_TIME_FIELD_NAMES
 from binance_market_data_contracts.versions import CONTRACT_REGISTRY
 
@@ -33,7 +33,7 @@ class TestTimeFieldNaming:
 
 class TestTimeNullSemantics:
     def test_missing_exchange_time_is_null(self):
-        m = BaseEventMetadata(
+        m = _BaseEventMetadata(
             venue=Venue.BINANCE,
             market=Market.SPOT,
             symbol="BTCUSDT",
@@ -46,7 +46,7 @@ class TestTimeNullSemantics:
 
     def test_time_cannot_be_negative(self):
         with pytest.raises(ValidationError):
-            BaseEventMetadata(
+            _BaseEventMetadata(
                 venue=Venue.BINANCE,
                 market=Market.SPOT,
                 symbol="BTCUSDT",
@@ -58,7 +58,7 @@ class TestTimeNullSemantics:
 
     def test_exchange_time_cannot_be_negative(self):
         with pytest.raises(ValidationError):
-            BaseEventMetadata(
+            _BaseEventMetadata(
                 venue=Venue.BINANCE,
                 market=Market.SPOT,
                 symbol="BTCUSDT",

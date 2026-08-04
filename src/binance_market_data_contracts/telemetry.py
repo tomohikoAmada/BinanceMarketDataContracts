@@ -1,7 +1,6 @@
 """DRAFT — Telemetry contract.
 
-Provides a minimal telemetry envelope shared by Gateway and Recorder.
-Uses discriminated payloads rather than unrestricted dict[str, Any].
+Type consistency: telemetry_type must match metrics.type.
 """
 
 from __future__ import annotations
@@ -9,7 +8,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Annotated, Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from binance_market_data_contracts.common import ContractModel
 from binance_market_data_contracts.enums import Market, QualityFlag
@@ -23,6 +22,16 @@ class TelemetryType(StrEnum):
     QUEUE = "QUEUE"
     BOOK = "BOOK"
     SYSTEM = "SYSTEM"
+
+
+_TELEMETRY_METRIC_TYPES: dict[TelemetryType, str] = {
+    TelemetryType.CONNECTION: "connection",
+    TelemetryType.SEQUENCE: "sequence",
+    TelemetryType.LATENCY: "latency",
+    TelemetryType.QUEUE: "queue",
+    TelemetryType.BOOK: "book",
+    TelemetryType.SYSTEM: "system",
+}
 
 
 class ConnectionMetrics(ContractModel):
@@ -76,8 +85,19 @@ class TelemetryEnvelope(ContractModel):
     telemetry_type: TelemetryType
     source_module: str = Field(..., min_length=1)
     source_instance_id: InstanceId
-    observed_time_utc_ns: int | None = Field(default=None, ge=0)
+    observed_time_utc_ns: int = Field(..., ge=0)
     market: Market | None = None
     symbol: Symbol | None = None
     metrics: MetricsPayload | None = None
     quality_flags: tuple[QualityFlag, ...] = ()
+
+    @model_validator(mode="after")
+    def _validate_metric_type(self) -> TelemetryEnvelope:
+        if self.metrics is not None:
+            expected = _TELEMETRY_METRIC_TYPES[self.telemetry_type]
+            if self.metrics.type != expected:
+                raise ValueError(
+                    f"metrics.type '{self.metrics.type}' must match "
+                    f"telemetry_type '{self.telemetry_type.value}' (expected '{expected}')"
+                )
+        return self

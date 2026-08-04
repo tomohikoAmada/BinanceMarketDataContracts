@@ -2,11 +2,12 @@
   "$defs": {
     "BookTickerMetadata": {
       "additionalProperties": false,
-      "description": "Metadata specific to BookTicker events.",
+      "description": "Metadata for BookTicker events. stream and schema_version are required constants.",
       "properties": {
         "connection_id": {
           "maxLength": 128,
           "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
           "title": "Connection Id",
           "type": "string"
         },
@@ -55,12 +56,14 @@
         "producer": {
           "maxLength": 256,
           "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
           "title": "Producer",
           "type": "string"
         },
         "producer_version": {
           "maxLength": 256,
           "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
           "title": "Producer Version",
           "type": "string"
         },
@@ -100,13 +103,11 @@
         },
         "schema_version": {
           "const": "book-ticker.v1",
-          "default": "book-ticker.v1",
           "title": "Schema Version",
           "type": "string"
         },
         "stream": {
           "const": "BOOK_TICKER",
-          "default": "BOOK_TICKER",
           "title": "Stream",
           "type": "string"
         },
@@ -127,7 +128,9 @@
         "symbol",
         "producer",
         "producer_version",
-        "connection_id"
+        "connection_id",
+        "stream",
+        "schema_version"
       ],
       "title": "BookTickerMetadata",
       "type": "object"
@@ -174,10 +177,10 @@
   "$id": "urn:binance-market-data-contracts:book-ticker.v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Binance book ticker — best bid and ask with quantities.\n\nUses BookTickerMetadata which fixes stream=BOOK_TICKER and schema_version.\nAccepts crossed books (best_bid_price >= best_ask_price).\nCrossed state is reported by Health through QualityFlag.CROSSED_BOOK.",
+  "description": "Binance book ticker — best bid and ask with quantities.\n\nUses BookTickerMetadata which fixes stream=BOOK_TICKER and schema_version via Literal.\nAccepts crossed books (best_bid_price >= best_ask_price).",
   "properties": {
     "best_ask_price": {
-      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+      "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
       "type": "string"
     },
     "best_ask_quantity": {
@@ -185,7 +188,7 @@
       "type": "string"
     },
     "best_bid_price": {
-      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+      "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
       "type": "string"
     },
     "best_bid_quantity": {

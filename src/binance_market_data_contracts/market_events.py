@@ -1,7 +1,7 @@
 """Core Binance market event contracts.
 
 Defines base event metadata and specific metadata per event type.
-Each event type fixes its stream and schema_version via Literal.
+Each event type fixes its stream and schema_version via Literal (required, no default).
 
 All events use nested metadata — changing to flat fields is a BREAKING change.
 All collections use tuples for deep immutability.
@@ -24,12 +24,8 @@ from binance_market_data_contracts.enums import Market, QualityFlag, Stream, Ven
 from binance_market_data_contracts.identifiers import ConnectionId, Symbol
 
 
-class BaseEventMetadata(ContractModel):
-    """Base metadata fields shared by all market events.
-
-    Concrete event types use specific metadata subclasses that fix
-    stream and schema_version via Literal.
-    """
+class _BaseEventMetadata(ContractModel):
+    """Internal base for market event metadata. Consumers use specific Metadata types."""
 
     venue: Venue
     market: Market
@@ -45,25 +41,25 @@ class BaseEventMetadata(ContractModel):
     quality_flags: tuple[QualityFlag, ...] = ()
 
 
-class DepthUpdateMetadata(BaseEventMetadata):
-    """Metadata specific to DepthUpdate events."""
+class DepthUpdateMetadata(_BaseEventMetadata):
+    """Metadata for DepthUpdate events. stream and schema_version are required constants."""
 
-    stream: Literal[Stream.DIFF_DEPTH] = Stream.DIFF_DEPTH
-    schema_version: Literal["depth-update.v1"] = "depth-update.v1"
-
-
-class AggTradeMetadata(BaseEventMetadata):
-    """Metadata specific to AggTrade events."""
-
-    stream: Literal[Stream.AGG_TRADE] = Stream.AGG_TRADE
-    schema_version: Literal["agg-trade.v1"] = "agg-trade.v1"
+    stream: Literal[Stream.DIFF_DEPTH]
+    schema_version: Literal["depth-update.v1"]
 
 
-class BookTickerMetadata(BaseEventMetadata):
-    """Metadata specific to BookTicker events."""
+class AggTradeMetadata(_BaseEventMetadata):
+    """Metadata for AggTrade events. stream and schema_version are required constants."""
 
-    stream: Literal[Stream.BOOK_TICKER] = Stream.BOOK_TICKER
-    schema_version: Literal["book-ticker.v1"] = "book-ticker.v1"
+    stream: Literal[Stream.AGG_TRADE]
+    schema_version: Literal["agg-trade.v1"]
+
+
+class BookTickerMetadata(_BaseEventMetadata):
+    """Metadata for BookTicker events. stream and schema_version are required constants."""
+
+    stream: Literal[Stream.BOOK_TICKER]
+    schema_version: Literal["book-ticker.v1"]
 
 
 class PriceLevel(ContractModel):
@@ -80,7 +76,8 @@ class PriceLevel(ContractModel):
 class DepthUpdate(ContractModel):
     """Binance order book depth update.
 
-    Uses DepthUpdateMetadata which fixes stream=DIFF_DEPTH and schema_version.
+    Uses DepthUpdateMetadata which fixes stream=DIFF_DEPTH and schema_version via Literal.
+    Both are required in serialized form.
     """
 
     metadata: DepthUpdateMetadata
@@ -102,8 +99,8 @@ class DepthUpdate(ContractModel):
 class AggTrade(ContractModel):
     """Binance aggregated trade.
 
-    Uses AggTradeMetadata which fixes stream=AGG_TRADE and schema_version.
-    quantity MUST be > 0 (quantity="0" is not valid for trades).
+    Uses AggTradeMetadata which fixes stream=AGG_TRADE and schema_version via Literal.
+    quantity MUST be > 0.
     """
 
     metadata: AggTradeMetadata
@@ -125,9 +122,8 @@ class AggTrade(ContractModel):
 class BookTicker(ContractModel):
     """Binance book ticker — best bid and ask with quantities.
 
-    Uses BookTickerMetadata which fixes stream=BOOK_TICKER and schema_version.
+    Uses BookTickerMetadata which fixes stream=BOOK_TICKER and schema_version via Literal.
     Accepts crossed books (best_bid_price >= best_ask_price).
-    Crossed state is reported by Health through QualityFlag.CROSSED_BOOK.
     """
 
     metadata: BookTickerMetadata

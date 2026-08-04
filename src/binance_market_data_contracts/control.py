@@ -1,7 +1,6 @@
 """DRAFT — Control contracts.
 
-Defines operational control commands and their results.
-Uses discriminated parameter types, not unrestricted dict.
+Type consistency: command_type must match parameters.type.
 """
 
 from __future__ import annotations
@@ -9,7 +8,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Annotated, Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from binance_market_data_contracts.common import ContractModel, NonEmptyText
 from binance_market_data_contracts.identifiers import CommandId
@@ -32,6 +31,15 @@ class CommandStatus(StrEnum):
     TIMED_OUT = "TIMED_OUT"
 
 
+_COMMAND_PARAMETER_TYPES: dict[CommandType, str] = {
+    CommandType.GET_STATUS: "GET_STATUS",
+    CommandType.VALIDATE_DATA: "VALIDATE_DATA",
+    CommandType.TRIGGER_ARCHIVE: "TRIGGER_ARCHIVE",
+    CommandType.TRIGGER_RESYNC: "TRIGGER_RESYNC",
+    CommandType.GENERATE_DIAGNOSTIC_BUNDLE: "GENERATE_DIAGNOSTIC_BUNDLE",
+}
+
+
 class GetStatusParameters(ContractModel):
     type: Literal["GET_STATUS"] = "GET_STATUS"
 
@@ -44,7 +52,7 @@ class ValidateDataParameters(ContractModel):
 
 class TriggerArchiveParameters(ContractModel):
     type: Literal["TRIGGER_ARCHIVE"] = "TRIGGER_ARCHIVE"
-    target_date: str | None = None
+    archive_date_yyyy_mm_dd: str | None = None
 
 
 class TriggerResyncParameters(ContractModel):
@@ -83,10 +91,21 @@ class ControlCommand(ContractModel):
     target: NonEmptyText
     requested_at_utc_ns: int = Field(..., ge=0)
     requester: NonEmptyText
-    schema_version: Literal["control-command.v1"] = "control-command.v1"
+    schema_version: Literal["control-command.v1"]
     parameters: CommandParameters | None = None
     idempotency_key: str | None = None
     timeout_seconds: int | None = Field(default=None, ge=1)
+
+    @model_validator(mode="after")
+    def _validate_param_type(self) -> ControlCommand:
+        if self.parameters is not None:
+            expected = _COMMAND_PARAMETER_TYPES[self.command_type]
+            if self.parameters.type != expected:
+                raise ValueError(
+                    f"parameters.type '{self.parameters.type}' must match "
+                    f"command_type '{self.command_type.value}' (expected '{expected}')"
+                )
+        return self
 
 
 class CommandResult(ContractModel):
@@ -99,5 +118,5 @@ class CommandResult(ContractModel):
     result_summary: str | None = None
     requested_at_utc_ns: int = Field(..., ge=0)
     executed_at_utc_ns: int | None = Field(default=None, ge=0)
-    schema_version: Literal["command-result.v1"] = "command-result.v1"
+    schema_version: Literal["command-result.v1"]
     audit_metadata: AuditMetadata | None = None

@@ -2,11 +2,12 @@
   "$defs": {
     "DepthUpdateMetadata": {
       "additionalProperties": false,
-      "description": "Metadata specific to DepthUpdate events.",
+      "description": "Metadata for DepthUpdate events. stream and schema_version are required constants.",
       "properties": {
         "connection_id": {
           "maxLength": 128,
           "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
           "title": "Connection Id",
           "type": "string"
         },
@@ -55,12 +56,14 @@
         "producer": {
           "maxLength": 256,
           "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
           "title": "Producer",
           "type": "string"
         },
         "producer_version": {
           "maxLength": 256,
           "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
           "title": "Producer Version",
           "type": "string"
         },
@@ -100,13 +103,11 @@
         },
         "schema_version": {
           "const": "depth-update.v1",
-          "default": "depth-update.v1",
           "title": "Schema Version",
           "type": "string"
         },
         "stream": {
           "const": "DIFF_DEPTH",
-          "default": "DIFF_DEPTH",
           "title": "Stream",
           "type": "string"
         },
@@ -127,7 +128,9 @@
         "symbol",
         "producer",
         "producer_version",
-        "connection_id"
+        "connection_id",
+        "stream",
+        "schema_version"
       ],
       "title": "DepthUpdateMetadata",
       "type": "object"
@@ -145,7 +148,7 @@
       "description": "A single price level in the order book.\n\nquantity represents the absolute quantity at this price level after the update.\nquantity == \"0\" means this price level should be removed.",
       "properties": {
         "price": {
-          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
           "title": "Price",
           "type": "string"
         },
@@ -196,7 +199,7 @@
   "$id": "urn:binance-market-data-contracts:depth-update.v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Binance order book depth update.\n\nUses DepthUpdateMetadata which fixes stream=DIFF_DEPTH and schema_version.",
+  "description": "Binance order book depth update.\n\nUses DepthUpdateMetadata which fixes stream=DIFF_DEPTH and schema_version via Literal.\nBoth are required in serialized form.",
   "properties": {
     "asks": {
       "default": [],

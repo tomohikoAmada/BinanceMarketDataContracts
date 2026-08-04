@@ -29,13 +29,15 @@ class TestRegistry:
 
 class TestCompatibilityRules:
     def test_depth_update_v1_accepts_previous_final(self):
-        from binance_market_data_contracts.enums import Market, Venue
+        from binance_market_data_contracts.enums import Market, Stream, Venue
         from binance_market_data_contracts.market_events import DepthUpdate, DepthUpdateMetadata
 
         meta = DepthUpdateMetadata(
             venue=Venue.BINANCE,
             market=Market.SPOT,
             symbol="BTCUSDT",
+            stream=Stream.DIFF_DEPTH,
+            schema_version="depth-update.v1",
             producer="test",
             producer_version="0.1.0",
             connection_id="c1",

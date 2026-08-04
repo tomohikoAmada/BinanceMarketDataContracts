@@ -23,6 +23,7 @@ class TestExchangeDepthSnapshot:
             "symbol": "BTCUSDT",
             "producer": "recorder",
             "producer_version": "0.1.0",
+            "schema_version": "exchange-depth-snapshot.v1",
             "request_id": "req-001",
             "last_update_id": 50001,
             "bids": [{"price": "29500.00", "quantity": "1.5"}],
@@ -39,6 +40,7 @@ class TestExchangeDepthSnapshot:
             "symbol": "BTCUSDT",
             "producer": "recorder",
             "producer_version": "0.1.0",
+            "schema_version": "exchange-depth-snapshot.v1",
             "request_id": "req-001",
             "last_update_id": 1,
         }
@@ -71,9 +73,11 @@ class TestLocalOrderBookSnapshot:
             "symbol": "BTCUSDT",
             "producer": "gateway",
             "producer_version": "0.1.0",
+            "schema_version": "local-order-book-snapshot.v1",
             "source": "GATEWAY_LIVE",
             "last_update_id": 100,
             "bids": [{"price": "29500.00", "quantity": "1.0"}],
+            "generated_time_utc_ns": 1000,
             "synchronized": True,
         }
         snap = LocalOrderBookSnapshot.model_validate_json(json.dumps(payload))
@@ -86,8 +90,10 @@ class TestLocalOrderBookSnapshot:
             "symbol": "BTCUSDT",
             "producer": "gateway",
             "producer_version": "0.1.0",
+            "schema_version": "local-order-book-snapshot.v1",
             "source": "GATEWAY_LIVE",
             "last_update_id": 200,
+            "generated_time_utc_ns": 11000000000,
             "synchronized": False,
             "last_gap": {
                 "stream": "DIFF_DEPTH",
@@ -107,8 +113,10 @@ class TestMarketStateSnapshot:
             "venue": "BINANCE",
             "market": "SPOT",
             "symbol": "BTCUSDT",
+            "schema_version": "market-state-snapshot.v1",
             "producer": "projection",
             "producer_version": "0.1.0",
+            "generated_time_utc_ns": 1000,
         }
         snap = MarketStateSnapshot.model_validate_json(json.dumps(payload))
         assert snap.best_bid_price is None
@@ -119,8 +127,10 @@ class TestMarketStateSnapshot:
             "venue": "BINANCE",
             "market": "SPOT",
             "symbol": "BTCUSDT",
+            "schema_version": "market-state-snapshot.v1",
             "producer": "projection",
             "producer_version": "0.1.0",
+            "generated_time_utc_ns": 1000,
             "top_bids": [{"price": "29500.00", "quantity": "1.0"}],
             "top_asks": [{"price": "29501.00", "quantity": "2.0"}],
         }
@@ -203,8 +213,8 @@ class TestLatencySummary:
 class TestDataHealthSnapshot:
     def test_healthy_snapshot(self):
         payload = {
-            "health_snapshot_id": "hs-001",
             "overall_state": "HEALTHY",
+            "schema_version": "data-health-snapshot.v1",
             "venue": "BINANCE",
             "market": "SPOT",
             "symbol": "BTCUSDT",
@@ -224,6 +234,7 @@ class TestDataHealthSnapshot:
         payload = {
             "health_snapshot_id": "hs-002",
             "overall_state": "DEGRADED",
+            "schema_version": "data-health-snapshot.v1",
             "venue": "BINANCE",
             "market": "SPOT",
             "symbol": "BTCUSDT",

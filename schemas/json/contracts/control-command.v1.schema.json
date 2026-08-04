@@ -45,7 +45,7 @@
     "TriggerArchiveParameters": {
       "additionalProperties": false,
       "properties": {
-        "target_date": {
+        "archive_date_yyyy_mm_dd": {
           "anyOf": [
             {
               "type": "string"
@@ -55,7 +55,7 @@
             }
           ],
           "default": null,
-          "title": "Target Date"
+          "title": "Archive Date Yyyy Mm Dd"
         },
         "type": {
           "const": "TRIGGER_ARCHIVE",
@@ -150,6 +150,7 @@
     "command_id": {
       "maxLength": 128,
       "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
       "type": "string"
     },
     "command_type": {
@@ -210,16 +211,17 @@
     "requester": {
       "maxLength": 256,
       "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
       "type": "string"
     },
     "schema_version": {
       "const": "control-command.v1",
-      "default": "control-command.v1",
       "type": "string"
     },
     "target": {
       "maxLength": 256,
       "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
       "type": "string"
     },
     "timeout_seconds": {
@@ -240,7 +242,8 @@
     "command_type",
     "target",
     "requested_at_utc_ns",
-    "requester"
+    "requester",
+    "schema_version"
   ],
   "type": "object"
 }

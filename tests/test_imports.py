@@ -20,7 +20,6 @@ def test_proposed_types_importable():
     from binance_market_data_contracts import (  # noqa: F401
         AggTrade,
         AggTradeMetadata,
-        BaseEventMetadata,
         BookTicker,
         BookTickerMetadata,
         ConnectionId,

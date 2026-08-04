@@ -6,6 +6,8 @@
     "producer": "recorder",
     "producer_version": "0.1.0",
     "connection_id": "conn-spot-agg-001",
+    "stream": "AGG_TRADE",
+    "schema_version": "agg-trade.v1",
     "exchange_event_time_ms": 1690000004000,
     "exchange_trade_time_ms": 1690000003900
   },

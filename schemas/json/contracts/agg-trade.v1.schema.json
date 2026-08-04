@@ -2,11 +2,12 @@
   "$defs": {
     "AggTradeMetadata": {
       "additionalProperties": false,
-      "description": "Metadata specific to AggTrade events.",
+      "description": "Metadata for AggTrade events. stream and schema_version are required constants.",
       "properties": {
         "connection_id": {
           "maxLength": 128,
           "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
           "title": "Connection Id",
           "type": "string"
         },
@@ -55,12 +56,14 @@
         "producer": {
           "maxLength": 256,
           "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
           "title": "Producer",
           "type": "string"
         },
         "producer_version": {
           "maxLength": 256,
           "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
           "title": "Producer Version",
           "type": "string"
         },
@@ -100,13 +103,11 @@
         },
         "schema_version": {
           "const": "agg-trade.v1",
-          "default": "agg-trade.v1",
           "title": "Schema Version",
           "type": "string"
         },
         "stream": {
           "const": "AGG_TRADE",
-          "default": "AGG_TRADE",
           "title": "Stream",
           "type": "string"
         },
@@ -127,7 +128,9 @@
         "symbol",
         "producer",
         "producer_version",
-        "connection_id"
+        "connection_id",
+        "stream",
+        "schema_version"
       ],
       "title": "AggTradeMetadata",
       "type": "object"
@@ -174,7 +177,7 @@
   "$id": "urn:binance-market-data-contracts:agg-trade.v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Binance aggregated trade.\n\nUses AggTradeMetadata which fixes stream=AGG_TRADE and schema_version.\nquantity MUST be > 0 (quantity=\"0\" is not valid for trades).",
+  "description": "Binance aggregated trade.\n\nUses AggTradeMetadata which fixes stream=AGG_TRADE and schema_version via Literal.\nquantity MUST be > 0.",
   "properties": {
     "aggregate_trade_id": {
       "minimum": 0,
@@ -195,12 +198,12 @@
       "$ref": "#/$defs/AggTradeMetadata"
     },
     "price": {
-      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+      "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
       "type": "string"
     },
     "quantity": {
       "description": "Total quantity of the aggregate trade (> 0)",
-      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+      "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
       "type": "string"
     },
     "trade_time_ms": {

@@ -329,16 +329,8 @@
       "default": null
     },
     "observed_time_utc_ns": {
-      "anyOf": [
-        {
-          "minimum": 0,
-          "type": "integer"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
+      "minimum": 0,
+      "type": "integer"
     },
     "quality_flags": {
       "default": [],
@@ -350,6 +342,7 @@
     "source_instance_id": {
       "maxLength": 128,
       "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
       "type": "string"
     },
     "source_module": {
@@ -377,7 +370,8 @@
   "required": [
     "telemetry_type",
     "source_module",
-    "source_instance_id"
+    "source_instance_id",
+    "observed_time_utc_ns"
   ],
   "type": "object"
 }

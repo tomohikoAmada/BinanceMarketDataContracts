@@ -6,6 +6,8 @@
     "producer": "gateway",
     "producer_version": "0.1.0",
     "connection_id": "conn-usdm-btcusdt-002",
+    "stream": "DIFF_DEPTH",
+    "schema_version": "depth-update.v1",
     "exchange_event_time_ms": 1690000002000,
     "quality_flags": ["DUPLICATE"]
   },

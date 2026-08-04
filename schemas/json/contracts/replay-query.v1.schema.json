@@ -40,7 +40,7 @@
   "$id": "urn:binance-market-data-contracts:replay-query.v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "DRAFT — Describes a historical replay request.\n\nOrdering rules are versioned via ordering_version.",
+  "description": "DRAFT — Describes a historical replay request.",
   "properties": {
     "clock": {
       "$ref": "#/$defs/ReplayClock",
@@ -49,6 +49,7 @@
     "dataset_id": {
       "maxLength": 128,
       "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
       "type": "string"
     },
     "end_time_utc_ns": {
@@ -75,6 +76,7 @@
       "default": "1",
       "maxLength": 256,
       "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
       "type": "string"
     },
     "start_time_utc_ns": {

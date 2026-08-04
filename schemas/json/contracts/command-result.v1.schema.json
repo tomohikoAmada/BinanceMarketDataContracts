@@ -18,6 +18,7 @@
         "requester": {
           "maxLength": 256,
           "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
           "title": "Requester",
           "type": "string"
         },
@@ -25,6 +26,7 @@
           "default": "cli",
           "maxLength": 256,
           "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
           "title": "Source",
           "type": "string"
         },
@@ -79,6 +81,7 @@
     "command_id": {
       "maxLength": 128,
       "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
       "type": "string"
     },
     "error_code": {
@@ -132,7 +135,6 @@
     },
     "schema_version": {
       "const": "command-result.v1",
-      "default": "command-result.v1",
       "type": "string"
     },
     "status": {
@@ -142,7 +144,8 @@
   "required": [
     "command_id",
     "status",
-    "requested_at_utc_ns"
+    "requested_at_utc_ns",
+    "schema_version"
   ],
   "type": "object"
 }

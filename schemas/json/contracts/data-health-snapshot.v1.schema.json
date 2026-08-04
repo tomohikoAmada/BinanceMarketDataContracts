@@ -204,7 +204,7 @@
   "$id": "urn:binance-market-data-contracts:data-health-snapshot.v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Data health assessment for a market data stream.\n\nProvides an overall health state with supporting metrics.\nobserved_time_utc_ns is required and identifies when this assessment was made.",
+  "description": "Data health assessment for a market data stream.",
   "properties": {
     "book_synchronized": {
       "anyOf": [
@@ -242,6 +242,7 @@
     "health_snapshot_id": {
       "maxLength": 128,
       "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
       "type": "string"
     },
     "last_message_age_ms": {
@@ -269,11 +270,13 @@
     "producer": {
       "maxLength": 256,
       "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
       "type": "string"
     },
     "producer_version": {
       "maxLength": 256,
       "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
       "type": "string"
     },
     "publish_latency": {
@@ -336,7 +339,6 @@
     },
     "schema_version": {
       "const": "data-health-snapshot.v1",
-      "default": "data-health-snapshot.v1",
       "type": "string"
     },
     "sequence_gap_count": {
@@ -347,6 +349,7 @@
     "source_instance_id": {
       "maxLength": 128,
       "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
       "type": "string"
     },
     "stream": {
@@ -377,6 +380,7 @@
     "venue",
     "market",
     "symbol",
+    "schema_version",
     "producer",
     "producer_version",
     "source_instance_id",

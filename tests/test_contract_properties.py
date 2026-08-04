@@ -5,9 +5,9 @@ from pydantic import ValidationError
 
 from binance_market_data_contracts.enums import Market, Venue
 from binance_market_data_contracts.market_events import (
-    BaseEventMetadata,
     DepthUpdate,
     PriceLevel,
+    _BaseEventMetadata,
 )
 from binance_market_data_contracts.versions import CONTRACT_REGISTRY
 
@@ -66,10 +66,10 @@ class TestSchemaVersionLiteral:
 
 class TestExtraForbid:
     def test_extra_field_rejected(self):
-        from binance_market_data_contracts.market_events import BaseEventMetadata
+        from binance_market_data_contracts.market_events import _BaseEventMetadata
 
         with pytest.raises(ValidationError, match="extra"):
-            BaseEventMetadata.model_validate(
+            _BaseEventMetadata.model_validate(
                 {
                     "venue": "BINANCE",
                     "market": "SPOT",
@@ -84,7 +84,7 @@ class TestExtraForbid:
 
 class TestFrozen:
     def test_frozen_prevents_mutation(self):
-        m = BaseEventMetadata(
+        m = _BaseEventMetadata(
             venue=Venue.BINANCE,
             market=Market.SPOT,
             symbol="BTCUSDT",

@@ -5,15 +5,15 @@
     "symbol": "BTCUSDT",
     "producer": "gateway",
     "producer_version": "0.1.0",
-    "connection_id": "conn-invalid-007",
+    "connection_id": "conn-invalid-014",
     "stream": "AGG_TRADE",
     "schema_version": "agg-trade.v1"
   },
   "aggregate_trade_id": 5001,
-  "price": "0",
-  "quantity": "0.5",
+  "price": "100.00",
+  "quantity": "0",
   "first_trade_id": 1,
-  "last_trade_id": 3,
+  "last_trade_id": 1,
   "trade_time_ms": 1690000003900,
   "buyer_is_maker": false
 }

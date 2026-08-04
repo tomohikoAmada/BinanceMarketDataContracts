@@ -26,7 +26,6 @@ from binance_market_data_contracts.identifiers import ConnectionId, RequestId, S
 from binance_market_data_contracts.market_events import (
     AggTrade,
     AggTradeMetadata,
-    BaseEventMetadata,
     BookTicker,
     BookTickerMetadata,
     DepthUpdate,
@@ -47,7 +46,6 @@ __all__ = [
     "CONTRACT_REGISTRY",
     "AggTrade",
     "AggTradeMetadata",
-    "BaseEventMetadata",
     "BookTicker",
     "BookTickerMetadata",
     "ConnectionId",

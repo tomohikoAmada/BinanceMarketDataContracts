@@ -6,6 +6,8 @@
     "producer": "recorder",
     "producer_version": "0.1.0",
     "connection_id": "conn-spot-btcusdt-001",
+    "stream": "DIFF_DEPTH",
+    "schema_version": "depth-update.v1",
     "exchange_event_time_ms": 1690000000123,
     "quality_flags": []
   },
