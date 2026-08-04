@@ -57,6 +57,7 @@ class HistoricalDatasetDescriptor(ContractModel):
 class ReplayQuery(ContractModel):
     """DRAFT — Describes a historical replay request."""
 
+    schema_version: Literal["replay-query.v1"]
     dataset_id: DatasetId
     start_time_utc_ns: int | None = Field(default=None, ge=0)
     end_time_utc_ns: int | None = Field(default=None, ge=0)

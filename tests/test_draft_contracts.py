@@ -40,7 +40,7 @@ class TestHistoricalDatasetDescriptor:
 
 class TestReplayQuery:
     def test_minimal_query(self):
-        q = ReplayQuery(dataset_id="ds-001")
+        q = ReplayQuery(schema_version="replay-query.v1", dataset_id="ds-001")
         assert q.dataset_id == "ds-001"
         assert q.clock == "RECEIVE_TIME"
 
@@ -49,6 +49,7 @@ class TestTelemetry:
     def test_envelope(self):
         metrics = ConnectionMetrics(connected=True)
         e = TelemetryEnvelope(
+            schema_version="telemetry.v1",
             telemetry_type=TelemetryType.CONNECTION,
             source_module="gateway",
             source_instance_id="gw-001",

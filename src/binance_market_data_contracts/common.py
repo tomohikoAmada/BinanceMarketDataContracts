@@ -23,7 +23,9 @@ from pydantic import (
 
 DECIMAL_PATTERN = r"^(0|[1-9][0-9]*)(\.[0-9]+)?$"
 POSITIVE_DECIMAL_PATTERN = r"^(?:[1-9][0-9]*(?:\.[0-9]+)?|0\.[0-9]*[1-9][0-9]*)$"
-SIGNED_DECIMAL_PATTERN = r"^-?(0|[1-9][0-9]*)(\.[0-9]+)?$"
+SIGNED_DECIMAL_PATTERN = (
+    r"^(?:0(?:\.[0-9]+)?|[1-9][0-9]*(?:\.[0-9]+)?|-[1-9][0-9]*(?:\.[0-9]+)?|-0\.[0-9]*[1-9][0-9]*)$"
+)
 NON_EMPTY_TEXT_PATTERN = r"^\S(?:.*\S)?$"
 IDENTIFIER_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$"
 

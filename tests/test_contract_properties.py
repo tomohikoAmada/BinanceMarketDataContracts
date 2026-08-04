@@ -56,12 +56,21 @@ class TestProducerConsumer:
 
 class TestSchemaVersionLiteral:
     def test_schema_version_matches_registry(self):
+        from binance_market_data_contracts.time import walk_models
+
         for name, entry in CONTRACT_REGISTRY.items():
-            fields = entry.python_type.model_fields
-            if "schema_version" in fields:
-                field_info = fields["schema_version"]
-                ann = str(field_info.annotation)
-                assert name in ann.replace("'", "").replace('"', ""), f"schema_version Literal mismatch for {name}"
+            found = False
+            for model_type in walk_models(entry.python_type):
+                fields = model_type.model_fields
+                if "schema_version" in fields:
+                    field_info = fields["schema_version"]
+                    assert field_info.is_required(), f"{model_type.__name__}.schema_version must be required"
+                    ann = str(field_info.annotation)
+                    assert name in ann.replace("'", "").replace('"', ""), (
+                        f"schema_version Literal mismatch for {name} in {model_type.__name__}: {field_info.annotation!r}"
+                    )
+                    found = True
+            assert found, f"Registered contract {name} has no schema_version field in any nested model"
 
 
 class TestExtraForbid:

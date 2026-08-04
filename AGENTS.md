@@ -38,7 +38,7 @@ ruff check .
 ruff format --check .
 mypy src
 pytest -q
-python -m binance_market_data_contracts.schema_export
+python -m binance_market_data_contracts.schema_export --output schemas/json
 git diff --exit-code -- schemas/json
 python -m build
 python -m twine check dist/*
@@ -54,7 +54,19 @@ python -m twine check dist/*
 
 ## Decimal string rules
 
-- Prices: `^(0|[1-9][0-9]*)(\\.[0-9]+)?$` with Decimal > 0
-- Quantities: `^(0|[1-9][0-9]*)(\\.[0-9]+)?$` with Decimal >= 0
+- **PriceString**: uses `POSITIVE_DECIMAL_PATTERN` — rejects zero, requires > 0
+- **QuantityString**: allows zero (>= 0), used for order book levels
+- **PositiveQuantityString**: rejects zero (used for AggTrade quantity)
+- **SignedDecimalString**: rejects negative zero (-0, -0.0, -0.0000)
 - No scientific notation, no leading zeros, no trailing dot, no leading dot
 - No NaN, Infinity, float, int, empty string, whitespace
+- Trailing zeros preserved: "1.2300" stays "1.2300"
+
+## Serialization rules
+
+- `stream` and `schema_version` are **required** in serialized form (no defaults)
+- `_BaseEventMetadata` is internal; consumers use specific Metadata types
+- All public collections use `tuple` for deep immutability
+- JSON input: use `model_validate_json()` (string enums accepted)
+- Python input: use Enum instances (strict mode, no string coercion)
+- Schema export: `python -m binance_market_data_contracts.schema_export --output schemas/json`

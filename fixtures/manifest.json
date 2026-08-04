@@ -320,6 +320,39 @@
       "expected_error_path": "best_ask_quantity"
     },
     {
+      "path": "invalid/local-order-book-snapshot.v1.missing-generated-time.json",
+      "contract_name": "local-order-book-snapshot.v1",
+      "schema_version": "local-order-book-snapshot.v1",
+      "python_type": "LocalOrderBookSnapshot",
+      "valid": false,
+      "scenario": "Missing required generated_time_utc_ns",
+      "validation_scope": "BOTH",
+      "expected_error_code": "missing",
+      "expected_error_path": "generated_time_utc_ns"
+    },
+    {
+      "path": "invalid/market-state-snapshot.v1.missing-generated-time.json",
+      "contract_name": "market-state-snapshot.v1",
+      "schema_version": "market-state-snapshot.v1",
+      "python_type": "MarketStateSnapshot",
+      "valid": false,
+      "scenario": "Missing required generated_time_utc_ns",
+      "validation_scope": "BOTH",
+      "expected_error_code": "missing",
+      "expected_error_path": "generated_time_utc_ns"
+    },
+    {
+      "path": "invalid/data-health-snapshot.v1.missing-observed-time.json",
+      "contract_name": "data-health-snapshot.v1",
+      "schema_version": "data-health-snapshot.v1",
+      "python_type": "DataHealthSnapshot",
+      "valid": false,
+      "scenario": "Missing required observed_time_utc_ns",
+      "validation_scope": "BOTH",
+      "expected_error_code": "missing",
+      "expected_error_path": "observed_time_utc_ns"
+    },
+    {
       "path": "invalid/metadata.v1.ambiguous-timestamp.json",
       "contract_name": "exchange-depth-snapshot.v1",
       "schema_version": "exchange-depth-snapshot.v1",

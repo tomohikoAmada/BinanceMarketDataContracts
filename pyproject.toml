@@ -7,7 +7,7 @@ name = "binance-market-data-contracts"
 version = "0.1.0a1"
 description = "Versioned public contracts, schemas, fixtures and architecture decisions for BinanceMarketData"
 requires-python = ">=3.11"
-license = { text = "Proprietary" }
+license = "LicenseRef-Proprietary"
 authors = [{ name = "BinanceMarketData Team" }]
 readme = "README.md"
 classifiers = [

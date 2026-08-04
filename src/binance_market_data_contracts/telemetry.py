@@ -10,7 +10,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, model_validator
 
-from binance_market_data_contracts.common import ContractModel
+from binance_market_data_contracts.common import ContractModel, NonEmptyText
 from binance_market_data_contracts.enums import Market, QualityFlag
 from binance_market_data_contracts.identifiers import InstanceId, Symbol
 
@@ -82,8 +82,9 @@ MetricsPayload = Annotated[
 class TelemetryEnvelope(ContractModel):
     """DRAFT — Telemetry envelope for Gateway and Recorder."""
 
+    schema_version: Literal["telemetry.v1"]
     telemetry_type: TelemetryType
-    source_module: str = Field(..., min_length=1)
+    source_module: NonEmptyText
     source_instance_id: InstanceId
     observed_time_utc_ns: int = Field(..., ge=0)
     market: Market | None = None

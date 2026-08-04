@@ -10,7 +10,7 @@ Missing times use None, never 0.
 
 from __future__ import annotations
 
-from typing import get_args, get_origin
+from typing import Annotated, get_args, get_origin
 
 from pydantic import BaseModel
 
@@ -41,7 +41,10 @@ ALLOWED_TIME_FIELD_NAMES: set[str] = {
     "p50_ms",
     "p95_ms",
     "p99_ms",
-    "archive_date_yyyy_mm_dd",
+    "archive_date_utc",
+    "receive_latency",
+    "publish_latency",
+    "missing_exchange_time_policy",
 }
 
 
@@ -73,10 +76,22 @@ def walk_models(model_type: type[BaseModel]) -> set[type[BaseModel]]:
     return seen
 
 
+def find_invalid_time_fields(model_type: type[BaseModel]) -> tuple[str, ...]:
+    """Find time-like field names that are not in the allowed set."""
+    invalid: list[str] = []
+    for mt in walk_models(model_type):
+        for field_name in mt.model_fields:
+            if field_name == "timestamp":
+                invalid.append(f"{mt.__name__}.timestamp")
+                continue
+            if is_time_like_field(field_name) and field_name not in ALLOWED_TIME_FIELD_NAMES:
+                invalid.append(f"{mt.__name__}.{field_name}")
+    return tuple(invalid)
+
+
 def _unwrap_annotation(ann: object) -> object:
     """Peel Annotated wrapper if present."""
-    origin = get_origin(ann)
-    if origin is not None and hasattr(origin, "__name__") and origin.__name__ == "Annotated":
+    if get_origin(ann) is Annotated:
         args = get_args(ann)
         if args:
             return args[0]

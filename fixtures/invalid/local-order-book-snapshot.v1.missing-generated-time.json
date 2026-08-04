@@ -1,0 +1,11 @@
+{
+  "venue": "BINANCE",
+  "market": "SPOT",
+  "symbol": "BTCUSDT",
+  "schema_version": "local-order-book-snapshot.v1",
+  "producer": "gateway",
+  "producer_version": "0.1.0",
+  "source": "GATEWAY_LIVE",
+  "last_update_id": 100,
+  "synchronized": true
+}

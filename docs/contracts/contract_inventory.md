@@ -1,25 +1,43 @@
 # Contract Inventory
 
-All contracts with status, producer, and consumer information.
+All contracts with status, producer, and consumer information from `CONTRACT_REGISTRY`.
 
-## Core Market Contracts
+## Core Market Contracts (PROPOSED)
 
-| Contract | Version | Status | Producer | Consumer |
-|----------|---------|--------|----------|----------|
-| depth-update | v1 | PROPOSED | recorder or gateway | all modules |
-| agg-trade | v1 | PROPOSED | recorder or gateway | all modules |
-| book-ticker | v1 | PROPOSED | recorder or gateway | all modules |
-| exchange-depth-snapshot | v1 | PROPOSED | recorder or gateway | order book, history |
-| local-order-book-snapshot | v1 | PROPOSED | gateway or replay | view, health |
-| market-state-snapshot | v1 | PROPOSED | projection or gateway | view, strategy |
-| data-health-snapshot | v1 | PROPOSED | health | view, control, risk |
+### depth-update.v1
+- **Producers**: recorder-adapter, gateway-adapter
+- **Consumers**: projection, health, history-replay, live-strategy
+
+### agg-trade.v1
+- **Producers**: recorder-adapter, gateway-adapter
+- **Consumers**: projection, health, history-replay, live-strategy
+
+### book-ticker.v1
+- **Producers**: recorder-adapter, gateway-adapter
+- **Consumers**: projection, health, history-replay, live-strategy
+
+### exchange-depth-snapshot.v1
+- **Producers**: recorder-adapter, gateway-adapter
+- **Consumers**: order-book, history
+
+### local-order-book-snapshot.v1
+- **Producers**: gateway-adapter, replay
+- **Consumers**: view, health
+
+### market-state-snapshot.v1
+- **Producers**: projection, gateway-adapter
+- **Consumers**: view, live-strategy
+
+### data-health-snapshot.v1
+- **Producers**: health
+- **Consumers**: view, control, risk
 
 ## Draft Contracts
 
 | Contract | Version | Status | Notes |
 |----------|---------|--------|-------|
-| historical-dataset-descriptor | v1 | DRAFT | Pending alignment with Recorder/History implementation |
-| replay-query | v1 | DRAFT | Ordering rules need validation with real data |
+| historical-dataset-descriptor | v1 | DRAFT | Pending alignment with Recorder/History |
+| replay-query | v1 | DRAFT | Ordering rules need validation |
 | telemetry | v1 | DRAFT | Metrics payload types need refinement |
 | control-command | v1 | DRAFT | Command parameters may expand |
 | command-result | v1 | DRAFT | Error codes need standardization |

@@ -79,6 +79,10 @@
       "pattern": "^\\S(?:.*\\S)?$",
       "type": "string"
     },
+    "schema_version": {
+      "const": "replay-query.v1",
+      "type": "string"
+    },
     "start_time_utc_ns": {
       "anyOf": [
         {
@@ -107,6 +111,7 @@
     }
   },
   "required": [
+    "schema_version",
     "dataset_id"
   ],
   "type": "object"

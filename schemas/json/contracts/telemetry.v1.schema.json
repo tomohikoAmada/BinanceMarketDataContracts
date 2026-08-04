@@ -339,6 +339,10 @@
       },
       "type": "array"
     },
+    "schema_version": {
+      "const": "telemetry.v1",
+      "type": "string"
+    },
     "source_instance_id": {
       "maxLength": 128,
       "minLength": 1,
@@ -346,7 +350,9 @@
       "type": "string"
     },
     "source_module": {
+      "maxLength": 256,
       "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
       "type": "string"
     },
     "symbol": {
@@ -368,6 +374,7 @@
     }
   },
   "required": [
+    "schema_version",
     "telemetry_type",
     "source_module",
     "source_instance_id",

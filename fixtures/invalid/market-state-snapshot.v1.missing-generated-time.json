@@ -1,0 +1,8 @@
+{
+  "venue": "BINANCE",
+  "market": "SPOT",
+  "symbol": "BTCUSDT",
+  "schema_version": "market-state-snapshot.v1",
+  "producer": "projection",
+  "producer_version": "0.1.0"
+}

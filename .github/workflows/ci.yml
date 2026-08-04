@@ -38,16 +38,53 @@ jobs:
         run: python -m build
       - name: Twine check
         run: python -m twine check dist/*
-      - name: Wheel smoke test
+      - name: Wheel isolation test
+        shell: bash
         run: |
+          set -euo pipefail
+
+          WHEEL="$(find dist -maxdepth 1 -name '*.whl' -print -quit)"
+          test -n "$WHEEL"
+
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+
+          wheel = next(Path("dist").glob("*.whl"))
+          with ZipFile(wheel) as archive:
+              names = set(archive.namelist())
+          assert "binance_market_data_contracts/py.typed" in names, "py.typed is missing from wheel"
+          print("py.typed present in wheel")
+          PY
+
+          rm -rf /tmp/contracts-wheel-test
+          rm -rf /tmp/exported-schemas
+          rm -rf /tmp/repository-schemas
+          rm -f /tmp/depth-update.v1.spot.json
+
+          cp -R schemas/json /tmp/repository-schemas
+          cp fixtures/valid/depth-update.v1.spot.json /tmp/depth-update.v1.spot.json
+
           python -m venv /tmp/contracts-wheel-test
           /tmp/contracts-wheel-test/bin/python -m pip install --upgrade pip
-          /tmp/contracts-wheel-test/bin/python -m pip install dist/*.whl
-          /tmp/contracts-wheel-test/bin/python -c "
-          import binance_market_data_contracts as contracts
-          assert contracts.__version__ == '0.1.0a1'
-          assert hasattr(contracts, 'DepthUpdate')
-          print('wheel import ok')
-          "
+          /tmp/contracts-wheel-test/bin/python -m pip install "$WHEEL"
+
+          cd /tmp
+
+          /tmp/contracts-wheel-test/bin/python - <<'PY'
+          from pathlib import Path
+          from binance_market_data_contracts import DepthUpdate
+
+          payload = Path("/tmp/depth-update.v1.spot.json").read_text(encoding="utf-8")
+          event = DepthUpdate.model_validate_json(payload)
+          assert event.metadata.stream.value == "DIFF_DEPTH"
+          assert event.metadata.schema_version == "depth-update.v1"
+          assert event.first_update_id <= event.final_update_id
+          assert not hasattr(event.bids, "append")
+          print("installed wheel parsed real fixture")
+          PY
+
           /tmp/contracts-wheel-test/bin/schema-export --output /tmp/exported-schemas
-          echo "schema-export from wheel ok"
+
+          diff -ru /tmp/repository-schemas /tmp/exported-schemas
+          echo "wheel schema diff passed"

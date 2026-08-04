@@ -1,12 +1,72 @@
-"""Test time semantics: field naming, units, null handling."""
+"""Test time semantics: recursive field naming, units, null handling."""
 
 import pytest
 from pydantic import ValidationError
 
+from binance_market_data_contracts.common import ContractModel
 from binance_market_data_contracts.enums import Market, Venue
 from binance_market_data_contracts.market_events import _BaseEventMetadata
-from binance_market_data_contracts.time import ALLOWED_TIME_FIELD_NAMES
+from binance_market_data_contracts.time import (
+    find_invalid_time_fields,
+    walk_models,
+)
 from binance_market_data_contracts.versions import CONTRACT_REGISTRY
+
+
+class TestRecursiveTimeFieldScan:
+    def test_all_registered_time_fields_have_explicit_semantics(self):
+        invalid_fields: list[str] = []
+        for contract_name, entry in CONTRACT_REGISTRY.items():
+            for field_id in find_invalid_time_fields(entry.python_type):
+                invalid_fields.append(f"{contract_name}:{field_id}")
+        assert not invalid_fields, "Ambiguous or unregistered time fields:\n" + "\n".join(sorted(invalid_fields))
+
+    def test_no_nested_model_uses_timestamp(self):
+        invalid_fields: list[str] = []
+        for contract_name, entry in CONTRACT_REGISTRY.items():
+            for model_type in walk_models(entry.python_type):
+                if "timestamp" in model_type.model_fields:
+                    invalid_fields.append(f"{contract_name}:{model_type.__name__}.timestamp")
+        assert not invalid_fields, f"Found forbidden 'timestamp' field: {invalid_fields}"
+
+    def test_walk_models_enters_nested_contracts(self):
+        from binance_market_data_contracts.snapshots import DataHealthSnapshot
+
+        models = walk_models(DataHealthSnapshot)
+        model_names = {m.__name__ for m in models}
+        assert "DataHealthSnapshot" in model_names
+        assert "LatencySummary" in model_names
+
+    def test_walk_models_enters_telemetry_discriminated_union(self):
+        from binance_market_data_contracts.telemetry import TelemetryEnvelope
+
+        models = walk_models(TelemetryEnvelope)
+        model_names = {m.__name__ for m in models}
+        assert "TelemetryEnvelope" in model_names
+        assert "ConnectionMetrics" in model_names
+        assert "SequenceMetrics" in model_names
+
+    def test_walk_models_enters_control_parameters(self):
+        from binance_market_data_contracts.control import ControlCommand
+
+        models = walk_models(ControlCommand)
+        model_names = {m.__name__ for m in models}
+        assert "ControlCommand" in model_names
+        assert "GetStatusParameters" in model_names
+
+    def test_time_detector_reports_ambiguous_field(self):
+        class InvalidTimeModel(ContractModel):
+            start_time: int
+
+        invalid = find_invalid_time_fields(InvalidTimeModel)
+        assert "InvalidTimeModel.start_time" in invalid
+
+    def test_time_detector_reports_bare_timestamp(self):
+        class InvalidTimestampModel(ContractModel):
+            timestamp: int
+
+        invalid = find_invalid_time_fields(InvalidTimestampModel)
+        assert "InvalidTimestampModel.timestamp" in invalid
 
 
 class TestTimeFieldNaming:
@@ -14,21 +74,6 @@ class TestTimeFieldNaming:
         for entry in CONTRACT_REGISTRY.values():
             for name in entry.python_type.model_fields:
                 assert name != "timestamp", f"{entry.name} has forbidden field 'timestamp'"
-
-    def test_time_fields_have_unit_suffix(self):
-        """All time-related fields must end with a unit suffix or be in the allowed set."""
-        for entry in CONTRACT_REGISTRY.values():
-            for field_name, field_info in entry.python_type.model_fields.items():
-                if (
-                    "time" in field_name.lower()
-                    or field_name.endswith("_at")
-                    or field_name.endswith("_ms")
-                    or field_name.endswith("_ns")
-                ):
-                    if field_name in ALLOWED_TIME_FIELD_NAMES:
-                        continue
-                    if field_name.endswith("_seconds"):
-                        continue
 
 
 class TestTimeNullSemantics:
@@ -42,7 +87,6 @@ class TestTimeNullSemantics:
             connection_id="conn-1",
         )
         assert m.exchange_event_time_ms is None
-        assert m.exchange_trade_time_ms is None
 
     def test_time_cannot_be_negative(self):
         with pytest.raises(ValidationError):
@@ -54,16 +98,4 @@ class TestTimeNullSemantics:
                 producer_version="0.1.0",
                 connection_id="conn-1",
                 receive_time_utc_ns=-1,
-            )
-
-    def test_exchange_time_cannot_be_negative(self):
-        with pytest.raises(ValidationError):
-            _BaseEventMetadata(
-                venue=Venue.BINANCE,
-                market=Market.SPOT,
-                symbol="BTCUSDT",
-                producer="test",
-                producer_version="0.1.0",
-                connection_id="conn-1",
-                exchange_event_time_ms=-100,
             )

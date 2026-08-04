@@ -5,6 +5,7 @@ Type consistency: command_type must match parameters.type.
 
 from __future__ import annotations
 
+from datetime import date
 from enum import StrEnum
 from typing import Annotated, Literal
 
@@ -52,7 +53,7 @@ class ValidateDataParameters(ContractModel):
 
 class TriggerArchiveParameters(ContractModel):
     type: Literal["TRIGGER_ARCHIVE"] = "TRIGGER_ARCHIVE"
-    archive_date_yyyy_mm_dd: str | None = None
+    archive_date_utc: date | None = None
 
 
 class TriggerResyncParameters(ContractModel):
