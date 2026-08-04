@@ -5,7 +5,7 @@ Type consistency: command_type must match parameters.type.
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date  # noqa: TC003
 from enum import StrEnum
 from typing import Annotated, Literal
 

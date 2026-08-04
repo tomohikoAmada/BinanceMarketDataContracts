@@ -67,7 +67,8 @@ class TestSchemaVersionLiteral:
                     assert field_info.is_required(), f"{model_type.__name__}.schema_version must be required"
                     ann = str(field_info.annotation)
                     assert name in ann.replace("'", "").replace('"', ""), (
-                        f"schema_version Literal mismatch for {name} in {model_type.__name__}: {field_info.annotation!r}"
+                        f"schema_version Literal mismatch for {name} "
+                        f"in {model_type.__name__}: {field_info.annotation!r}"
                     )
                     found = True
             assert found, f"Registered contract {name} has no schema_version field in any nested model"
