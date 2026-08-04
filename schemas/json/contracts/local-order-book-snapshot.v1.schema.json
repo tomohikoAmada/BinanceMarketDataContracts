@@ -1,0 +1,306 @@
+{
+  "$defs": {
+    "GapDescriptor": {
+      "additionalProperties": false,
+      "description": "Structured description of a sequence gap.",
+      "properties": {
+        "detected_at_utc_ns": {
+          "minimum": 0,
+          "title": "Detected At Utc Ns",
+          "type": "integer"
+        },
+        "next_sequence": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Sequence"
+        },
+        "previous_sequence": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Previous Sequence"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReasonCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "recovery_state": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResyncState"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "stream": {
+          "$ref": "#/$defs/Stream"
+        }
+      },
+      "required": [
+        "stream",
+        "detected_at_utc_ns"
+      ],
+      "title": "GapDescriptor",
+      "type": "object"
+    },
+    "Market": {
+      "enum": [
+        "SPOT",
+        "USD_M_PERPETUAL"
+      ],
+      "title": "Market",
+      "type": "string"
+    },
+    "PriceLevel": {
+      "additionalProperties": false,
+      "description": "A single price level in the order book.\n\nquantity represents the absolute quantity at this price level after the update.\nquantity == \"0\" means this price level should be removed.",
+      "properties": {
+        "price": {
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
+          "title": "Price",
+          "type": "string"
+        },
+        "quantity": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Quantity",
+          "type": "string"
+        }
+      },
+      "required": [
+        "price",
+        "quantity"
+      ],
+      "title": "PriceLevel",
+      "type": "object"
+    },
+    "QualityFlag": {
+      "description": "Quality flags describe data facts — what is observed about the data.\n\nThese are distinct from ReasonCode which explains Health state judgments.",
+      "enum": [
+        "DUPLICATE",
+        "OUT_OF_ORDER",
+        "SEQUENCE_GAP",
+        "ORDERBOOK_RESYNC",
+        "SNAPSHOT_BRIDGE_PENDING",
+        "SNAPSHOT_TOO_OLD",
+        "BOOTSTRAP_BUFFER_OVERFLOW",
+        "RECOVERED_TAIL",
+        "MALFORMED_PAYLOAD",
+        "EXCHANGE_TIME_MISSING",
+        "RECEIVE_CLOCK_DISCONTINUITY",
+        "SLOW_CONSUMER_GAP",
+        "PRODUCER_RESTART",
+        "OVERLAP",
+        "IDENTITY_CONFLICT",
+        "CROSSED_BOOK"
+      ],
+      "title": "QualityFlag",
+      "type": "string"
+    },
+    "ReasonCode": {
+      "description": "Reason codes explain Health state judgments — why a state was chosen.",
+      "enum": [
+        "CONNECTION_LOST",
+        "CONNECTION_RESUMED",
+        "PING_TIMEOUT",
+        "LAST_MESSAGE_AGE_HIGH",
+        "RECEIVE_LATENCY_HIGH",
+        "PUBLISH_LATENCY_HIGH",
+        "SEQUENCE_GAP_DETECTED",
+        "SEQUENCE_GAP_TOO_LARGE",
+        "RESYNC_IN_PROGRESS",
+        "RESYNC_FAILED",
+        "BOOK_NOT_SYNCHRONIZED",
+        "BOOK_CROSSED",
+        "BOOK_EMPTY",
+        "RECORDER_STALLED",
+        "GATEWAY_STALLED",
+        "DIVERGENCE_DETECTED",
+        "DISK_SPACE_LOW",
+        "QUEUE_BACKLOG",
+        "ARCHIVE_BACKLOG",
+        "CONFIGURATION_ERROR"
+      ],
+      "title": "ReasonCode",
+      "type": "string"
+    },
+    "ResyncState": {
+      "enum": [
+        "SYNCHRONIZED",
+        "RESYNC_REQUIRED",
+        "RESYNC_IN_PROGRESS",
+        "RECOVERED",
+        "RESYNC_FAILED"
+      ],
+      "title": "ResyncState",
+      "type": "string"
+    },
+    "SnapshotSource": {
+      "enum": [
+        "GATEWAY_LIVE",
+        "RECORDER_REPLAY",
+        "HISTORY_REPLAY"
+      ],
+      "title": "SnapshotSource",
+      "type": "string"
+    },
+    "Stream": {
+      "enum": [
+        "DIFF_DEPTH",
+        "AGG_TRADE",
+        "BOOK_TICKER",
+        "DEPTH_SNAPSHOT"
+      ],
+      "title": "Stream",
+      "type": "string"
+    },
+    "Venue": {
+      "enum": [
+        "BINANCE"
+      ],
+      "title": "Venue",
+      "type": "string"
+    }
+  },
+  "$id": "urn:binance-market-data-contracts:local-order-book-snapshot.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Locally reconstructed order book snapshot.",
+  "properties": {
+    "asks": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/PriceLevel"
+      },
+      "type": "array"
+    },
+    "bids": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/PriceLevel"
+      },
+      "type": "array"
+    },
+    "depth_limit": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "generated_monotonic_ns": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "generated_time_utc_ns": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "last_gap": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GapDescriptor"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "last_update_id": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "market": {
+      "$ref": "#/$defs/Market"
+    },
+    "producer": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
+      "type": "string"
+    },
+    "producer_version": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
+      "type": "string"
+    },
+    "quality_flags": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/QualityFlag"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "local-order-book-snapshot.v1",
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/SnapshotSource"
+    },
+    "symbol": {
+      "maxLength": 20,
+      "minLength": 2,
+      "pattern": "^[A-Z0-9]+$",
+      "type": "string"
+    },
+    "synchronized": {
+      "type": "boolean"
+    },
+    "venue": {
+      "$ref": "#/$defs/Venue"
+    }
+  },
+  "required": [
+    "venue",
+    "market",
+    "symbol",
+    "schema_version",
+    "producer",
+    "producer_version",
+    "source",
+    "last_update_id",
+    "generated_time_utc_ns",
+    "synchronized"
+  ],
+  "type": "object"
+}

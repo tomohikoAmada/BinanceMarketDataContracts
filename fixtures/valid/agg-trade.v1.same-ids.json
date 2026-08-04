@@ -1,0 +1,20 @@
+{
+  "metadata": {
+    "venue": "BINANCE",
+    "market": "SPOT",
+    "symbol": "ETHUSDT",
+    "producer": "gateway",
+    "producer_version": "0.1.0",
+    "connection_id": "conn-spot-agg-002",
+    "stream": "AGG_TRADE",
+    "schema_version": "agg-trade.v1",
+    "exchange_event_time_ms": 1690000005000
+  },
+  "aggregate_trade_id": 6001,
+  "price": "1850.00",
+  "quantity": "2.00000000",
+  "first_trade_id": 20001,
+  "last_trade_id": 20001,
+  "trade_time_ms": 1690000004900,
+  "buyer_is_maker": true
+}

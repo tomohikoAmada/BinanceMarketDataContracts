@@ -1,0 +1,250 @@
+{
+  "$defs": {
+    "CommandType": {
+      "enum": [
+        "GET_STATUS",
+        "VALIDATE_DATA",
+        "TRIGGER_ARCHIVE",
+        "TRIGGER_RESYNC",
+        "GENERATE_DIAGNOSTIC_BUNDLE"
+      ],
+      "title": "CommandType",
+      "type": "string"
+    },
+    "GenerateDiagnosticBundleParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "include_raw": {
+          "default": false,
+          "title": "Include Raw",
+          "type": "boolean"
+        },
+        "type": {
+          "const": "GENERATE_DIAGNOSTIC_BUNDLE",
+          "default": "GENERATE_DIAGNOSTIC_BUNDLE",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "title": "GenerateDiagnosticBundleParameters",
+      "type": "object"
+    },
+    "GetStatusParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "GET_STATUS",
+          "default": "GET_STATUS",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "title": "GetStatusParameters",
+      "type": "object"
+    },
+    "TriggerArchiveParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "archive_date_utc": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Archive Date Utc"
+        },
+        "type": {
+          "const": "TRIGGER_ARCHIVE",
+          "default": "TRIGGER_ARCHIVE",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "title": "TriggerArchiveParameters",
+      "type": "object"
+    },
+    "TriggerResyncParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "market": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Market"
+        },
+        "symbol": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Symbol"
+        },
+        "type": {
+          "const": "TRIGGER_RESYNC",
+          "default": "TRIGGER_RESYNC",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "title": "TriggerResyncParameters",
+      "type": "object"
+    },
+    "ValidateDataParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "market": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Market"
+        },
+        "symbol": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Symbol"
+        },
+        "type": {
+          "const": "VALIDATE_DATA",
+          "default": "VALIDATE_DATA",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "title": "ValidateDataParameters",
+      "type": "object"
+    }
+  },
+  "$id": "urn:binance-market-data-contracts:control-command.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "DRAFT — Operational control command.",
+  "properties": {
+    "command_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "type": "string"
+    },
+    "command_type": {
+      "$ref": "#/$defs/CommandType"
+    },
+    "idempotency_key": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "parameters": {
+      "anyOf": [
+        {
+          "discriminator": {
+            "mapping": {
+              "GENERATE_DIAGNOSTIC_BUNDLE": "#/$defs/GenerateDiagnosticBundleParameters",
+              "GET_STATUS": "#/$defs/GetStatusParameters",
+              "TRIGGER_ARCHIVE": "#/$defs/TriggerArchiveParameters",
+              "TRIGGER_RESYNC": "#/$defs/TriggerResyncParameters",
+              "VALIDATE_DATA": "#/$defs/ValidateDataParameters"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/GetStatusParameters"
+            },
+            {
+              "$ref": "#/$defs/ValidateDataParameters"
+            },
+            {
+              "$ref": "#/$defs/TriggerArchiveParameters"
+            },
+            {
+              "$ref": "#/$defs/TriggerResyncParameters"
+            },
+            {
+              "$ref": "#/$defs/GenerateDiagnosticBundleParameters"
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "requested_at_utc_ns": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "requester": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "control-command.v1",
+      "type": "string"
+    },
+    "target": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
+      "type": "string"
+    },
+    "timeout_seconds": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "command_id",
+    "command_type",
+    "target",
+    "requested_at_utc_ns",
+    "requester",
+    "schema_version"
+  ],
+  "type": "object"
+}

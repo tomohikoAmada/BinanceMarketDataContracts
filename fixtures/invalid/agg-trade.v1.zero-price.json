@@ -1,0 +1,19 @@
+{
+  "metadata": {
+    "venue": "BINANCE",
+    "market": "SPOT",
+    "symbol": "BTCUSDT",
+    "producer": "gateway",
+    "producer_version": "0.1.0",
+    "connection_id": "conn-invalid-007",
+    "stream": "AGG_TRADE",
+    "schema_version": "agg-trade.v1"
+  },
+  "aggregate_trade_id": 5001,
+  "price": "0",
+  "quantity": "0.5",
+  "first_trade_id": 1,
+  "last_trade_id": 3,
+  "trade_time_ms": 1690000003900,
+  "buyer_is_maker": false
+}

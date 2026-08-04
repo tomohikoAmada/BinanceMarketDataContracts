@@ -1,0 +1,136 @@
+{
+  "contracts": {
+    "agg-trade.v1": {
+      "consumers": [
+        "projection",
+        "health",
+        "history-replay",
+        "live-strategy"
+      ],
+      "filename": "contracts/agg-trade.v1.schema.json",
+      "producers": [
+        "recorder-adapter",
+        "gateway-adapter"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:agg-trade.v1",
+      "status": "PROPOSED"
+    },
+    "book-ticker.v1": {
+      "consumers": [
+        "projection",
+        "health",
+        "history-replay",
+        "live-strategy"
+      ],
+      "filename": "contracts/book-ticker.v1.schema.json",
+      "producers": [
+        "recorder-adapter",
+        "gateway-adapter"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:book-ticker.v1",
+      "status": "PROPOSED"
+    },
+    "command-result.v1": {
+      "consumers": [],
+      "filename": "contracts/command-result.v1.schema.json",
+      "producers": [],
+      "schema_id": "urn:binance-market-data-contracts:command-result.v1",
+      "status": "DRAFT"
+    },
+    "control-command.v1": {
+      "consumers": [],
+      "filename": "contracts/control-command.v1.schema.json",
+      "producers": [],
+      "schema_id": "urn:binance-market-data-contracts:control-command.v1",
+      "status": "DRAFT"
+    },
+    "data-health-snapshot.v1": {
+      "consumers": [
+        "view",
+        "control",
+        "risk"
+      ],
+      "filename": "contracts/data-health-snapshot.v1.schema.json",
+      "producers": [
+        "health"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:data-health-snapshot.v1",
+      "status": "PROPOSED"
+    },
+    "depth-update.v1": {
+      "consumers": [
+        "projection",
+        "health",
+        "history-replay",
+        "live-strategy"
+      ],
+      "filename": "contracts/depth-update.v1.schema.json",
+      "producers": [
+        "recorder-adapter",
+        "gateway-adapter"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:depth-update.v1",
+      "status": "PROPOSED"
+    },
+    "exchange-depth-snapshot.v1": {
+      "consumers": [
+        "order-book",
+        "history"
+      ],
+      "filename": "contracts/exchange-depth-snapshot.v1.schema.json",
+      "producers": [
+        "recorder-adapter",
+        "gateway-adapter"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:exchange-depth-snapshot.v1",
+      "status": "PROPOSED"
+    },
+    "historical-dataset-descriptor.v1": {
+      "consumers": [],
+      "filename": "contracts/historical-dataset-descriptor.v1.schema.json",
+      "producers": [],
+      "schema_id": "urn:binance-market-data-contracts:historical-dataset-descriptor.v1",
+      "status": "DRAFT"
+    },
+    "local-order-book-snapshot.v1": {
+      "consumers": [
+        "view",
+        "health"
+      ],
+      "filename": "contracts/local-order-book-snapshot.v1.schema.json",
+      "producers": [
+        "gateway-adapter",
+        "replay"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:local-order-book-snapshot.v1",
+      "status": "PROPOSED"
+    },
+    "market-state-snapshot.v1": {
+      "consumers": [
+        "view",
+        "live-strategy"
+      ],
+      "filename": "contracts/market-state-snapshot.v1.schema.json",
+      "producers": [
+        "projection",
+        "gateway-adapter"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:market-state-snapshot.v1",
+      "status": "PROPOSED"
+    },
+    "replay-query.v1": {
+      "consumers": [],
+      "filename": "contracts/replay-query.v1.schema.json",
+      "producers": [],
+      "schema_id": "urn:binance-market-data-contracts:replay-query.v1",
+      "status": "DRAFT"
+    },
+    "telemetry.v1": {
+      "consumers": [],
+      "filename": "contracts/telemetry.v1.schema.json",
+      "producers": [],
+      "schema_id": "urn:binance-market-data-contracts:telemetry.v1",
+      "status": "DRAFT"
+    }
+  }
+}

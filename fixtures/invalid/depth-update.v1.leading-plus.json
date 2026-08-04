@@ -1,0 +1,18 @@
+{
+  "metadata": {
+    "venue": "BINANCE",
+    "market": "SPOT",
+    "symbol": "BTCUSDT",
+    "producer": "gateway",
+    "producer_version": "0.1.0",
+    "connection_id": "conn-invalid-005",
+    "stream": "DIFF_DEPTH",
+    "schema_version": "depth-update.v1"
+  },
+  "first_update_id": 1,
+  "final_update_id": 1,
+  "bids": [
+    {"price": "+29500.00", "quantity": "1.0"}
+  ],
+  "asks": []
+}

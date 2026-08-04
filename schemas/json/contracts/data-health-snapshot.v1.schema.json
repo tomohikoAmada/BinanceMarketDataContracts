@@ -1,0 +1,390 @@
+{
+  "$defs": {
+    "ConnectionState": {
+      "enum": [
+        "CONNECTING",
+        "CONNECTED",
+        "RECONNECTING",
+        "DISCONNECTED",
+        "FAILED"
+      ],
+      "title": "ConnectionState",
+      "type": "string"
+    },
+    "HealthState": {
+      "enum": [
+        "HEALTHY",
+        "DEGRADED",
+        "UNRELIABLE",
+        "UNAVAILABLE"
+      ],
+      "title": "HealthState",
+      "type": "string"
+    },
+    "LatencySummary": {
+      "additionalProperties": false,
+      "description": "Statistical summary of latency measurements.\n\nWhen count == 0, all percentile fields must be None.\nWhen count > 0, min, max, p50, p95, p99 must all be present.\nMust satisfy: min <= p50 <= p95 <= p99 <= max and window_start <= window_end.",
+      "properties": {
+        "count": {
+          "minimum": 0,
+          "title": "Count",
+          "type": "integer"
+        },
+        "max_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Ms"
+        },
+        "min_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Ms"
+        },
+        "p50_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "P50 Ms"
+        },
+        "p95_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "P95 Ms"
+        },
+        "p99_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "P99 Ms"
+        },
+        "window_end_utc_ns": {
+          "minimum": 0,
+          "title": "Window End Utc Ns",
+          "type": "integer"
+        },
+        "window_start_utc_ns": {
+          "minimum": 0,
+          "title": "Window Start Utc Ns",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "count",
+        "window_start_utc_ns",
+        "window_end_utc_ns"
+      ],
+      "title": "LatencySummary",
+      "type": "object"
+    },
+    "Market": {
+      "enum": [
+        "SPOT",
+        "USD_M_PERPETUAL"
+      ],
+      "title": "Market",
+      "type": "string"
+    },
+    "QualityFlag": {
+      "description": "Quality flags describe data facts — what is observed about the data.\n\nThese are distinct from ReasonCode which explains Health state judgments.",
+      "enum": [
+        "DUPLICATE",
+        "OUT_OF_ORDER",
+        "SEQUENCE_GAP",
+        "ORDERBOOK_RESYNC",
+        "SNAPSHOT_BRIDGE_PENDING",
+        "SNAPSHOT_TOO_OLD",
+        "BOOTSTRAP_BUFFER_OVERFLOW",
+        "RECOVERED_TAIL",
+        "MALFORMED_PAYLOAD",
+        "EXCHANGE_TIME_MISSING",
+        "RECEIVE_CLOCK_DISCONTINUITY",
+        "SLOW_CONSUMER_GAP",
+        "PRODUCER_RESTART",
+        "OVERLAP",
+        "IDENTITY_CONFLICT",
+        "CROSSED_BOOK"
+      ],
+      "title": "QualityFlag",
+      "type": "string"
+    },
+    "ReasonCode": {
+      "description": "Reason codes explain Health state judgments — why a state was chosen.",
+      "enum": [
+        "CONNECTION_LOST",
+        "CONNECTION_RESUMED",
+        "PING_TIMEOUT",
+        "LAST_MESSAGE_AGE_HIGH",
+        "RECEIVE_LATENCY_HIGH",
+        "PUBLISH_LATENCY_HIGH",
+        "SEQUENCE_GAP_DETECTED",
+        "SEQUENCE_GAP_TOO_LARGE",
+        "RESYNC_IN_PROGRESS",
+        "RESYNC_FAILED",
+        "BOOK_NOT_SYNCHRONIZED",
+        "BOOK_CROSSED",
+        "BOOK_EMPTY",
+        "RECORDER_STALLED",
+        "GATEWAY_STALLED",
+        "DIVERGENCE_DETECTED",
+        "DISK_SPACE_LOW",
+        "QUEUE_BACKLOG",
+        "ARCHIVE_BACKLOG",
+        "CONFIGURATION_ERROR"
+      ],
+      "title": "ReasonCode",
+      "type": "string"
+    },
+    "ResyncState": {
+      "enum": [
+        "SYNCHRONIZED",
+        "RESYNC_REQUIRED",
+        "RESYNC_IN_PROGRESS",
+        "RECOVERED",
+        "RESYNC_FAILED"
+      ],
+      "title": "ResyncState",
+      "type": "string"
+    },
+    "Stream": {
+      "enum": [
+        "DIFF_DEPTH",
+        "AGG_TRADE",
+        "BOOK_TICKER",
+        "DEPTH_SNAPSHOT"
+      ],
+      "title": "Stream",
+      "type": "string"
+    },
+    "Venue": {
+      "enum": [
+        "BINANCE"
+      ],
+      "title": "Venue",
+      "type": "string"
+    }
+  },
+  "$id": "urn:binance-market-data-contracts:data-health-snapshot.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Data health assessment for a market data stream.",
+  "properties": {
+    "book_synchronized": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "connection_state": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ConnectionState"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "gateway_alive": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "health_snapshot_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "type": "string"
+    },
+    "last_message_age_ms": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "market": {
+      "$ref": "#/$defs/Market"
+    },
+    "observed_time_utc_ns": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "overall_state": {
+      "$ref": "#/$defs/HealthState"
+    },
+    "producer": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
+      "type": "string"
+    },
+    "producer_version": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$",
+      "type": "string"
+    },
+    "publish_latency": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LatencySummary"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "quality_flags": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/QualityFlag"
+      },
+      "type": "array"
+    },
+    "reason_codes": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ReasonCode"
+      },
+      "type": "array"
+    },
+    "receive_latency": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LatencySummary"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "recorder_alive": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "resync_state": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ResyncState"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "schema_version": {
+      "const": "data-health-snapshot.v1",
+      "type": "string"
+    },
+    "sequence_gap_count": {
+      "default": 0,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "source_instance_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "type": "string"
+    },
+    "stream": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Stream"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Stream scope (None = market-level aggregate Health)"
+    },
+    "symbol": {
+      "maxLength": 20,
+      "minLength": 2,
+      "pattern": "^[A-Z0-9]+$",
+      "type": "string"
+    },
+    "venue": {
+      "$ref": "#/$defs/Venue"
+    }
+  },
+  "required": [
+    "health_snapshot_id",
+    "overall_state",
+    "venue",
+    "market",
+    "symbol",
+    "schema_version",
+    "producer",
+    "producer_version",
+    "source_instance_id",
+    "observed_time_utc_ns"
+  ],
+  "type": "object"
+}

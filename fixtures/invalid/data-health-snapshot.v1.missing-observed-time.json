@@ -1,0 +1,11 @@
+{
+  "health_snapshot_id": "hs-bad",
+  "overall_state": "HEALTHY",
+  "venue": "BINANCE",
+  "market": "SPOT",
+  "symbol": "BTCUSDT",
+  "schema_version": "data-health-snapshot.v1",
+  "producer": "health",
+  "producer_version": "0.1.0",
+  "source_instance_id": "health-001"
+}

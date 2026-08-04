@@ -1,0 +1,23 @@
+{
+  "metadata": {
+    "venue": "BINANCE",
+    "market": "USD_M_PERPETUAL",
+    "symbol": "BTCUSDT",
+    "producer": "gateway",
+    "producer_version": "0.1.0",
+    "connection_id": "conn-usdm-btcusdt-002",
+    "stream": "DIFF_DEPTH",
+    "schema_version": "depth-update.v1",
+    "exchange_event_time_ms": 1690000002000,
+    "quality_flags": ["DUPLICATE"]
+  },
+  "first_update_id": 2001,
+  "final_update_id": 2003,
+  "previous_final_update_id": 1999,
+  "bids": [
+    {"price": "29600.00", "quantity": "3.00000000"}
+  ],
+  "asks": [
+    {"price": "29601.00", "quantity": "1.50000000"}
+  ]
+}

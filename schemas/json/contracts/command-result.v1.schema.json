@@ -1,0 +1,151 @@
+{
+  "$defs": {
+    "AuditMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "correlation_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Correlation Id"
+        },
+        "requester": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Requester",
+          "type": "string"
+        },
+        "source": {
+          "default": "cli",
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Source",
+          "type": "string"
+        },
+        "trace_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trace Id"
+        }
+      },
+      "required": [
+        "requester"
+      ],
+      "title": "AuditMetadata",
+      "type": "object"
+    },
+    "CommandStatus": {
+      "enum": [
+        "PENDING",
+        "IN_PROGRESS",
+        "COMPLETED",
+        "FAILED",
+        "REJECTED",
+        "TIMED_OUT"
+      ],
+      "title": "CommandStatus",
+      "type": "string"
+    }
+  },
+  "$id": "urn:binance-market-data-contracts:command-result.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "DRAFT — Result of a control command execution.",
+  "properties": {
+    "audit_metadata": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AuditMetadata"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "command_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "type": "string"
+    },
+    "error_code": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "error_message": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "executed_at_utc_ns": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "requested_at_utc_ns": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "result_summary": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "schema_version": {
+      "const": "command-result.v1",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/CommandStatus"
+    }
+  },
+  "required": [
+    "command_id",
+    "status",
+    "requested_at_utc_ns",
+    "schema_version"
+  ],
+  "type": "object"
+}

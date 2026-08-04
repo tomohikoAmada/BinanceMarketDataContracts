@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "feat/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Ruff check
+        run: ruff check .
+      - name: Ruff format check
+        run: ruff format --check .
+      - name: mypy
+        run: mypy src
+      - name: pytest
+        run: pytest -q
+      - name: Schema export
+        run: python -m binance_market_data_contracts.schema_export --output schemas/json
+      - name: Schema drift check
+        run: git diff --exit-code -- schemas/json
+      - name: Build package
+        run: python -m build
+      - name: Twine check
+        run: python -m twine check dist/*
+      - name: Wheel isolation test
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          WHEEL="$(find dist -maxdepth 1 -name '*.whl' -print -quit)"
+          test -n "$WHEEL"
+
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+
+          wheel = next(Path("dist").glob("*.whl"))
+          with ZipFile(wheel) as archive:
+              names = set(archive.namelist())
+          assert "binance_market_data_contracts/py.typed" in names, "py.typed is missing from wheel"
+          print("py.typed present in wheel")
+          PY
+
+          rm -rf /tmp/contracts-wheel-test
+          rm -rf /tmp/exported-schemas
+          rm -rf /tmp/repository-schemas
+          rm -f /tmp/depth-update.v1.spot.json
+
+          cp -R schemas/json /tmp/repository-schemas
+          cp fixtures/valid/depth-update.v1.spot.json /tmp/depth-update.v1.spot.json
+
+          python -m venv /tmp/contracts-wheel-test
+          /tmp/contracts-wheel-test/bin/python -m pip install --upgrade pip
+          /tmp/contracts-wheel-test/bin/python -m pip install "$WHEEL"
+
+          cd /tmp
+
+          /tmp/contracts-wheel-test/bin/python - <<'PY'
+          from pathlib import Path
+          from binance_market_data_contracts import DepthUpdate
+
+          payload = Path("/tmp/depth-update.v1.spot.json").read_text(encoding="utf-8")
+          event = DepthUpdate.model_validate_json(payload)
+          assert event.metadata.stream.value == "DIFF_DEPTH"
+          assert event.metadata.schema_version == "depth-update.v1"
+          assert event.first_update_id <= event.final_update_id
+          assert not hasattr(event.bids, "append")
+          print("installed wheel parsed real fixture")
+          PY
+
+          /tmp/contracts-wheel-test/bin/schema-export --output /tmp/exported-schemas
+
+          diff -ru /tmp/repository-schemas /tmp/exported-schemas
+          echo "wheel schema diff passed"
