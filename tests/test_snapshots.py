@@ -213,6 +213,7 @@ class TestLatencySummary:
 class TestDataHealthSnapshot:
     def test_healthy_snapshot(self):
         payload = {
+            "health_snapshot_id": "hs-001",
             "overall_state": "HEALTHY",
             "schema_version": "data-health-snapshot.v1",
             "venue": "BINANCE",
