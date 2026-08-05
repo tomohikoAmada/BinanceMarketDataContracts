@@ -37,6 +37,17 @@
       "schema_id": "urn:binance-market-data-contracts:command-result.v1",
       "status": "DRAFT"
     },
+    "consumer-gap-notice.v1": {
+      "consumers": [
+        "gateway-consumer"
+      ],
+      "filename": "contracts/consumer-gap-notice.v1.schema.json",
+      "producers": [
+        "gateway"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:consumer-gap-notice.v1",
+      "status": "DRAFT"
+    },
     "control-command.v1": {
       "consumers": [],
       "filename": "contracts/control-command.v1.schema.json",
@@ -72,6 +83,17 @@
       "schema_id": "urn:binance-market-data-contracts:depth-update.v1",
       "status": "PROPOSED"
     },
+    "event-subscription-request.v1": {
+      "consumers": [
+        "gateway"
+      ],
+      "filename": "contracts/event-subscription-request.v1.schema.json",
+      "producers": [
+        "gateway-consumer"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:event-subscription-request.v1",
+      "status": "DRAFT"
+    },
     "exchange-depth-snapshot.v1": {
       "consumers": [
         "order-book",
@@ -84,6 +106,30 @@
       ],
       "schema_id": "urn:binance-market-data-contracts:exchange-depth-snapshot.v1",
       "status": "PROPOSED"
+    },
+    "gateway-event-envelope.v1": {
+      "consumers": [
+        "gateway-consumer"
+      ],
+      "filename": "contracts/gateway-event-envelope.v1.schema.json",
+      "producers": [
+        "gateway"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:gateway-event-envelope.v1",
+      "status": "DRAFT"
+    },
+    "gateway-status-snapshot.v1": {
+      "consumers": [
+        "control",
+        "view",
+        "health"
+      ],
+      "filename": "contracts/gateway-status-snapshot.v1.schema.json",
+      "producers": [
+        "gateway"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:gateway-status-snapshot.v1",
+      "status": "DRAFT"
     },
     "historical-dataset-descriptor.v1": {
       "consumers": [],
@@ -118,11 +164,77 @@
       "schema_id": "urn:binance-market-data-contracts:market-state-snapshot.v1",
       "status": "PROPOSED"
     },
+    "market-state-stream-item.v1": {
+      "consumers": [
+        "gateway-consumer"
+      ],
+      "filename": "contracts/market-state-stream-item.v1.schema.json",
+      "producers": [
+        "gateway"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:market-state-stream-item.v1",
+      "status": "DRAFT"
+    },
+    "market-state-subscription-request.v1": {
+      "consumers": [
+        "gateway"
+      ],
+      "filename": "contracts/market-state-subscription-request.v1.schema.json",
+      "producers": [
+        "gateway-consumer"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:market-state-subscription-request.v1",
+      "status": "DRAFT"
+    },
+    "order-book-stream-item.v1": {
+      "consumers": [
+        "gateway-consumer"
+      ],
+      "filename": "contracts/order-book-stream-item.v1.schema.json",
+      "producers": [
+        "gateway"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:order-book-stream-item.v1",
+      "status": "DRAFT"
+    },
+    "order-book-subscription-request.v1": {
+      "consumers": [
+        "gateway"
+      ],
+      "filename": "contracts/order-book-subscription-request.v1.schema.json",
+      "producers": [
+        "gateway-consumer"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:order-book-subscription-request.v1",
+      "status": "DRAFT"
+    },
     "replay-query.v1": {
       "consumers": [],
       "filename": "contracts/replay-query.v1.schema.json",
       "producers": [],
       "schema_id": "urn:binance-market-data-contracts:replay-query.v1",
+      "status": "DRAFT"
+    },
+    "stream-status.v1": {
+      "consumers": [
+        "gateway-consumer"
+      ],
+      "filename": "contracts/stream-status.v1.schema.json",
+      "producers": [
+        "gateway"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:stream-status.v1",
+      "status": "DRAFT"
+    },
+    "subscription-accepted.v1": {
+      "consumers": [
+        "gateway-consumer"
+      ],
+      "filename": "contracts/subscription-accepted.v1.schema.json",
+      "producers": [
+        "gateway"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:subscription-accepted.v1",
       "status": "DRAFT"
     },
     "telemetry.v1": {

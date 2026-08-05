@@ -1,0 +1,92 @@
+{
+  "$defs": {
+    "Market": {
+      "enum": [
+        "SPOT",
+        "USD_M_PERPETUAL"
+      ],
+      "title": "Market",
+      "type": "string"
+    },
+    "Venue": {
+      "enum": [
+        "BINANCE"
+      ],
+      "title": "Venue",
+      "type": "string"
+    }
+  },
+  "$id": "urn:binance-market-data-contracts:market-state-subscription-request.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Request to subscribe to latest market state updates.",
+  "properties": {
+    "delivery_mode": {
+      "const": "LATEST_STATE",
+      "type": "string"
+    },
+    "depth_limit": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "market": {
+      "$ref": "#/$defs/Market"
+    },
+    "minimum_publish_interval_ms": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "request_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "market-state-subscription-request.v1",
+      "type": "string"
+    },
+    "supported_schema_versions": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "symbol": {
+      "maxLength": 20,
+      "minLength": 2,
+      "pattern": "^[A-Z0-9]+$",
+      "type": "string"
+    },
+    "venue": {
+      "$ref": "#/$defs/Venue"
+    }
+  },
+  "required": [
+    "request_id",
+    "schema_version",
+    "venue",
+    "market",
+    "symbol",
+    "delivery_mode",
+    "supported_schema_versions"
+  ],
+  "type": "object"
+}

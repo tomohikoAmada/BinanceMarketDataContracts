@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "binance-market-data-contracts"
-version = "0.1.0a1"
-description = "Versioned public contracts, schemas, fixtures and architecture decisions for BinanceMarketData"
+version = "0.2.0a1"
+description = "Versioned public contracts, Protobuf wire contracts, schemas, fixtures and architecture decisions for BinanceMarketData"
 requires-python = ">=3.11"
 license = "LicenseRef-Proprietary"
 authors = [{ name = "BinanceMarketData Team" }]
@@ -20,9 +20,13 @@ classifiers = [
 ]
 dependencies = [
     "pydantic>=2.10,<3",
+    "protobuf>=5,<7",
 ]
 
 [project.optional-dependencies]
+wire = [
+    "grpcio>=1.70,<2",
+]
 dev = [
     "pytest>=8,<10",
     "ruff>=0.8,<1",
@@ -30,15 +34,26 @@ dev = [
     "build>=1,<2",
     "twine>=5,<7",
     "jsonschema>=4.23,<5",
+    "grpcio-tools>=1.70,<2",
 ]
 
 [project.scripts]
 schema-export = "binance_market_data_contracts.schema_export:main"
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+binance_market_data_contracts = [
+    "py.typed",
+    "proto/**/*.proto",
+    "wire/generated/**/*.py",
+]
+
 [tool.ruff]
 target-version = "py311"
 line-length = 120
-exclude = ["build", "dist", ".venv", "venv"]
+exclude = ["build", "dist", ".venv", "venv", "src/binance_market_data_contracts/wire/generated"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "TCH", "RUF"]
@@ -53,7 +68,13 @@ line-ending = "lf"
 strict = true
 python_version = "3.11"
 show_error_codes = true
-exclude = ["build", "dist", ".venv", "venv"]
+exclude = ["build", "dist", ".venv", "venv", "src/binance_market_data_contracts/wire/generated"]
+
+[[tool.mypy.overrides]]
+module = [
+    "binance_market_data.*",
+]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

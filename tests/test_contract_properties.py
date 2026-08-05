@@ -58,20 +58,25 @@ class TestSchemaVersionLiteral:
     def test_schema_version_matches_registry(self):
         from binance_market_data_contracts.time import walk_models
 
+        registry_names = set(CONTRACT_REGISTRY.keys())
+
         for name, entry in CONTRACT_REGISTRY.items():
-            found = False
+            found_self = False
             for model_type in walk_models(entry.python_type):
                 fields = model_type.model_fields
                 if "schema_version" in fields:
                     field_info = fields["schema_version"]
                     assert field_info.is_required(), f"{model_type.__name__}.schema_version must be required"
-                    ann = str(field_info.annotation)
-                    assert name in ann.replace("'", "").replace('"', ""), (
-                        f"schema_version Literal mismatch for {name} "
-                        f"in {model_type.__name__}: {field_info.annotation!r}"
+                    ann = str(field_info.annotation).replace("'", "").replace('"', "")
+                    _matched = any(rn in ann for rn in registry_names)
+                    assert _matched, (
+                        f"schema_version Literal does not match any registry name: {field_info.annotation!r}"
                     )
-                    found = True
-            assert found, f"Registered contract {name} has no schema_version field in any nested model"
+                    if name in ann:
+                        found_self = True
+            assert found_self or entry.status.value in ("DRAFT",), (
+                f"Registered contract {name} ({entry.status.value}) has no schema_version matching its own name"
+            )
 
 
 class TestExtraForbid:

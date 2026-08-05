@@ -1,0 +1,163 @@
+syntax = "proto3";
+
+package binance_market_data.gateway.v1;
+
+import "binance_market_data/common/v1/enums.proto";
+import "binance_market_data/common/v1/identifiers.proto";
+import "binance_market_data/common/v1/metadata.proto";
+import "binance_market_data/market/v1/market_events.proto";
+import "binance_market_data/projection/v1/snapshots.proto";
+
+option go_package = "github.com/binance-market-data/contracts/gen/go/gateway/v1;gatewayv1";
+
+// ---------------------------------------------------------------------------
+// Subscription Request messages
+// ---------------------------------------------------------------------------
+
+// EventSubscriptionRequest subscribes to a contiguous event stream.
+// Delivery mode is always CONTIGUOUS_EVENTS.
+message EventSubscriptionRequest {
+  string request_id = 1;
+  string schema_version = 2; // "event-subscription-request.v1"
+  repeated binance_market_data.common.v1.StreamSelector selectors = 3;
+  binance_market_data.common.v1.DeliveryMode delivery_mode = 4; // Must be CONTIGUOUS_EVENTS
+  repeated string supported_payload_schema_versions = 5;
+}
+
+// OrderBookSubscriptionRequest subscribes to an order book snapshot + diff stream.
+message OrderBookSubscriptionRequest {
+  string request_id = 1;
+  string schema_version = 2; // "order-book-subscription-request.v1"
+  binance_market_data.common.v1.Venue venue = 3;
+  binance_market_data.common.v1.Market market = 4;
+  string symbol = 5;
+  optional int32 depth_limit = 6; // > 0 if present
+  binance_market_data.common.v1.InitialSnapshotMode initial_snapshot_mode = 7; // Must be REQUIRED
+  repeated string supported_snapshot_schema_versions = 8;
+  repeated string supported_update_schema_versions = 9;
+}
+
+// MarketStateSubscriptionRequest subscribes to latest market state updates.
+message MarketStateSubscriptionRequest {
+  string request_id = 1;
+  string schema_version = 2; // "market-state-subscription-request.v1"
+  binance_market_data.common.v1.Venue venue = 3;
+  binance_market_data.common.v1.Market market = 4;
+  string symbol = 5;
+  binance_market_data.common.v1.DeliveryMode delivery_mode = 6; // Must be LATEST_STATE
+  optional int32 depth_limit = 7; // > 0 if present
+  optional uint64 minimum_publish_interval_ms = 8; // >= 0
+  repeated string supported_schema_versions = 9;
+}
+
+// ---------------------------------------------------------------------------
+// Subscription lifecycle messages
+// ---------------------------------------------------------------------------
+
+// SubscriptionAccepted confirms a subscription was accepted.
+message SubscriptionAccepted {
+  string request_id = 1;
+  string subscription_id = 2;
+  string schema_version = 3; // "subscription-accepted.v1"
+  string gateway_instance_id = 4;
+  uint64 accepted_time_utc_ns = 5;
+  repeated string negotiated_payload_schema_versions = 6;
+}
+
+// ConsumerGapNotice informs the consumer that a gap has been detected.
+message ConsumerGapNotice {
+  string schema_version = 1; // "consumer-gap-notice.v1"
+  string subscription_id = 2;
+  uint64 detected_time_utc_ns = 3;
+  optional uint64 last_delivered_session_sequence = 4;
+  optional uint64 next_available_session_sequence = 5;
+  binance_market_data.common.v1.ConsumerGapReason reason = 6;
+  binance_market_data.common.v1.RecoveryAction recovery_action = 7;
+  optional binance_market_data.common.v1.Market market = 8;
+  optional string symbol = 9;
+  optional binance_market_data.common.v1.Stream stream = 10;
+}
+
+// StreamStatus reports the lifecycle state of a consumer subscription stream.
+message StreamStatus {
+  string schema_version = 1; // "stream-status.v1"
+  string subscription_id = 2;
+  binance_market_data.common.v1.StreamLifecycleState state = 3;
+  uint64 observed_time_utc_ns = 4;
+  optional binance_market_data.common.v1.ReasonCode reason_code = 5;
+  optional string message = 6; // Human-readable diagnostic only
+}
+
+// ---------------------------------------------------------------------------
+// Envelope and Stream Items
+// ---------------------------------------------------------------------------
+
+// GatewayEventEnvelope wraps a single event for the contiguous event stream.
+message GatewayEventEnvelope {
+  binance_market_data.common.v1.EnvelopeMetadata envelope_metadata = 1;
+
+  oneof payload {
+    SubscriptionAccepted subscription_accepted = 10;
+    binance_market_data.market.v1.DepthUpdate depth_update = 11;
+    binance_market_data.market.v1.AggTrade agg_trade = 12;
+    binance_market_data.market.v1.BookTicker book_ticker = 13;
+    ConsumerGapNotice consumer_gap = 14;
+    StreamStatus stream_status = 15;
+  }
+}
+
+// OrderBookStreamItem wraps a single item for the order book stream.
+message OrderBookStreamItem {
+  binance_market_data.common.v1.EnvelopeMetadata envelope_metadata = 1;
+
+  oneof payload {
+    SubscriptionAccepted subscription_accepted = 10;
+    binance_market_data.projection.v1.LocalOrderBookSnapshot snapshot = 11;
+    binance_market_data.market.v1.DepthUpdate depth_update = 12;
+    ConsumerGapNotice consumer_gap = 13;
+    StreamStatus stream_status = 14;
+  }
+}
+
+// MarketStateStreamItem wraps a single item for the market state stream.
+message MarketStateStreamItem {
+  binance_market_data.common.v1.EnvelopeMetadata envelope_metadata = 1;
+
+  oneof payload {
+    SubscriptionAccepted subscription_accepted = 10;
+    binance_market_data.projection.v1.MarketStateSnapshot market_state = 11;
+    ConsumerGapNotice consumer_gap = 12;
+    StreamStatus stream_status = 13;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Gateway status messages
+// ---------------------------------------------------------------------------
+
+// GatewayStatusRequest is a one-shot request for Gateway status.
+message GatewayStatusRequest {
+  string request_id = 1;
+  string schema_version = 2; // "gateway-status-request.v1"
+}
+
+// MarketRuntimeStatus reports per-market runtime status.
+message MarketRuntimeStatus {
+  binance_market_data.common.v1.Venue venue = 1;
+  binance_market_data.common.v1.Market market = 2;
+  string symbol = 3;
+  binance_market_data.common.v1.StreamLifecycleState state = 4;
+  uint64 last_event_utc_ns = 5;
+  uint64 connection_generation = 6;
+  uint64 active_subscription_count = 7;
+}
+
+// GatewayStatusSnapshot is a snapshot of Gateway operational status.
+message GatewayStatusSnapshot {
+  string schema_version = 1; // "gateway-status-snapshot.v1"
+  string gateway_instance_id = 2;
+  uint64 observed_time_utc_ns = 3;
+  uint64 uptime_seconds = 4;
+  repeated MarketRuntimeStatus markets = 5;
+  uint64 total_active_subscriptions = 6;
+}

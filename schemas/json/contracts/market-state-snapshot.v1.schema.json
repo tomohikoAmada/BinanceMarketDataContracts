@@ -233,6 +233,30 @@
       "const": "market-state-snapshot.v1",
       "type": "string"
     },
+    "source_book_update_id": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "source_trade_id": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "spread": {
       "anyOf": [
         {

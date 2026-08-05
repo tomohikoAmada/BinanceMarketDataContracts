@@ -27,6 +27,10 @@ All contracts are **PROPOSED** or **DRAFT**. No contract has been formally ACCEP
 | telemetry | DRAFT | v1 |
 | control-command | DRAFT | v1 |
 | command-result | DRAFT | v1 |
+| gateway-stream-market-snapshot | DRAFT | v1 |
+| gateway-stream-depth-update | DRAFT | v1 |
+| gateway-stream-agg-trade | DRAFT | v1 |
+| gateway-control-command | DRAFT | v1 |
 
 ## Acceptance criteria
 
@@ -41,19 +45,22 @@ A contract is promoted from PROPOSED to ACCEPTED when:
 ## Architecture decision records
 
 - `docs/adr/ADR-0001-recorder-gateway-independent-connections.md` (PROPOSED)
-- `docs/adr/ADR-0002-python-pydantic-json-schema-first.md` (PROPOSED)
+- `docs/adr/ADR-0002-python-pydantic-json-schema-first.md` (SUPERSEDED by ADR-0007)
 - `docs/adr/ADR-0003-time-semantics.md` (PROPOSED)
 - `docs/adr/ADR-0004-decimal-string-price-quantity.md` (PROPOSED)
 - `docs/adr/ADR-0005-quality-and-health-semantics.md` (PROPOSED)
 - `docs/adr/ADR-0006-projection-logical-boundary.md` (PROPOSED)
+- `docs/adr/ADR-0007-dual-contract-strata.md` (PROPOSED)
+- `docs/adr/ADR-0008-gateway-grpc-streaming.md` (PROPOSED)
 
 ## Open questions
 
 | ID | Question | Status |
 |----|----------|--------|
-| O-001 | Recorder/Gateway independent connections | ADR pending |
-| O-002 | Projection as independent module | PROPOSED |
-| O-004 | Gateway IPC protocol | TBD |
+| O-001 | Recorder/Gateway independent connections | ACCEPTED (ADR-0001) |
+| O-002 | Projection as independent module | ACCEPTED (ADR-0006) |
+| O-004 | Gateway IPC protocol | gRPC Server Streaming + Protobuf (ADR-0008) |
+| O-005 | Public Schema | Pydantic Domain + Protobuf Wire (ADR-0007) |
 | O-006 | History: library or service | TBD |
 | O-008 | Health SLO thresholds | TBD |
 | O-009 | Spot initial depth bridging | TBD |

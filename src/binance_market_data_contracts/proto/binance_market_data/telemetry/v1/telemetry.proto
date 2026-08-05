@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package binance_market_data.telemetry.v1;
+
+import "binance_market_data/common/v1/enums.proto";
+
+option go_package = "github.com/binance-market-data/contracts/gen/go/telemetry/v1;telemetryv1";
+
+// ConnectionMetrics reports connection health telemetry.
+message ConnectionMetrics {
+  string type = 1; // Fixed: "connection"
+  bool connected = 2;
+  optional uint64 last_message_age_ms = 3;
+  uint64 reconnect_count = 4;
+}
+
+// SequenceMetrics reports sequence integrity telemetry.
+message SequenceMetrics {
+  string type = 1; // Fixed: "sequence"
+  optional uint64 last_update_id = 2;
+  uint64 duplicate_count = 3;
+  uint64 out_of_order_count = 4;
+}
+
+// LatencyMetrics reports latency telemetry.
+message LatencyMetrics {
+  string type = 1; // Fixed: "latency"
+  optional uint64 receive_lag_ms = 2;
+  optional uint64 publish_lag_ms = 3;
+  optional uint64 consumer_delivery_lag_ms = 4;
+}
+
+// QueueMetrics reports queue health telemetry.
+message QueueMetrics {
+  string type = 1; // Fixed: "queue"
+  uint64 queue_depth = 2;
+  uint64 queue_capacity = 3;
+  double queue_utilization = 4;
+  uint64 oldest_message_age_ms = 5;
+  uint64 dropped = 6;
+  uint64 disconnect_count = 7;
+}
+
+// BookMetrics reports order book health telemetry.
+message BookMetrics {
+  string type = 1; // Fixed: "book"
+  bool synchronized = 2;
+  optional uint64 sync_latency_ms = 3;
+}
+
+// SystemMetrics reports system resource telemetry.
+message SystemMetrics {
+  string type = 1; // Fixed: "system"
+  optional double cpu_percent = 2;
+  optional double memory_mb = 3;
+  optional double disk_free_gb = 4;
+}
+
+// TelemetryEnvelope is the DRAFT telemetry envelope for Gateway and Recorder.
+message TelemetryEnvelope {
+  string schema_version = 1; // "telemetry.v1"
+  string telemetry_type = 2; // CONNECTION, SEQUENCE, LATENCY, QUEUE, BOOK, SYSTEM
+  string source_module = 3;
+  string source_instance_id = 4;
+  uint64 observed_time_utc_ns = 5;
+  optional binance_market_data.common.v1.Market market = 6;
+  optional string symbol = 7;
+  oneof metrics {
+    ConnectionMetrics connection = 10;
+    SequenceMetrics sequence = 11;
+    LatencyMetrics latency = 12;
+    QueueMetrics queue = 13;
+    BookMetrics book = 14;
+    SystemMetrics system = 15;
+  }
+  repeated binance_market_data.common.v1.QualityFlag quality_flags = 16;
+  // Optional stream scoping.
+  optional binance_market_data.common.v1.Stream stream = 17;
+  optional string connection_id = 18;
+  optional uint64 connection_generation = 19;
+  optional string subscription_id = 20;
+}

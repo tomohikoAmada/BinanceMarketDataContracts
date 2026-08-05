@@ -1,0 +1,890 @@
+{
+  "$defs": {
+    "ConsumerGapNotice": {
+      "additionalProperties": false,
+      "description": "Informs the consumer that a gap has been detected in their stream.",
+      "properties": {
+        "detected_time_utc_ns": {
+          "minimum": 0,
+          "title": "Detected Time Utc Ns",
+          "type": "integer"
+        },
+        "last_delivered_session_sequence": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Delivered Session Sequence"
+        },
+        "market": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Market"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "next_available_session_sequence": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Available Session Sequence"
+        },
+        "reason": {
+          "$ref": "#/$defs/ConsumerGapReason"
+        },
+        "recovery_action": {
+          "$ref": "#/$defs/RecoveryAction"
+        },
+        "schema_version": {
+          "const": "consumer-gap-notice.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "stream": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Stream"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "subscription_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "title": "Subscription Id",
+          "type": "string"
+        },
+        "symbol": {
+          "anyOf": [
+            {
+              "maxLength": 20,
+              "minLength": 2,
+              "pattern": "^[A-Z0-9]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Symbol"
+        }
+      },
+      "required": [
+        "schema_version",
+        "subscription_id",
+        "detected_time_utc_ns",
+        "reason",
+        "recovery_action"
+      ],
+      "title": "ConsumerGapNotice",
+      "type": "object"
+    },
+    "ConsumerGapReason": {
+      "enum": [
+        "SLOW_CONSUMER",
+        "RESUME_NOT_AVAILABLE",
+        "UPSTREAM_SEQUENCE_GAP",
+        "GATEWAY_RESTART",
+        "CONNECTION_GENERATION_CHANGED",
+        "SUBSCRIPTION_RECONFIGURED"
+      ],
+      "title": "ConsumerGapReason",
+      "type": "string"
+    },
+    "DepthUpdate": {
+      "additionalProperties": false,
+      "description": "Binance order book depth update.\n\nUses DepthUpdateMetadata which fixes stream=DIFF_DEPTH and schema_version via Literal.\nBoth are required in serialized form.",
+      "properties": {
+        "asks": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PriceLevel"
+          },
+          "title": "Asks",
+          "type": "array"
+        },
+        "bids": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PriceLevel"
+          },
+          "title": "Bids",
+          "type": "array"
+        },
+        "final_update_id": {
+          "minimum": 0,
+          "title": "Final Update Id",
+          "type": "integer"
+        },
+        "first_update_id": {
+          "minimum": 0,
+          "title": "First Update Id",
+          "type": "integer"
+        },
+        "metadata": {
+          "$ref": "#/$defs/DepthUpdateMetadata"
+        },
+        "previous_final_update_id": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Previous Final Update Id"
+        }
+      },
+      "required": [
+        "metadata",
+        "first_update_id",
+        "final_update_id"
+      ],
+      "title": "DepthUpdate",
+      "type": "object"
+    },
+    "DepthUpdateMetadata": {
+      "additionalProperties": false,
+      "description": "Metadata for DepthUpdate events. stream and schema_version are required constants.",
+      "properties": {
+        "connection_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "title": "Connection Id",
+          "type": "string"
+        },
+        "exchange_event_time_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange Event Time Ms"
+        },
+        "exchange_trade_time_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange Trade Time Ms"
+        },
+        "exchange_transaction_time_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange Transaction Time Ms"
+        },
+        "market": {
+          "$ref": "#/$defs/Market"
+        },
+        "producer": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Producer",
+          "type": "string"
+        },
+        "producer_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Producer Version",
+          "type": "string"
+        },
+        "quality_flags": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/QualityFlag"
+          },
+          "title": "Quality Flags",
+          "type": "array"
+        },
+        "receive_monotonic_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receive Monotonic Ns"
+        },
+        "receive_time_utc_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receive Time Utc Ns"
+        },
+        "schema_version": {
+          "const": "depth-update.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "stream": {
+          "const": "DIFF_DEPTH",
+          "title": "Stream",
+          "type": "string"
+        },
+        "symbol": {
+          "maxLength": 20,
+          "minLength": 2,
+          "pattern": "^[A-Z0-9]+$",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "venue": {
+          "$ref": "#/$defs/Venue"
+        }
+      },
+      "required": [
+        "venue",
+        "market",
+        "symbol",
+        "producer",
+        "producer_version",
+        "connection_id",
+        "stream",
+        "schema_version"
+      ],
+      "title": "DepthUpdateMetadata",
+      "type": "object"
+    },
+    "EnvelopeMetadata": {
+      "additionalProperties": false,
+      "description": "Gateway delivery metadata for each stream item.",
+      "properties": {
+        "connection_generation": {
+          "minimum": 1,
+          "title": "Connection Generation",
+          "type": "integer"
+        },
+        "gateway_instance_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "title": "Gateway Instance Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "gateway-stream.v1",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "publish_monotonic_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Publish Monotonic Ns"
+        },
+        "publish_time_utc_ns": {
+          "minimum": 0,
+          "title": "Publish Time Utc Ns",
+          "type": "integer"
+        },
+        "session_sequence": {
+          "minimum": 1,
+          "title": "Session Sequence",
+          "type": "integer"
+        },
+        "subscription_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "title": "Subscription Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "gateway_instance_id",
+        "subscription_id",
+        "connection_generation",
+        "session_sequence",
+        "publish_time_utc_ns"
+      ],
+      "title": "EnvelopeMetadata",
+      "type": "object"
+    },
+    "GapDescriptor": {
+      "additionalProperties": false,
+      "description": "Structured description of a sequence gap.",
+      "properties": {
+        "detected_at_utc_ns": {
+          "minimum": 0,
+          "title": "Detected At Utc Ns",
+          "type": "integer"
+        },
+        "next_sequence": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Sequence"
+        },
+        "previous_sequence": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Previous Sequence"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReasonCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "recovery_state": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResyncState"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "stream": {
+          "$ref": "#/$defs/Stream"
+        }
+      },
+      "required": [
+        "stream",
+        "detected_at_utc_ns"
+      ],
+      "title": "GapDescriptor",
+      "type": "object"
+    },
+    "LocalOrderBookSnapshot": {
+      "additionalProperties": false,
+      "description": "Locally reconstructed order book snapshot.",
+      "properties": {
+        "asks": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PriceLevel"
+          },
+          "title": "Asks",
+          "type": "array"
+        },
+        "bids": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PriceLevel"
+          },
+          "title": "Bids",
+          "type": "array"
+        },
+        "depth_limit": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Depth Limit"
+        },
+        "generated_monotonic_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Generated Monotonic Ns"
+        },
+        "generated_time_utc_ns": {
+          "minimum": 0,
+          "title": "Generated Time Utc Ns",
+          "type": "integer"
+        },
+        "last_gap": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GapDescriptor"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "last_update_id": {
+          "minimum": 0,
+          "title": "Last Update Id",
+          "type": "integer"
+        },
+        "market": {
+          "$ref": "#/$defs/Market"
+        },
+        "producer": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Producer",
+          "type": "string"
+        },
+        "producer_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Producer Version",
+          "type": "string"
+        },
+        "quality_flags": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/QualityFlag"
+          },
+          "title": "Quality Flags",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "local-order-book-snapshot.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/SnapshotSource"
+        },
+        "symbol": {
+          "maxLength": 20,
+          "minLength": 2,
+          "pattern": "^[A-Z0-9]+$",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "synchronized": {
+          "title": "Synchronized",
+          "type": "boolean"
+        },
+        "venue": {
+          "$ref": "#/$defs/Venue"
+        }
+      },
+      "required": [
+        "venue",
+        "market",
+        "symbol",
+        "schema_version",
+        "producer",
+        "producer_version",
+        "source",
+        "last_update_id",
+        "generated_time_utc_ns",
+        "synchronized"
+      ],
+      "title": "LocalOrderBookSnapshot",
+      "type": "object"
+    },
+    "Market": {
+      "enum": [
+        "SPOT",
+        "USD_M_PERPETUAL"
+      ],
+      "title": "Market",
+      "type": "string"
+    },
+    "PriceLevel": {
+      "additionalProperties": false,
+      "description": "A single price level in the order book.\n\nquantity represents the absolute quantity at this price level after the update.\nquantity == \"0\" means this price level should be removed.",
+      "properties": {
+        "price": {
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
+          "title": "Price",
+          "type": "string"
+        },
+        "quantity": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Quantity",
+          "type": "string"
+        }
+      },
+      "required": [
+        "price",
+        "quantity"
+      ],
+      "title": "PriceLevel",
+      "type": "object"
+    },
+    "QualityFlag": {
+      "description": "Quality flags describe data facts — what is observed about the data.\n\nThese are distinct from ReasonCode which explains Health state judgments.",
+      "enum": [
+        "DUPLICATE",
+        "OUT_OF_ORDER",
+        "SEQUENCE_GAP",
+        "ORDERBOOK_RESYNC",
+        "SNAPSHOT_BRIDGE_PENDING",
+        "SNAPSHOT_TOO_OLD",
+        "BOOTSTRAP_BUFFER_OVERFLOW",
+        "RECOVERED_TAIL",
+        "MALFORMED_PAYLOAD",
+        "EXCHANGE_TIME_MISSING",
+        "RECEIVE_CLOCK_DISCONTINUITY",
+        "SLOW_CONSUMER_GAP",
+        "PRODUCER_RESTART",
+        "OVERLAP",
+        "IDENTITY_CONFLICT",
+        "CROSSED_BOOK"
+      ],
+      "title": "QualityFlag",
+      "type": "string"
+    },
+    "ReasonCode": {
+      "description": "Reason codes explain Health state judgments — why a state was chosen.",
+      "enum": [
+        "CONNECTION_LOST",
+        "CONNECTION_RESUMED",
+        "PING_TIMEOUT",
+        "LAST_MESSAGE_AGE_HIGH",
+        "RECEIVE_LATENCY_HIGH",
+        "PUBLISH_LATENCY_HIGH",
+        "SEQUENCE_GAP_DETECTED",
+        "SEQUENCE_GAP_TOO_LARGE",
+        "RESYNC_IN_PROGRESS",
+        "RESYNC_FAILED",
+        "BOOK_NOT_SYNCHRONIZED",
+        "BOOK_CROSSED",
+        "BOOK_EMPTY",
+        "RECORDER_STALLED",
+        "GATEWAY_STALLED",
+        "DIVERGENCE_DETECTED",
+        "DISK_SPACE_LOW",
+        "QUEUE_BACKLOG",
+        "ARCHIVE_BACKLOG",
+        "CONFIGURATION_ERROR"
+      ],
+      "title": "ReasonCode",
+      "type": "string"
+    },
+    "RecoveryAction": {
+      "enum": [
+        "NONE",
+        "RESUBSCRIBE",
+        "REQUEST_NEW_SNAPSHOT"
+      ],
+      "title": "RecoveryAction",
+      "type": "string"
+    },
+    "ResyncState": {
+      "enum": [
+        "SYNCHRONIZED",
+        "RESYNC_REQUIRED",
+        "RESYNC_IN_PROGRESS",
+        "RECOVERED",
+        "RESYNC_FAILED"
+      ],
+      "title": "ResyncState",
+      "type": "string"
+    },
+    "SnapshotSource": {
+      "enum": [
+        "GATEWAY_LIVE",
+        "RECORDER_REPLAY",
+        "HISTORY_REPLAY"
+      ],
+      "title": "SnapshotSource",
+      "type": "string"
+    },
+    "Stream": {
+      "enum": [
+        "DIFF_DEPTH",
+        "AGG_TRADE",
+        "BOOK_TICKER",
+        "DEPTH_SNAPSHOT"
+      ],
+      "title": "Stream",
+      "type": "string"
+    },
+    "StreamLifecycleState": {
+      "enum": [
+        "ACCEPTED",
+        "SNAPSHOT_PENDING",
+        "LIVE",
+        "RESYNC_IN_PROGRESS",
+        "DEGRADED",
+        "CLOSING",
+        "CLOSED"
+      ],
+      "title": "StreamLifecycleState",
+      "type": "string"
+    },
+    "StreamStatus": {
+      "additionalProperties": false,
+      "description": "Reports the lifecycle state of a consumer subscription stream.",
+      "properties": {
+        "message": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message"
+        },
+        "observed_time_utc_ns": {
+          "minimum": 0,
+          "title": "Observed Time Utc Ns",
+          "type": "integer"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReasonCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "schema_version": {
+          "const": "stream-status.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/StreamLifecycleState"
+        },
+        "subscription_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "title": "Subscription Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "subscription_id",
+        "state",
+        "observed_time_utc_ns"
+      ],
+      "title": "StreamStatus",
+      "type": "object"
+    },
+    "SubscriptionAccepted": {
+      "additionalProperties": false,
+      "description": "Confirms a subscription was accepted by the Gateway.",
+      "properties": {
+        "accepted_time_utc_ns": {
+          "minimum": 0,
+          "title": "Accepted Time Utc Ns",
+          "type": "integer"
+        },
+        "gateway_instance_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "title": "Gateway Instance Id",
+          "type": "string"
+        },
+        "negotiated_payload_schema_versions": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Negotiated Payload Schema Versions",
+          "type": "array"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "subscription-accepted.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "subscription_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "title": "Subscription Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "subscription_id",
+        "schema_version",
+        "gateway_instance_id",
+        "accepted_time_utc_ns",
+        "negotiated_payload_schema_versions"
+      ],
+      "title": "SubscriptionAccepted",
+      "type": "object"
+    },
+    "Venue": {
+      "enum": [
+        "BINANCE"
+      ],
+      "title": "Venue",
+      "type": "string"
+    }
+  },
+  "$id": "urn:binance-market-data-contracts:order-book-stream-item.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Wraps a single item for the order book stream.\n\nExactly one payload field must be set.",
+  "properties": {
+    "consumer_gap": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ConsumerGapNotice"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "depth_update": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DepthUpdate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "envelope_metadata": {
+      "$ref": "#/$defs/EnvelopeMetadata"
+    },
+    "snapshot": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LocalOrderBookSnapshot"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "stream_status": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StreamStatus"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "subscription_accepted": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SubscriptionAccepted"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "envelope_metadata"
+  ],
+  "type": "object"
+}

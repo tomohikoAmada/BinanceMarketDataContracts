@@ -34,6 +34,8 @@ jobs:
         run: python -m binance_market_data_contracts.schema_export --output schemas/json
       - name: Schema drift check
         run: git diff --exit-code -- schemas/json
+      - name: Proto codegen check
+        run: python -m binance_market_data_contracts.proto_codegen --check
       - name: Build package
         run: python -m build
       - name: Twine check
@@ -54,7 +56,9 @@ jobs:
           with ZipFile(wheel) as archive:
               names = set(archive.namelist())
           assert "binance_market_data_contracts/py.typed" in names, "py.typed is missing from wheel"
-          print("py.typed present in wheel")
+          ProtoFiles = sorted(n for n in names if n.endswith('.proto'))
+          assert len(ProtoFiles) >= 8, f"Expected >=8 .proto files in wheel, got {len(ProtoFiles)}"
+          print(f"py.typed present, {len(ProtoFiles)} .proto files in wheel")
           PY
 
           rm -rf /tmp/contracts-wheel-test
@@ -88,3 +92,20 @@ jobs:
 
           diff -ru /tmp/repository-schemas /tmp/exported-schemas
           echo "wheel schema diff passed"
+
+  buf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.60.0"
+      - name: Buf format
+        run: buf format --diff --exit-code
+      - name: Buf lint
+        run: buf lint
+      - name: Buf build
+        run: buf build
+      - name: Buf breaking (PR only)
+        if: github.event_name == 'pull_request'
+        run: buf breaking --against '.git#branch=origin/main'

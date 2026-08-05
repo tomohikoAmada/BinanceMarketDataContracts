@@ -5,7 +5,7 @@ from binance_market_data_contracts import __all__
 
 
 def test_package_version():
-    assert pkg.__version__ == "0.1.0a1"
+    assert pkg.__version__ == "0.2.0a1"
 
 
 def test_all_exports_exist():

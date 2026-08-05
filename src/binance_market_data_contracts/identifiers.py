@@ -26,3 +26,5 @@ DatasetId = NonEmptyIdentifier
 CommandId = NonEmptyIdentifier
 InstanceId = NonEmptyIdentifier
 SnapshotId = NonEmptyIdentifier
+GatewayInstanceId = NonEmptyIdentifier
+SubscriptionId = NonEmptyIdentifier

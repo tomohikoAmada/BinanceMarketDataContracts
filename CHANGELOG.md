@@ -5,47 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0a1] — Unreleased
+## [0.2.0a1] — Unreleased
 
 ### Added
 
-- Initial Workstream 0 contracts baseline (PROPOSED status)
-- Core market contracts: DepthUpdate, AggTrade, BookTicker, ExchangeDepthSnapshot
-- State contracts: LocalOrderBookSnapshot, MarketStateSnapshot, DataHealthSnapshot
-- Draft contracts: HistoricalDatasetDescriptor, ReplayQuery, Telemetry, ControlCommand
-- Contract registry with status tracking (DRAFT / PROPOSED / ACCEPTED / DEPRECATED / REMOVED)
-- Deterministic JSON Schema export (Draft 2020-12) with `--output` CLI argument
-- Golden fixtures with machine-readable manifest and strict validation
-- Architecture decision records (ADR-0001 through ADR-0006)
-- CI workflow (ruff, mypy, pytest, schema drift, build, twine, wheel isolation)
-- Compatibility policy and contract governance documentation
-- Recursive time-field validation across nested models
-- Wheel isolation test validating py.typed, fixture parsing, and schema equality
-
-### Fixed
-
-- Required explicit stream and schema_version in serialized contracts
-- Aligned positive decimal semantics between Pydantic and JSON Schema
-- Rejected whitespace-only identifiers and negative zero in signed decimals
-- Replaced skipped semantic-schema tests with explicit assertions
-- Added full installed-wheel fixture and typing-marker validation
-- ReplayQuery and TelemetryEnvelope now require schema_version
-- SignedDecimal JSON Schema regex rejects negative zero
-- Fixture Manifest uses strict Pydantic model validation
-- Control command type must match parameters.type
-- Telemetry envelope type must match metrics.type
-- Telemetry source_module uses NonEmptyText (rejects whitespace)
-- Archive date uses Python date type with format validation
+- Protobuf wire contracts for cross-language data exchange
+- gRPC service definitions for Gateway streaming
+- Pydantic gateway contracts for type-safe IPC
+- Explicit adapters between Pydantic domain contracts and Protobuf wire contracts
+- Wire Contract Registry for tracking Protobuf message versions
+- Proto codegen with Buf configuration
+- Gateway-streaming protocol documentation
+- ADR-0007: Dual-contract strata (Pydantic Domain + Protobuf Wire)
+- ADR-0008: Gateway IPC via gRPC Server Streaming + Protobuf
+- Transcript tests for adapter correctness
+- Adapter round-trip tests ensuring lossless Pydantic ↔ Proto conversion
+- Descriptor tests validating generated Protobuf descriptors
 
 ### Changed
 
-- EventMetadata replaced by specific metadata types (DepthUpdateMetadata etc.)
-- BaseEventMetadata is internal (_BaseEventMetadata, not in public API)
-- top_n_depth replaced by top_bids/top_asks in MarketStateSnapshot
-- Custom ValidationError removed (pydantic.ValidationError is the runtime error)
-- Schema export uses --output CLI argument (no repo root guessing)
-- Schemas organized in schemas/json/contracts/ with contract-catalog.json
+- Version 0.1.0a1 → 0.2.0a1
+- ADR-0002 superseded by ADR-0007 (Pydantic remains domain authority)
+- MarketStateSnapshot: added source_book_update_id and source_trade_id fields
+- TelemetryEnvelope: extended with stream and connection fields
+- QueueMetrics: extended with capacity and utilization fields
 
-### Status
+### Architecture
 
-All contracts are in **PROPOSED** or **DRAFT** status. No contract has been formally ACCEPTED yet.
+- Dual-contract strata: Domain Contracts (Pydantic) and Wire Contracts (Protobuf)
+- Protobuf as the wire authority for cross-device and cross-language communication
+- Pydantic as the domain authority for Python-internal data modeling
+- gRPC Server Streaming as the Gateway-to-consumer protocol
+- Explicit adapters bridging Pydantic and Protobuf representations
+
+### Compatibility
+
+- All existing Pydantic contracts remain unchanged
+- Existing JSON Schema export continues unchanged
+- All existing tests pass without modification
+- Wire contracts are additive; consumers not using Protobuf are unaffected
+
+### Not Implemented
+
+- Gateway Runtime (gRPC server is not implemented in this repository)
+- Gateway implementation language is not selected (C++, Rust, Go, Python are all supported by the wire protocol)
+- Network performance benchmarking
+- Cross-language integration tests
+- Contracts are not yet ACCEPTED; all remain PROPOSED or DRAFT
