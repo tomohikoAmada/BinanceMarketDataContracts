@@ -2,15 +2,43 @@
 
 Versioned public contracts, schemas, fixtures and architecture decisions for BinanceMarketData.
 
+This package provides two contract strata:
+
+- **Domain Contracts** — Pydantic models for Python-internal data modeling
+- **Wire Contracts** — Protobuf/gRPC definitions for cross-language and cross-device communication
+
 ## Status
 
-All contracts are **PROPOSED** or **DRAFT** pending architecture review.
-No contract has been formally ACCEPTED yet.
+All contracts are **PROPOSED** or **DRAFT**. DRAFT contracts are **not frozen** — fields, semantics, and
+structure may change. No contract has been formally ACCEPTED yet.
+
+## Target Languages
+
+The wire protocol is language-neutral. Generated types are available for:
+
+| Role | Language |
+|------|----------|
+| Gateway Runtime | Undecided (C++, Rust, Go, and Python are all supported by the wire protocol) |
+| Python Consumer | Python |
+| Go Consumer | Go |
+| Rust Consumer | Rust |
+| C++ Consumer | C++ |
+
+The Gateway implementation language is **not selected by this repository**. The wire protocol supports all languages listed above. A final decision requires a separate ADR with benchmark evidence.
+
+The Gateway Runtime is **not implemented** in this repository. This package provides only the contract types.
 
 ## Installation
 
 ```bash
-python -m pip install -e ".[dev]"
+# Domain contracts only (Pydantic + JSON Schema)
+python -m pip install -e .
+
+# Wire runtime (generated Protobuf and gRPC imports)
+python -m pip install -e ".[wire]"
+
+# Development environment (including code generation and wire runtime)
+python -m pip install -e ".[dev,wire]"
 ```
 
 ## Quick start
@@ -82,6 +110,8 @@ event = DepthUpdate(metadata=metadata, first_update_id=1001, final_update_id=100
 
 ## Contracts
 
+### Domain Contracts (Pydantic)
+
 | Contract | Status | Version |
 |----------|--------|---------|
 | DepthUpdate | PROPOSED | v1 |
@@ -95,6 +125,100 @@ event = DepthUpdate(metadata=metadata, first_update_id=1001, final_update_id=100
 | ReplayQuery | DRAFT | v1 |
 | Telemetry | DRAFT | v1 |
 | ControlCommand / CommandResult | DRAFT | v1 |
+
+### Wire Contracts (Protobuf)
+
+Wire contracts are defined in proto files under `src/binance_market_data_contracts/proto/binance_market_data/`:
+
+| Contract group | Status |
+|----------------|--------|
+| Core Market Wire Contracts | PROPOSED |
+| Projection Wire Contracts | PROPOSED |
+| Gateway Wire Contracts | DRAFT |
+| Telemetry Wire Contract | DRAFT |
+
+DRAFT wire contracts are **not frozen** and may change.
+
+### Gateway RPCs
+
+| RPC | Style | Description |
+|-----|-------|-------------|
+| `SubscribeEvents` | Server Streaming | Contiguous real-time event stream (DepthUpdate, AggTrade, BookTicker) |
+| `SubscribeOrderBook` | Server Streaming | Order book snapshot + diff stream |
+| `SubscribeMarketState` | Server Streaming | Latest market state updates |
+| `GetGatewayStatus` | Unary | One-shot Gateway operational status |
+
+## Proto files
+
+Wire contract definitions live in `src/binance_market_data_contracts/proto/binance_market_data/`.
+
+```
+src/binance_market_data_contracts/proto/binance_market_data/
+├── common/v1/
+│   ├── enums.proto       — shared enumerations
+│   ├── metadata.proto    — event and envelope metadata
+│   └── identifiers.proto — identifiers (ConnectionId, Symbol, etc.)
+├── market/v1/
+│   └── market_events.proto  — DepthUpdate, AggTrade, BookTicker, ExchangeDepthSnapshot
+├── projection/v1/
+│   └── snapshots.proto      — MarketStateSnapshot, LocalOrderBookSnapshot, DataHealthSnapshot
+├── gateway/v1/
+│   ├── gateway_messages.proto — Gateway request/response messages
+│   └── gateway_service.proto  — gRPC service definitions
+└── telemetry/v1/
+    └── telemetry.proto        — Telemetry metrics and envelope
+```
+
+`buf.yaml` is located at the repository root, outside the Proto source tree.
+
+## Code generation
+
+```bash
+python -m binance_market_data_contracts.proto_codegen
+python -m binance_market_data_contracts.proto_codegen --check
+```
+
+Generated Python code is placed in `src/binance_market_data/`.
+Generated files are **never hand-edited**.
+
+## Adapter usage
+
+Explicit adapters bridge Pydantic domain contracts and Protobuf wire contracts.
+Key adapter pairs follow the `<contract>_to_pb` / `<contract>_from_pb` naming convention:
+
+| Domain → Wire | Wire → Domain |
+|---|---|
+| `depth_update_to_pb` | `depth_update_from_pb` |
+| `agg_trade_to_pb` | `agg_trade_from_pb` |
+| `book_ticker_to_pb` | `book_ticker_from_pb` |
+| `exchange_depth_snapshot_to_pb` | `exchange_depth_snapshot_from_pb` |
+| `market_state_snapshot_to_pb` | `market_state_snapshot_from_pb` |
+| `local_order_book_snapshot_to_pb` | `local_order_book_snapshot_from_pb` |
+| `data_health_snapshot_to_pb` | `data_health_snapshot_from_pb` |
+| `gateway_event_envelope_to_pb` | `gateway_event_envelope_from_pb` |
+| `gateway_status_snapshot_to_pb` | `gateway_status_snapshot_from_pb` |
+| `order_book_stream_item_to_pb` | `order_book_stream_item_from_pb` |
+| `market_state_stream_item_to_pb` | `market_state_stream_item_from_pb` |
+| `event_subscription_request_to_pb` | `event_subscription_request_from_pb` |
+| `telemetry_envelope_to_pb` | `telemetry_envelope_from_pb` |
+
+Example usage:
+
+```python
+from binance_market_data_contracts.wire.adapters import (
+    depth_update_to_pb,
+    depth_update_from_pb,
+)
+from binance_market_data_contracts import DepthUpdate
+
+# Domain → Wire
+event = DepthUpdate.model_validate_json(payload)
+proto_msg = depth_update_to_pb(event)
+
+# Wire → Domain
+event_roundtrip = depth_update_from_pb(proto_msg)
+assert event == event_roundtrip
+```
 
 ## Schema export
 
@@ -142,6 +266,8 @@ Breaking changes require:
 - Real-time data streaming
 - Historical data storage or retrieval
 - UI or visualization
+- gRPC server implementation (Gateway runtime)
+- Any server or daemon process
 
 ## Related
 

@@ -75,6 +75,19 @@
     "LatencyMetrics": {
       "additionalProperties": false,
       "properties": {
+        "consumer_delivery_lag_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Consumer Delivery Lag Ms"
+        },
         "publish_lag_ms": {
           "anyOf": [
             {
@@ -145,10 +158,34 @@
     "QueueMetrics": {
       "additionalProperties": false,
       "properties": {
+        "disconnect_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Disconnect Count",
+          "type": "integer"
+        },
         "dropped": {
           "default": 0,
           "minimum": 0,
           "title": "Dropped",
+          "type": "integer"
+        },
+        "oldest_message_age_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Oldest Message Age Ms"
+        },
+        "queue_capacity": {
+          "exclusiveMinimum": 0,
+          "title": "Queue Capacity",
           "type": "integer"
         },
         "queue_depth": {
@@ -157,6 +194,20 @@
           "title": "Queue Depth",
           "type": "integer"
         },
+        "queue_utilization": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Queue Utilization"
+        },
         "type": {
           "const": "queue",
           "default": "queue",
@@ -164,6 +215,9 @@
           "type": "string"
         }
       },
+      "required": [
+        "queue_capacity"
+      ],
       "title": "QueueMetrics",
       "type": "object"
     },
@@ -204,6 +258,16 @@
       },
       "title": "SequenceMetrics",
       "type": "object"
+    },
+    "Stream": {
+      "enum": [
+        "DIFF_DEPTH",
+        "AGG_TRADE",
+        "BOOK_TICKER",
+        "DEPTH_SNAPSHOT"
+      ],
+      "title": "Stream",
+      "type": "string"
     },
     "SystemMetrics": {
       "additionalProperties": false,
@@ -276,6 +340,32 @@
   "additionalProperties": false,
   "description": "DRAFT — Telemetry envelope for Gateway and Recorder.",
   "properties": {
+    "connection_generation": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "connection_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "market": {
       "anyOf": [
         {
@@ -354,6 +444,31 @@
       "minLength": 1,
       "pattern": "^\\S(?:.*\\S)?$",
       "type": "string"
+    },
+    "stream": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Stream"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "subscription_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "symbol": {
       "anyOf": [

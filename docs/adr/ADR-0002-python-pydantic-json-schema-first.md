@@ -2,11 +2,24 @@
 
 ## Status
 
-PROPOSED
+SUPERSEDED
 
 ## Date
 
-2026-08-04
+2026-08-04 (SUPERSEDED 2026-08-05)
+
+## Note (2026-08-05)
+
+The Pydantic-first phase has been completed successfully. Pydantic remains the
+authoritative Domain Contract layer for Python — it defines field business semantics,
+Decimal String rules, complex runtime validation, JSON fixtures, and strict Python types.
+
+However, the original claim that "Pydantic models are the single source of truth for all
+contracts" no longer applies. For cross-device, multi-language Gateway streaming, Protobuf
+is now the authoritative Wire Contract layer. Pydantic and Protobuf serve different strata
+and are kept consistent through explicit adapters, fixtures, and CI.
+
+See ADR-0007 for the full Domain/Wire dual-authority architecture.
 
 ## Context
 
@@ -48,12 +61,12 @@ None initially. When Protobuf is adopted, the Pydantic models will serve as the 
 
 ## Acceptance criteria
 
-- [ ] All PROPOSED contracts have generated JSON Schemas
-- [ ] Schema generation is deterministic (byte-identical across runs)
-- [ ] Schema drift CI check passes on every PR
-- [ ] JSON Schema validates all valid fixtures
-- [ ] JSON Schema rejects all invalid fixtures
+- [x] All PROPOSED contracts have generated JSON Schemas
+- [x] Schema generation is deterministic (byte-identical across runs)
+- [x] Schema drift CI check passes on every PR
+- [x] JSON Schema validates all valid fixtures
+- [x] JSON Schema rejects all invalid fixtures
 
 ## Superseded by
 
-None.
+ADR-0007: Pydantic domain contracts and Protobuf wire contracts

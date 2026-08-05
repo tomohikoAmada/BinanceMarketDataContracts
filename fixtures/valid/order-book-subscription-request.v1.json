@@ -1,0 +1,11 @@
+{
+  "request_id": "req-ob-001",
+  "schema_version": "order-book-subscription-request.v1",
+  "venue": "BINANCE",
+  "market": "SPOT",
+  "symbol": "BTCUSDT",
+  "depth_limit": 20,
+  "initial_snapshot_mode": "REQUIRED",
+  "supported_snapshot_schema_versions": ["local-order-book-snapshot.v1"],
+  "supported_update_schema_versions": ["depth-update.v1"]
+}

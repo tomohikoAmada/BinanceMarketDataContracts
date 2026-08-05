@@ -1,0 +1,137 @@
+{
+  "$defs": {
+    "ConsumerGapReason": {
+      "enum": [
+        "SLOW_CONSUMER",
+        "RESUME_NOT_AVAILABLE",
+        "UPSTREAM_SEQUENCE_GAP",
+        "GATEWAY_RESTART",
+        "CONNECTION_GENERATION_CHANGED",
+        "SUBSCRIPTION_RECONFIGURED"
+      ],
+      "title": "ConsumerGapReason",
+      "type": "string"
+    },
+    "Market": {
+      "enum": [
+        "SPOT",
+        "USD_M_PERPETUAL"
+      ],
+      "title": "Market",
+      "type": "string"
+    },
+    "RecoveryAction": {
+      "enum": [
+        "NONE",
+        "RESUBSCRIBE",
+        "REQUEST_NEW_SNAPSHOT"
+      ],
+      "title": "RecoveryAction",
+      "type": "string"
+    },
+    "Stream": {
+      "enum": [
+        "DIFF_DEPTH",
+        "AGG_TRADE",
+        "BOOK_TICKER",
+        "DEPTH_SNAPSHOT"
+      ],
+      "title": "Stream",
+      "type": "string"
+    }
+  },
+  "$id": "urn:binance-market-data-contracts:consumer-gap-notice.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Informs the consumer that a gap has been detected in their stream.",
+  "properties": {
+    "detected_time_utc_ns": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "last_delivered_session_sequence": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "market": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Market"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "next_available_session_sequence": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "reason": {
+      "$ref": "#/$defs/ConsumerGapReason"
+    },
+    "recovery_action": {
+      "$ref": "#/$defs/RecoveryAction"
+    },
+    "schema_version": {
+      "const": "consumer-gap-notice.v1",
+      "type": "string"
+    },
+    "stream": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Stream"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "subscription_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "type": "string"
+    },
+    "symbol": {
+      "anyOf": [
+        {
+          "maxLength": 20,
+          "minLength": 2,
+          "pattern": "^[A-Z0-9]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "schema_version",
+    "subscription_id",
+    "detected_time_utc_ns",
+    "reason",
+    "recovery_action"
+  ],
+  "type": "object"
+}

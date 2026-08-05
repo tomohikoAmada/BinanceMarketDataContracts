@@ -1,0 +1,12 @@
+{
+  "schema_version": "consumer-gap-notice.v1",
+  "subscription_id": "sub-btcusdt-spot-001",
+  "detected_time_utc_ns": 1690000010000000000,
+  "last_delivered_session_sequence": 100,
+  "next_available_session_sequence": 200,
+  "reason": "SLOW_CONSUMER",
+  "recovery_action": "RESUBSCRIBE",
+  "market": "SPOT",
+  "symbol": "BTCUSDT",
+  "stream": "DIFF_DEPTH"
+}

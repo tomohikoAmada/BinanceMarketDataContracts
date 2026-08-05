@@ -44,7 +44,18 @@ ALLOWED_TIME_FIELD_NAMES: set[str] = {
     "archive_date_utc",
     "receive_latency",
     "publish_latency",
+    "consumer_delivery_latency",
     "missing_exchange_time_policy",
+    "accepted_time_utc_ns",
+    "publish_time_utc_ns",
+    "publish_monotonic_ns",
+    "detected_time_utc_ns",
+    "uptime_seconds",
+    "last_event_utc_ns",
+    "consumer_delivery_lag_ms",
+    "oldest_message_age_ms",
+    "minimum_publish_interval_ms",
+    "connection_generation",
 }
 
 

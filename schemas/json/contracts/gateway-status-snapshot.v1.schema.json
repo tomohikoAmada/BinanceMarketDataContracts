@@ -1,0 +1,130 @@
+{
+  "$defs": {
+    "Market": {
+      "enum": [
+        "SPOT",
+        "USD_M_PERPETUAL"
+      ],
+      "title": "Market",
+      "type": "string"
+    },
+    "MarketRuntimeStatus": {
+      "additionalProperties": false,
+      "description": "Per-market runtime status within a Gateway instance.",
+      "properties": {
+        "active_subscription_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Active Subscription Count",
+          "type": "integer"
+        },
+        "connection_generation": {
+          "minimum": 1,
+          "title": "Connection Generation",
+          "type": "integer"
+        },
+        "last_event_utc_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Event Utc Ns"
+        },
+        "market": {
+          "$ref": "#/$defs/Market"
+        },
+        "state": {
+          "$ref": "#/$defs/StreamLifecycleState"
+        },
+        "symbol": {
+          "maxLength": 20,
+          "minLength": 2,
+          "pattern": "^[A-Z0-9]+$",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "venue": {
+          "$ref": "#/$defs/Venue"
+        }
+      },
+      "required": [
+        "venue",
+        "market",
+        "symbol",
+        "state",
+        "connection_generation"
+      ],
+      "title": "MarketRuntimeStatus",
+      "type": "object"
+    },
+    "StreamLifecycleState": {
+      "enum": [
+        "ACCEPTED",
+        "SNAPSHOT_PENDING",
+        "LIVE",
+        "RESYNC_IN_PROGRESS",
+        "DEGRADED",
+        "CLOSING",
+        "CLOSED"
+      ],
+      "title": "StreamLifecycleState",
+      "type": "string"
+    },
+    "Venue": {
+      "enum": [
+        "BINANCE"
+      ],
+      "title": "Venue",
+      "type": "string"
+    }
+  },
+  "$id": "urn:binance-market-data-contracts:gateway-status-snapshot.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Snapshot of Gateway operational status.",
+  "properties": {
+    "gateway_instance_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "type": "string"
+    },
+    "markets": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/MarketRuntimeStatus"
+      },
+      "type": "array"
+    },
+    "observed_time_utc_ns": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "gateway-status-snapshot.v1",
+      "type": "string"
+    },
+    "total_active_subscriptions": {
+      "default": 0,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "uptime_seconds": {
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "gateway_instance_id",
+    "observed_time_utc_ns",
+    "uptime_seconds"
+  ],
+  "type": "object"
+}

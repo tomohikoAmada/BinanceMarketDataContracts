@@ -1,0 +1,50 @@
+{
+  "$id": "urn:binance-market-data-contracts:subscription-accepted.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Confirms a subscription was accepted by the Gateway.",
+  "properties": {
+    "accepted_time_utc_ns": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "gateway_instance_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "type": "string"
+    },
+    "negotiated_payload_schema_versions": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "request_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "subscription-accepted.v1",
+      "type": "string"
+    },
+    "subscription_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "subscription_id",
+    "schema_version",
+    "gateway_instance_id",
+    "accepted_time_utc_ns",
+    "negotiated_payload_schema_versions"
+  ],
+  "type": "object"
+}

@@ -1,0 +1,1 @@
+{"stream_type":"ORDER_BOOK","delivery_mode":"CONTIGUOUS_EVENTS","items":[{"session_sequence":1,"connection_generation":1,"payload":"SUBSCRIPTION_ACCEPTED"},{"session_sequence":2,"connection_generation":1,"payload":"DEPTH_UPDATE","update_id":500}]}

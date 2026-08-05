@@ -1,0 +1,36 @@
+{
+  "envelope_metadata": {
+    "protocol_version": "gateway-stream.v1",
+    "gateway_instance_id": "gw-instance-01",
+    "subscription_id": "sub-ob-btcusdt-001",
+    "connection_generation": 1,
+    "session_sequence": 1,
+    "publish_time_utc_ns": 1690000010000000000,
+    "publish_monotonic_ns": 10000000001
+  },
+  "snapshot": {
+    "venue": "BINANCE",
+    "market": "SPOT",
+    "symbol": "BTCUSDT",
+    "schema_version": "local-order-book-snapshot.v1",
+    "producer": "gateway",
+    "producer_version": "0.1.0",
+    "source": "GATEWAY_LIVE",
+    "last_update_id": 60001,
+    "bids": [
+      {"price": "29500.00", "quantity": "1.50000000"}
+    ],
+    "asks": [
+      {"price": "29501.00", "quantity": "1.00000000"}
+    ],
+    "depth_limit": 100,
+    "generated_time_utc_ns": 1690000010000000000,
+    "generated_monotonic_ns": 10000000001,
+    "synchronized": true,
+    "quality_flags": []
+  },
+  "subscription_accepted": null,
+  "depth_update": null,
+  "consumer_gap": null,
+  "stream_status": null
+}

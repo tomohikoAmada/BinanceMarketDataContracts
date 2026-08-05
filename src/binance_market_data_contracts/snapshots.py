@@ -129,6 +129,8 @@ class MarketStateSnapshot(ContractModel):
     generated_time_utc_ns: int = Field(..., ge=0)
     data_freshness_ms: int | None = Field(default=None, ge=0)
     book_synchronized: bool | None = None
+    source_book_update_id: int | None = Field(default=None, ge=0)
+    source_trade_id: int | None = Field(default=None, ge=0)
 
     @model_validator(mode="after")
     def _validate_order(self) -> MarketStateSnapshot:
@@ -215,6 +217,7 @@ class DataHealthSnapshot(ContractModel):
     book_synchronized: bool | None = None
     recorder_alive: bool | None = None
     gateway_alive: bool | None = None
+    consumer_delivery_latency: LatencySummary | None = None
     reason_codes: tuple[ReasonCode, ...] = ()
     observed_time_utc_ns: int = Field(..., ge=0)
     quality_flags: tuple[QualityFlag, ...] = ()

@@ -1,0 +1,101 @@
+{
+  "$defs": {
+    "Market": {
+      "enum": [
+        "SPOT",
+        "USD_M_PERPETUAL"
+      ],
+      "title": "Market",
+      "type": "string"
+    },
+    "Stream": {
+      "enum": [
+        "DIFF_DEPTH",
+        "AGG_TRADE",
+        "BOOK_TICKER",
+        "DEPTH_SNAPSHOT"
+      ],
+      "title": "Stream",
+      "type": "string"
+    },
+    "StreamSelector": {
+      "additionalProperties": false,
+      "description": "Identifies a specific market data stream to subscribe to.",
+      "properties": {
+        "market": {
+          "$ref": "#/$defs/Market"
+        },
+        "stream": {
+          "$ref": "#/$defs/Stream"
+        },
+        "symbol": {
+          "maxLength": 20,
+          "minLength": 2,
+          "pattern": "^[A-Z0-9]+$",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "venue": {
+          "$ref": "#/$defs/Venue"
+        }
+      },
+      "required": [
+        "venue",
+        "market",
+        "symbol",
+        "stream"
+      ],
+      "title": "StreamSelector",
+      "type": "object"
+    },
+    "Venue": {
+      "enum": [
+        "BINANCE"
+      ],
+      "title": "Venue",
+      "type": "string"
+    }
+  },
+  "$id": "urn:binance-market-data-contracts:event-subscription-request.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Request to subscribe to a contiguous event stream.",
+  "properties": {
+    "delivery_mode": {
+      "const": "CONTIGUOUS_EVENTS",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "event-subscription-request.v1",
+      "type": "string"
+    },
+    "selectors": {
+      "items": {
+        "$ref": "#/$defs/StreamSelector"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "supported_payload_schema_versions": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    }
+  },
+  "required": [
+    "request_id",
+    "schema_version",
+    "selectors",
+    "delivery_mode",
+    "supported_payload_schema_versions"
+  ],
+  "type": "object"
+}

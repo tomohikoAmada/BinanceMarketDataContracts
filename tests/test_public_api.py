@@ -28,7 +28,7 @@ def test_no_draft_contracts_in_all():
 def test_version_accessible():
     from binance_market_data_contracts import __version__
 
-    assert __version__ == "0.1.0a1"
+    assert __version__ == "0.2.0a1"
 
 
 def test_contract_registry_is_complete():

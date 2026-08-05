@@ -1,0 +1,99 @@
+{
+  "$defs": {
+    "ReasonCode": {
+      "description": "Reason codes explain Health state judgments — why a state was chosen.",
+      "enum": [
+        "CONNECTION_LOST",
+        "CONNECTION_RESUMED",
+        "PING_TIMEOUT",
+        "LAST_MESSAGE_AGE_HIGH",
+        "RECEIVE_LATENCY_HIGH",
+        "PUBLISH_LATENCY_HIGH",
+        "SEQUENCE_GAP_DETECTED",
+        "SEQUENCE_GAP_TOO_LARGE",
+        "RESYNC_IN_PROGRESS",
+        "RESYNC_FAILED",
+        "BOOK_NOT_SYNCHRONIZED",
+        "BOOK_CROSSED",
+        "BOOK_EMPTY",
+        "RECORDER_STALLED",
+        "GATEWAY_STALLED",
+        "DIVERGENCE_DETECTED",
+        "DISK_SPACE_LOW",
+        "QUEUE_BACKLOG",
+        "ARCHIVE_BACKLOG",
+        "CONFIGURATION_ERROR"
+      ],
+      "title": "ReasonCode",
+      "type": "string"
+    },
+    "StreamLifecycleState": {
+      "enum": [
+        "ACCEPTED",
+        "SNAPSHOT_PENDING",
+        "LIVE",
+        "RESYNC_IN_PROGRESS",
+        "DEGRADED",
+        "CLOSING",
+        "CLOSED"
+      ],
+      "title": "StreamLifecycleState",
+      "type": "string"
+    }
+  },
+  "$id": "urn:binance-market-data-contracts:stream-status.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Reports the lifecycle state of a consumer subscription stream.",
+  "properties": {
+    "message": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "observed_time_utc_ns": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "reason_code": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ReasonCode"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "schema_version": {
+      "const": "stream-status.v1",
+      "type": "string"
+    },
+    "state": {
+      "$ref": "#/$defs/StreamLifecycleState"
+    },
+    "subscription_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "subscription_id",
+    "state",
+    "observed_time_utc_ns"
+  ],
+  "type": "object"
+}

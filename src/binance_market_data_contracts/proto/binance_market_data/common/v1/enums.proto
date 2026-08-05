@@ -1,0 +1,162 @@
+syntax = "proto3";
+
+package binance_market_data.common.v1;
+
+option go_package = "github.com/tomohikoAmada/BinanceMarketDataContracts/gen/go/common/v1;commonv1";
+
+// Venue identifies the exchange or trading venue.
+// Venue values are stable — adding new venues is compatible,
+// removing or renaming is BREAKING.
+enum Venue {
+  VENUE_UNSPECIFIED = 0;
+  VENUE_BINANCE = 1;
+}
+
+// Market identifies the market segment (product type).
+enum Market {
+  MARKET_UNSPECIFIED = 0;
+  MARKET_SPOT = 1;
+  MARKET_USD_M_PERPETUAL = 2;
+}
+
+// Stream identifies the WebSocket stream type from Binance.
+enum Stream {
+  STREAM_UNSPECIFIED = 0;
+  STREAM_DIFF_DEPTH = 1;
+  STREAM_AGG_TRADE = 2;
+  STREAM_BOOK_TICKER = 3;
+  STREAM_DEPTH_SNAPSHOT = 4;
+}
+
+// QualityFlag describes observed data facts about an event.
+// These are distinct from ReasonCode which explains Health state judgments.
+enum QualityFlag {
+  QUALITY_FLAG_UNSPECIFIED = 0;
+  QUALITY_FLAG_DUPLICATE = 1;
+  QUALITY_FLAG_OUT_OF_ORDER = 2;
+  QUALITY_FLAG_SEQUENCE_GAP = 3;
+  QUALITY_FLAG_ORDERBOOK_RESYNC = 4;
+  QUALITY_FLAG_SNAPSHOT_BRIDGE_PENDING = 5;
+  QUALITY_FLAG_SNAPSHOT_TOO_OLD = 6;
+  QUALITY_FLAG_BOOTSTRAP_BUFFER_OVERFLOW = 7;
+  QUALITY_FLAG_RECOVERED_TAIL = 8;
+  QUALITY_FLAG_MALFORMED_PAYLOAD = 9;
+  QUALITY_FLAG_EXCHANGE_TIME_MISSING = 10;
+  QUALITY_FLAG_RECEIVE_CLOCK_DISCONTINUITY = 11;
+  QUALITY_FLAG_SLOW_CONSUMER_GAP = 12;
+  QUALITY_FLAG_PRODUCER_RESTART = 13;
+  QUALITY_FLAG_OVERLAP = 14;
+  QUALITY_FLAG_IDENTITY_CONFLICT = 15;
+  QUALITY_FLAG_CROSSED_BOOK = 16;
+}
+
+// ReasonCode explains why a particular Health state was chosen.
+enum ReasonCode {
+  REASON_CODE_UNSPECIFIED = 0;
+  REASON_CODE_CONNECTION_LOST = 1;
+  REASON_CODE_CONNECTION_RESUMED = 2;
+  REASON_CODE_PING_TIMEOUT = 3;
+  REASON_CODE_LAST_MESSAGE_AGE_HIGH = 4;
+  REASON_CODE_RECEIVE_LATENCY_HIGH = 5;
+  REASON_CODE_PUBLISH_LATENCY_HIGH = 6;
+  REASON_CODE_SEQUENCE_GAP_DETECTED = 7;
+  REASON_CODE_SEQUENCE_GAP_TOO_LARGE = 8;
+  REASON_CODE_RESYNC_IN_PROGRESS = 9;
+  REASON_CODE_RESYNC_FAILED = 10;
+  REASON_CODE_BOOK_NOT_SYNCHRONIZED = 11;
+  REASON_CODE_BOOK_CROSSED = 12;
+  REASON_CODE_BOOK_EMPTY = 13;
+  REASON_CODE_RECORDER_STALLED = 14;
+  REASON_CODE_GATEWAY_STALLED = 15;
+  REASON_CODE_DIVERGENCE_DETECTED = 16;
+  REASON_CODE_DISK_SPACE_LOW = 17;
+  REASON_CODE_QUEUE_BACKLOG = 18;
+  REASON_CODE_ARCHIVE_BACKLOG = 19;
+  REASON_CODE_CONFIGURATION_ERROR = 20;
+}
+
+// ConnectionState represents the state of a WebSocket/REST connection.
+enum ConnectionState {
+  CONNECTION_STATE_UNSPECIFIED = 0;
+  CONNECTION_STATE_CONNECTING = 1;
+  CONNECTION_STATE_CONNECTED = 2;
+  CONNECTION_STATE_RECONNECTING = 3;
+  CONNECTION_STATE_DISCONNECTED = 4;
+  CONNECTION_STATE_FAILED = 5;
+}
+
+// ResyncState represents the resynchronization state of a local order book.
+enum ResyncState {
+  RESYNC_STATE_UNSPECIFIED = 0;
+  RESYNC_STATE_SYNCHRONIZED = 1;
+  RESYNC_STATE_RESYNC_REQUIRED = 2;
+  RESYNC_STATE_RESYNC_IN_PROGRESS = 3;
+  RESYNC_STATE_RECOVERED = 4;
+  RESYNC_STATE_RESYNC_FAILED = 5;
+}
+
+// SnapshotSource identifies how a snapshot was produced.
+enum SnapshotSource {
+  SNAPSHOT_SOURCE_UNSPECIFIED = 0;
+  SNAPSHOT_SOURCE_GATEWAY_LIVE = 1;
+  SNAPSHOT_SOURCE_RECORDER_REPLAY = 2;
+  SNAPSHOT_SOURCE_HISTORY_REPLAY = 3;
+}
+
+// DeliveryMode controls how a stream delivers items to a consumer.
+enum DeliveryMode {
+  DELIVERY_MODE_UNSPECIFIED = 0;
+  // Every event must be delivered; no silent drops.
+  DELIVERY_MODE_CONTIGUOUS_EVENTS = 1;
+  // Only the latest state is needed; intermediate states may be overwritten.
+  DELIVERY_MODE_LATEST_STATE = 2;
+}
+
+// InitialSnapshotMode controls whether an initial snapshot is required.
+enum InitialSnapshotMode {
+  INITIAL_SNAPSHOT_MODE_UNSPECIFIED = 0;
+  // No initial snapshot needed.
+  INITIAL_SNAPSHOT_MODE_NONE = 1;
+  // An initial snapshot is required before live updates begin.
+  INITIAL_SNAPSHOT_MODE_REQUIRED = 2;
+}
+
+// ConsumerGapReason describes why a consumer experienced a gap.
+enum ConsumerGapReason {
+  CONSUMER_GAP_REASON_UNSPECIFIED = 0;
+  CONSUMER_GAP_REASON_SLOW_CONSUMER = 1;
+  CONSUMER_GAP_REASON_RESUME_NOT_AVAILABLE = 2;
+  CONSUMER_GAP_REASON_UPSTREAM_SEQUENCE_GAP = 3;
+  CONSUMER_GAP_REASON_GATEWAY_RESTART = 4;
+  CONSUMER_GAP_REASON_CONNECTION_GENERATION_CHANGED = 5;
+  CONSUMER_GAP_REASON_SUBSCRIPTION_RECONFIGURED = 6;
+}
+
+// RecoveryAction prescribes what the consumer should do after a gap.
+enum RecoveryAction {
+  RECOVERY_ACTION_UNSPECIFIED = 0;
+  RECOVERY_ACTION_NONE = 1;
+  RECOVERY_ACTION_RESUBSCRIBE = 2;
+  RECOVERY_ACTION_REQUEST_NEW_SNAPSHOT = 3;
+}
+
+// StreamLifecycleState represents the state of a consumer subscription stream.
+enum StreamLifecycleState {
+  STREAM_LIFECYCLE_STATE_UNSPECIFIED = 0;
+  STREAM_LIFECYCLE_STATE_ACCEPTED = 1;
+  STREAM_LIFECYCLE_STATE_SNAPSHOT_PENDING = 2;
+  STREAM_LIFECYCLE_STATE_LIVE = 3;
+  STREAM_LIFECYCLE_STATE_RESYNC_IN_PROGRESS = 4;
+  STREAM_LIFECYCLE_STATE_DEGRADED = 5;
+  STREAM_LIFECYCLE_STATE_CLOSING = 6;
+  STREAM_LIFECYCLE_STATE_CLOSED = 7;
+}
+
+// HealthState is the overall data health assessment.
+enum HealthState {
+  HEALTH_STATE_UNSPECIFIED = 0;
+  HEALTH_STATE_HEALTHY = 1;
+  HEALTH_STATE_DEGRADED = 2;
+  HEALTH_STATE_UNRELIABLE = 3;
+  HEALTH_STATE_UNAVAILABLE = 4;
+}

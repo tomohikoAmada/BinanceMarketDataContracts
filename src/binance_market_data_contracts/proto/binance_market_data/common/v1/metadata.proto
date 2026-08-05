@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package binance_market_data.common.v1;
+
+import "binance_market_data/common/v1/enums.proto";
+
+option go_package = "github.com/tomohikoAmada/BinanceMarketDataContracts/gen/go/common/v1;commonv1";
+
+// PriceLevel represents a single price level in an order book.
+// price is a > 0 decimal string. quantity is a >= 0 decimal string.
+// quantity "0" means this price level should be removed.
+// Both use plain decimal notation: no scientific notation, no leading zeros,
+// trailing zeros preserved (e.g., "1.2300" stays "1.2300").
+message PriceLevel {
+  string price = 1;
+  string quantity = 2;
+}
+
+// EventMetadata carries producer context for a market event.
+// Optional field absence means "not available". Zero is not a missing-value sentinel.
+// Do not use a single ambiguous "timestamp" field.
+message EventMetadata {
+  Venue venue = 1;
+  Market market = 2;
+  string symbol = 3;
+  string producer = 4;
+  string producer_version = 5;
+  string connection_id = 6;
+  Stream stream = 7;
+  string schema_version = 8;
+  // Exchange-assigned event time in milliseconds since epoch.
+  optional uint64 exchange_event_time_ms = 9;
+  // Exchange-assigned trade time in milliseconds since epoch.
+  optional uint64 exchange_trade_time_ms = 10;
+  // Exchange-assigned transaction time in milliseconds since epoch.
+  optional uint64 exchange_transaction_time_ms = 11;
+  // Local wall-clock receive time in nanoseconds since epoch.
+  optional uint64 receive_time_utc_ns = 12;
+  // Local monotonic receive time in nanoseconds (same boot/clock domain only).
+  optional uint64 receive_monotonic_ns = 13;
+  repeated QualityFlag quality_flags = 14;
+}
+
+// EnvelopeMetadata wraps Gateway delivery metadata for each stream item.
+message EnvelopeMetadata {
+  // Protocol version string (e.g., "gateway-stream.v1").
+  string protocol_version = 1;
+  // Opaque Gateway instance identifier.
+  string gateway_instance_id = 2;
+  // Subscription identifier assigned by Gateway on accept.
+  string subscription_id = 3;
+  // Monotonically increasing on each upstream connection rebuild. Starts at 1.
+  uint64 connection_generation = 4;
+  // Per-subscription delivery sequence number. Starts at 1.
+  uint64 session_sequence = 5;
+  // Gateway publish wall-clock time in nanoseconds since epoch.
+  uint64 publish_time_utc_ns = 6;
+  // Gateway publish monotonic time in nanoseconds (optional).
+  optional uint64 publish_monotonic_ns = 7;
+}

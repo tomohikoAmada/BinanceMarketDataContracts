@@ -3,8 +3,8 @@
 > **文档类型**：Living Architecture Document（持续演进的架构文档）  
 > **模块**：BinanceMarketData  
 > **状态**：Draft / 待审核  
-> **版本**：0.1.0  
-> **最后更新**：2026-08-02  
+> **版本**：0.2.0
+> **最后更新**：2026-08-05
 > **主要读者**：软件架构师、开发者、测试人员、运维人员、量化研究人员、AI 编码代理  
 > **事实来源**：当前架构讨论、Binance 官方接口语义、各子模块实际代码与 ADR  
 > **维护原则**：文档与代码同库、随架构变更更新；重要决策另写 ADR，不在本文中抹去历史
@@ -939,6 +939,10 @@ flowchart LR
 
 ## 10.3 跨设备通信
 
+gRPC Server Streaming + Protobuf 是 Gateway 向消费者分发实时数据的**首选跨设备协议**。
+Protobuf 作为线上合同（wire contract），提供语言无关的结构化序列化，确保 C++、Rust、Go、
+Python Consumer 共享相同的消息定义。Gateway 实现语言未由本仓库决定，将另行通过 ADR 确定。
+
 ### 同进程
 
 - 函数 / 对象调用。
@@ -952,12 +956,16 @@ flowchart LR
 
 ### 跨设备
 
-- gRPC / Protobuf；
+- gRPC / Protobuf（**主要推荐**）；
 - TCP；
-- WebSocket（适合 View）；
+- WebSocket（适合 View / 浏览器消费者）；
 - HTTP（适合查询与控制）。
 
-第一版不引入 Kafka、Kubernetes 或分布式一致性系统。
+### 注意事项
+
+- **浏览器消费者**不直接使用 gRPC。浏览器通过 WebSocket 或 HTTP 接入 View Backend / BFF，由 View Backend 负责协议转换，而非 Gateway。
+- **生成的 `.proto` 代码**（Python stubs 等）**不得手动编辑**。生成代码位于 `src/binance_market_data/`，由 `python -m binance_market_data_contracts.proto_codegen` 自动生成。
+- 第一版不引入 Kafka、Kubernetes 或分布式一致性系统。
 
 ## 10.4 多语言原则
 
@@ -1231,11 +1239,11 @@ ADR 应记录：
 
 | ID | 问题 | 当前倾向 | 状态 |
 |---|---|---|---|
-| O-001 | Recorder 与 Gateway 是否永久独立连接 | 第一版独立 | 待 ADR |
-| O-002 | Projection 是否独立模块 | 先逻辑独立、部署内嵌 | 待审核 |
+| O-001 | Recorder 与 Gateway 是否永久独立连接 | 第一版独立 | 已决定（ADR-0001 ACCEPTED） |
+| O-002 | Projection 是否独立模块 | 先逻辑独立、部署内嵌 | 已决定（ADR-0006 ACCEPTED） |
 | O-003 | Control 是否独立控制面 | 先 CLI + 模块命令接口 | 待审核 |
-| O-004 | Gateway IPC | Unix Socket / gRPC 候选 | 待测试 |
-| O-005 | 公共 Schema | Python 合同先行，跨语言前转 Protobuf | 待决定 |
+| O-004 | Gateway IPC | gRPC Server Streaming + Protobuf | 已决定（ADR-0008） |
+| O-005 | 公共 Schema | Pydantic Domain + Protobuf Wire | 已决定（ADR-0007） |
 | O-006 | History 是库还是服务 | 先库 / CLI | 待决定 |
 | O-007 | View 何时开发 | 模拟盘前 | 待决定 |
 | O-008 | Health 的 SLO 阈值 | 尚未冻结 | 待实测 |

@@ -11,8 +11,8 @@ from typing import Annotated, Literal
 from pydantic import Field, model_validator
 
 from binance_market_data_contracts.common import ContractModel, NonEmptyText
-from binance_market_data_contracts.enums import Market, QualityFlag
-from binance_market_data_contracts.identifiers import InstanceId, Symbol
+from binance_market_data_contracts.enums import Market, QualityFlag, Stream
+from binance_market_data_contracts.identifiers import ConnectionId, InstanceId, SubscriptionId, Symbol
 
 
 class TelemetryType(StrEnum):
@@ -52,12 +52,32 @@ class LatencyMetrics(ContractModel):
     type: Literal["latency"] = "latency"
     receive_lag_ms: int | None = Field(default=None, ge=0)
     publish_lag_ms: int | None = Field(default=None, ge=0)
+    consumer_delivery_lag_ms: int | None = Field(default=None, ge=0)
 
 
 class QueueMetrics(ContractModel):
     type: Literal["queue"] = "queue"
     queue_depth: int = Field(default=0, ge=0)
+    queue_capacity: int = Field(..., gt=0)
+    queue_utilization: float | None = Field(default=None, ge=0, le=1, allow_inf_nan=False)
+    oldest_message_age_ms: int | None = Field(default=None, ge=0)
     dropped: int = Field(default=0, ge=0)
+    disconnect_count: int = Field(default=0, ge=0)
+
+    @model_validator(mode="after")
+    def _validate_queue(self) -> QueueMetrics:
+        if self.queue_capacity > 0 and self.queue_depth > self.queue_capacity:
+            raise ValueError(f"queue_depth ({self.queue_depth}) must not exceed queue_capacity ({self.queue_capacity})")
+        if self.queue_utilization is not None and self.queue_capacity > 0:
+            expected = self.queue_depth / self.queue_capacity
+            if abs(self.queue_utilization - expected) > 0.001:
+                raise ValueError(
+                    f"queue_utilization ({self.queue_utilization}) inconsistent with "
+                    f"depth/capacity ({self.queue_depth}/{self.queue_capacity} = {expected:.4f})"
+                )
+        if self.queue_utilization is not None and self.queue_utilization > 1.0:
+            raise ValueError(f"queue_utilization must be <= 1.0, got {self.queue_utilization}")
+        return self
 
 
 class BookMetrics(ContractModel):
@@ -91,6 +111,10 @@ class TelemetryEnvelope(ContractModel):
     symbol: Symbol | None = None
     metrics: MetricsPayload | None = None
     quality_flags: tuple[QualityFlag, ...] = ()
+    stream: Stream | None = None
+    connection_id: ConnectionId | None = None
+    connection_generation: int | None = Field(default=None, ge=1)
+    subscription_id: SubscriptionId | None = None
 
     @model_validator(mode="after")
     def _validate_metric_type(self) -> TelemetryEnvelope:

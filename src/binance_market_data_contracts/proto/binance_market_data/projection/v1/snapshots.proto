@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+package binance_market_data.projection.v1;
+
+import "binance_market_data/common/v1/enums.proto";
+import "binance_market_data/common/v1/metadata.proto";
+
+option go_package = "github.com/tomohikoAmada/BinanceMarketDataContracts/gen/go/projection/v1;projectionv1";
+
+// GapDescriptor describes a sequence gap in a market data stream.
+message GapDescriptor {
+  binance_market_data.common.v1.Stream stream = 1;
+  uint64 detected_at_utc_ns = 2;
+  optional uint64 previous_sequence = 3;
+  optional uint64 next_sequence = 4;
+  optional binance_market_data.common.v1.ReasonCode reason_code = 5;
+  optional binance_market_data.common.v1.ResyncState recovery_state = 6;
+}
+
+// LocalOrderBookSnapshot is a locally reconstructed order book at a point in time.
+message LocalOrderBookSnapshot {
+  binance_market_data.common.v1.Venue venue = 1;
+  binance_market_data.common.v1.Market market = 2;
+  string symbol = 3;
+  string schema_version = 4;
+  string producer = 5;
+  string producer_version = 6;
+  binance_market_data.common.v1.SnapshotSource source = 7;
+  uint64 last_update_id = 8;
+  repeated binance_market_data.common.v1.PriceLevel bids = 9;
+  repeated binance_market_data.common.v1.PriceLevel asks = 10;
+  optional int32 depth_limit = 11;
+  uint64 generated_time_utc_ns = 12;
+  optional uint64 generated_monotonic_ns = 13;
+  bool synchronized = 14;
+  optional GapDescriptor last_gap = 15;
+  repeated binance_market_data.common.v1.QualityFlag quality_flags = 16;
+}
+
+// MarketStateSnapshot is a strategy-independent market state projection.
+message MarketStateSnapshot {
+  binance_market_data.common.v1.Venue venue = 1;
+  binance_market_data.common.v1.Market market = 2;
+  string symbol = 3;
+  string schema_version = 4;
+  string producer = 5;
+  string producer_version = 6;
+  optional string best_bid_price = 7;
+  optional string best_bid_quantity = 8;
+  optional string best_ask_price = 9;
+  optional string best_ask_quantity = 10;
+  optional string mid_price = 11;
+  optional string spread = 12;
+  optional string microprice = 13;
+  repeated binance_market_data.common.v1.PriceLevel top_bids = 14;
+  repeated binance_market_data.common.v1.PriceLevel top_asks = 15;
+  optional int32 depth_limit = 16;
+  optional string mark_price = 17;
+  optional string index_price = 18;
+  optional string funding_rate = 19;
+  optional uint64 next_funding_time_ms = 20;
+  optional string open_interest = 21;
+  uint64 generated_time_utc_ns = 22;
+  optional uint64 data_freshness_ms = 23;
+  optional bool book_synchronized = 24;
+  // Binance update_id this snapshot was derived from (optional, for tracing).
+  optional uint64 source_book_update_id = 25;
+  // Binance trade_id this snapshot was derived from (optional, for tracing).
+  optional uint64 source_trade_id = 26;
+}
+
+// LatencySummary is a statistical summary of latency measurements.
+message LatencySummary {
+  uint64 count = 1;
+  optional double min_ms = 2;
+  optional double max_ms = 3;
+  optional double p50_ms = 4;
+  optional double p95_ms = 5;
+  optional double p99_ms = 6;
+  uint64 window_start_utc_ns = 7;
+  uint64 window_end_utc_ns = 8;
+}
+
+// DataHealthSnapshot is a data health assessment for a market data stream.
+message DataHealthSnapshot {
+  string health_snapshot_id = 1;
+  binance_market_data.common.v1.HealthState overall_state = 2;
+  binance_market_data.common.v1.Venue venue = 3;
+  binance_market_data.common.v1.Market market = 4;
+  string symbol = 5;
+  string schema_version = 6;
+  string producer = 7;
+  string producer_version = 8;
+  string source_instance_id = 9;
+  optional binance_market_data.common.v1.Stream stream = 10;
+  optional binance_market_data.common.v1.ConnectionState connection_state = 11;
+  optional uint64 last_message_age_ms = 12;
+  optional LatencySummary receive_latency = 13;
+  optional LatencySummary publish_latency = 14;
+  uint64 sequence_gap_count = 15;
+  optional binance_market_data.common.v1.ResyncState resync_state = 16;
+  optional bool book_synchronized = 17;
+  optional bool recorder_alive = 18;
+  optional bool gateway_alive = 19;
+  repeated binance_market_data.common.v1.ReasonCode reason_codes = 20;
+  uint64 observed_time_utc_ns = 21;
+  repeated binance_market_data.common.v1.QualityFlag quality_flags = 22;
+  optional LatencySummary consumer_delivery_latency = 23;
+}

@@ -1,0 +1,16 @@
+{
+  "envelope_metadata": {
+    "protocol_version": "gateway-stream.v1",
+    "gateway_instance_id": "gw-instance-01",
+    "subscription_id": "sub-btcusdt-spot-001",
+    "connection_generation": 1,
+    "session_sequence": 1,
+    "publish_time_utc_ns": 1690000010000000000
+  },
+  "subscription_accepted": null,
+  "depth_update": null,
+  "agg_trade": null,
+  "book_ticker": null,
+  "consumer_gap": null,
+  "stream_status": null
+}

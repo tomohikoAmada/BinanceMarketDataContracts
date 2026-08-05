@@ -1,0 +1,4 @@
+{
+  "envelope_metadata": {"protocol_version": "gateway-stream.v1", "gateway_instance_id": "gw-1", "subscription_id": "sub-1", "connection_generation": 1, "session_sequence": 1, "publish_time_utc_ns": 1},
+  "subscription_accepted": {"request_id": "req-1", "subscription_id": "sub-1", "schema_version": "subscription-accepted.v1", "gateway_instance_id": "gw-2", "accepted_time_utc_ns": 1, "negotiated_payload_schema_versions": ["market-state-snapshot.v1"]}
+}

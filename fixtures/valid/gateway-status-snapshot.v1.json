@@ -1,0 +1,18 @@
+{
+  "schema_version": "gateway-status-snapshot.v1",
+  "gateway_instance_id": "gw-instance-01",
+  "observed_time_utc_ns": 1690000010000000000,
+  "uptime_seconds": 3600,
+  "markets": [
+    {
+      "venue": "BINANCE",
+      "market": "SPOT",
+      "symbol": "BTCUSDT",
+      "state": "LIVE",
+      "last_event_utc_ns": null,
+      "connection_generation": 1,
+      "active_subscription_count": 3
+    }
+  ],
+  "total_active_subscriptions": 3
+}

@@ -27,25 +27,23 @@ jobs:
       - name: Ruff format check
         run: ruff format --check .
       - name: mypy
-        run: mypy src
+        run: mypy src/binance_market_data_contracts
       - name: pytest
         run: pytest -q
       - name: Schema export
         run: python -m binance_market_data_contracts.schema_export --output schemas/json
       - name: Schema drift check
         run: git diff --exit-code -- schemas/json
+      - name: Proto codegen check
+        run: python -m binance_market_data_contracts.proto_codegen --check
       - name: Build package
         run: python -m build
       - name: Twine check
         run: python -m twine check dist/*
-      - name: Wheel isolation test
+      - name: Wheel contents
         shell: bash
         run: |
           set -euo pipefail
-
-          WHEEL="$(find dist -maxdepth 1 -name '*.whl' -print -quit)"
-          test -n "$WHEEL"
-
           python - <<'PY'
           from pathlib import Path
           from zipfile import ZipFile
@@ -53,38 +51,109 @@ jobs:
           wheel = next(Path("dist").glob("*.whl"))
           with ZipFile(wheel) as archive:
               names = set(archive.namelist())
-          assert "binance_market_data_contracts/py.typed" in names, "py.typed is missing from wheel"
-          print("py.typed present in wheel")
+          assert "binance_market_data_contracts/py.typed" in names
+          assert "binance_market_data/py.typed" in names
+          proto_files = sorted(n for n in names if n.endswith(".proto"))
+          pb2_files = sorted(n for n in names if n.endswith("_pb2.py"))
+          pyi_files = sorted(n for n in names if n.startswith("binance_market_data/") and n.endswith(".pyi"))
+          assert len(proto_files) == 8, proto_files
+          assert len(pb2_files) == 8, pb2_files
+          assert len(pyi_files) == 8, pyi_files
+          assert "binance_market_data/gateway/v1/gateway_service_pb2_grpc.py" in names
+          print(f"wheel contents: {len(proto_files)} proto, {len(pb2_files)} pb2, {len(pyi_files)} pyi")
           PY
 
-          rm -rf /tmp/contracts-wheel-test
-          rm -rf /tmp/exported-schemas
-          rm -rf /tmp/repository-schemas
-          rm -f /tmp/depth-update.v1.spot.json
-
-          cp -R schemas/json /tmp/repository-schemas
-          cp fixtures/valid/depth-update.v1.spot.json /tmp/depth-update.v1.spot.json
-
-          python -m venv /tmp/contracts-wheel-test
-          /tmp/contracts-wheel-test/bin/python -m pip install --upgrade pip
-          /tmp/contracts-wheel-test/bin/python -m pip install "$WHEEL"
-
-          cd /tmp
-
-          /tmp/contracts-wheel-test/bin/python - <<'PY'
+      - name: Base wheel isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          WHEEL="$(realpath "$(find dist -maxdepth 1 -name '*.whl' -print -quit)")"
+          TEST_ROOT="$(mktemp -d)"
+          trap 'rm -rf "$TEST_ROOT"' EXIT
+          cp -R schemas/json "$TEST_ROOT/repository-schemas"
+          cp fixtures/valid/depth-update.v1.spot.json "$TEST_ROOT/depth-update.v1.spot.json"
+          python -m venv "$TEST_ROOT/venv"
+          "$TEST_ROOT/venv/bin/python" -m pip install "$WHEEL"
+          cd "$TEST_ROOT"
+          "$TEST_ROOT/venv/bin/python" - <<'PY'
+          import sys
+          from importlib.resources import files
           from pathlib import Path
           from binance_market_data_contracts import DepthUpdate
 
-          payload = Path("/tmp/depth-update.v1.spot.json").read_text(encoding="utf-8")
+          assert "grpc" not in sys.modules
+          assert "binance_market_data.gateway.v1.gateway_service_pb2_grpc" not in sys.modules
+          assert files("binance_market_data").joinpath("py.typed").is_file()
+          payload = Path("depth-update.v1.spot.json").read_text(encoding="utf-8")
           event = DepthUpdate.model_validate_json(payload)
           assert event.metadata.stream.value == "DIFF_DEPTH"
           assert event.metadata.schema_version == "depth-update.v1"
           assert event.first_update_id <= event.final_update_id
           assert not hasattr(event.bids, "append")
+          assert "grpc" not in sys.modules
+          assert "binance_market_data.gateway.v1.gateway_service_pb2_grpc" not in sys.modules
           print("installed wheel parsed real fixture")
           PY
+          "$TEST_ROOT/venv/bin/schema-export" --output "$TEST_ROOT/exported-schemas"
+          diff -ru "$TEST_ROOT/repository-schemas" "$TEST_ROOT/exported-schemas"
 
-          /tmp/contracts-wheel-test/bin/schema-export --output /tmp/exported-schemas
+      - name: Wire wheel isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          WHEEL="$(realpath "$(find dist -maxdepth 1 -name '*.whl' -print -quit)")"
+          TEST_ROOT="$(mktemp -d)"
+          trap 'rm -rf "$TEST_ROOT"' EXIT
+          cp fixtures/valid/depth-update.v1.spot.json "$TEST_ROOT/depth-update.v1.spot.json"
+          python -m venv "$TEST_ROOT/venv"
+          "$TEST_ROOT/venv/bin/python" -m pip install "${WHEEL}[wire]"
+          cd "$TEST_ROOT"
+          "$TEST_ROOT/venv/bin/python" - <<'PY'
+          import sys
+          from importlib.resources import files
+          from pathlib import Path
 
-          diff -ru /tmp/repository-schemas /tmp/exported-schemas
-          echo "wheel schema diff passed"
+          before = tuple(sys.path)
+          import binance_market_data_contracts.wire
+          from binance_market_data.common.v1 import enums_pb2
+          from binance_market_data.gateway.v1 import gateway_service_pb2, gateway_service_pb2_grpc
+          from binance_market_data.market.v1 import market_events_pb2
+          from binance_market_data_contracts import DepthUpdate
+          from binance_market_data_contracts.wire.adapters import depth_update_from_pb, depth_update_to_pb
+          after = tuple(sys.path)
+          assert after == before
+          assert files("binance_market_data").joinpath("py.typed").is_file()
+          assert enums_pb2.Venue.VENUE_BINANCE == 1
+          assert market_events_pb2.DepthUpdate is not None
+          assert gateway_service_pb2_grpc.BinanceMarketDataGatewayServiceStub is not None
+          service = gateway_service_pb2.DESCRIPTOR.services_by_name["BinanceMarketDataGatewayService"]
+          assert [method.name for method in service.methods] == [
+              "SubscribeEvents", "SubscribeOrderBook", "SubscribeMarketState", "GetGatewayStatus"
+          ]
+          event = DepthUpdate.model_validate_json(Path("depth-update.v1.spot.json").read_text(encoding="utf-8"))
+          encoded = depth_update_to_pb(event).SerializeToString()
+          decoded = market_events_pb2.DepthUpdate()
+          decoded.ParseFromString(encoded)
+          assert depth_update_from_pb(decoded) == event
+          PY
+
+  buf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.60.0"
+      - name: Buf format
+        run: buf format --diff --exit-code
+      - name: Buf lint
+        run: buf lint
+      - name: Buf build
+        run: buf build
+      - name: Buf breaking integration
+        run: python tests/buf_breaking_integration.py
+      - name: Buf breaking (PR only)
+        if: github.event_name == 'pull_request'
+        run: bash scripts/check_buf_breaking.sh origin/main

@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package binance_market_data.market.v1;
+
+import "binance_market_data/common/v1/enums.proto";
+import "binance_market_data/common/v1/metadata.proto";
+
+option go_package = "github.com/tomohikoAmada/BinanceMarketDataContracts/gen/go/market/v1;marketv1";
+
+// DepthUpdate represents a Binance order book depth update.
+// Uses DIFF_DEPTH stream semantics. quantity "0" means remove the price level.
+message DepthUpdate {
+  binance_market_data.common.v1.EventMetadata metadata = 1;
+  uint64 first_update_id = 2;
+  uint64 final_update_id = 3;
+  // The final_update_id from the previous depth update in the same stream.
+  optional uint64 previous_final_update_id = 4;
+  repeated binance_market_data.common.v1.PriceLevel bids = 5;
+  repeated binance_market_data.common.v1.PriceLevel asks = 6;
+}
+
+// AggTrade represents a Binance aggregated trade.
+// quantity MUST be > 0.
+message AggTrade {
+  binance_market_data.common.v1.EventMetadata metadata = 1;
+  uint64 aggregate_trade_id = 2;
+  // Decimal string, > 0.
+  string price = 3;
+  // Decimal string, > 0.
+  string quantity = 4;
+  uint64 first_trade_id = 5;
+  uint64 last_trade_id = 6;
+  // Trade execution time in milliseconds since epoch.
+  uint64 trade_time_ms = 7;
+  bool buyer_is_maker = 8;
+}
+
+// BookTicker represents the best bid and ask with quantities.
+// Crossed books are accepted and flagged.
+message BookTicker {
+  binance_market_data.common.v1.EventMetadata metadata = 1;
+  optional uint64 update_id = 2;
+  // Decimal string, > 0.
+  string best_bid_price = 3;
+  // Decimal string, >= 0.
+  string best_bid_quantity = 4;
+  // Decimal string, > 0.
+  string best_ask_price = 5;
+  // Decimal string, >= 0.
+  string best_ask_quantity = 6;
+}
+
+// ExchangeDepthSnapshot is a REST depth snapshot from Binance.
+message ExchangeDepthSnapshot {
+  binance_market_data.common.v1.Venue venue = 1;
+  binance_market_data.common.v1.Market market = 2;
+  string symbol = 3;
+  string schema_version = 4;
+  string producer = 5;
+  string producer_version = 6;
+  string request_id = 7;
+  uint64 last_update_id = 8;
+  repeated binance_market_data.common.v1.PriceLevel bids = 9;
+  repeated binance_market_data.common.v1.PriceLevel asks = 10;
+  optional uint64 exchange_transaction_time_ms = 11;
+  optional uint64 receive_time_utc_ns = 12;
+  optional uint64 receive_monotonic_ns = 13;
+  repeated binance_market_data.common.v1.QualityFlag quality_flags = 14;
+}

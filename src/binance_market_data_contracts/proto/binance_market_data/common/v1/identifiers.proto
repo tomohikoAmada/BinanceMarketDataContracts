@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package binance_market_data.common.v1;
+
+import "binance_market_data/common/v1/enums.proto";
+
+option go_package = "github.com/tomohikoAmada/BinanceMarketDataContracts/gen/go/common/v1;commonv1";
+
+// StreamSelector identifies a specific market data stream to subscribe to.
+message StreamSelector {
+  // The venue (exchange). Currently only BINANCE is supported.
+  Venue venue = 1;
+  // The market segment (SPOT or USD_M_PERPETUAL).
+  Market market = 2;
+  // The trading symbol (e.g., "BTCUSDT").
+  string symbol = 3;
+  // The stream type (DIFF_DEPTH, AGG_TRADE, BOOK_TICKER).
+  Stream stream = 4;
+}

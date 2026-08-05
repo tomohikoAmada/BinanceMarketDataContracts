@@ -362,6 +362,251 @@
       "validation_scope": "BOTH",
       "expected_error_code": "extra_forbidden",
       "expected_error_path": "timestamp"
+    },
+    {
+      "path": "valid/event-subscription-request.v1.json",
+      "contract_name": "event-subscription-request.v1",
+      "schema_version": "event-subscription-request.v1",
+      "python_type": "EventSubscriptionRequest",
+      "valid": true,
+      "scenario": "BTCUSDT SPOT DIFF_DEPTH and AGG_TRADE selectors",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/order-book-subscription-request.v1.json",
+      "contract_name": "order-book-subscription-request.v1",
+      "schema_version": "order-book-subscription-request.v1",
+      "python_type": "OrderBookSubscriptionRequest",
+      "valid": true,
+      "scenario": "BTCUSDT SPOT with depth_limit=20",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/market-state-subscription-request.v1.json",
+      "contract_name": "market-state-subscription-request.v1",
+      "schema_version": "market-state-subscription-request.v1",
+      "python_type": "MarketStateSubscriptionRequest",
+      "valid": true,
+      "scenario": "BTCUSDT SPOT with min_publish_interval=1000",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/subscription-accepted.v1.json",
+      "contract_name": "subscription-accepted.v1",
+      "schema_version": "subscription-accepted.v1",
+      "python_type": "SubscriptionAccepted",
+      "valid": true,
+      "scenario": "Negotiated versions for depth and agg trade",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/consumer-gap-notice.v1.json",
+      "contract_name": "consumer-gap-notice.v1",
+      "schema_version": "consumer-gap-notice.v1",
+      "python_type": "ConsumerGapNotice",
+      "valid": true,
+      "scenario": "SLOW_CONSUMER with RESUBSCRIBE recovery",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/stream-status.v1.json",
+      "contract_name": "stream-status.v1",
+      "schema_version": "stream-status.v1",
+      "python_type": "StreamStatus",
+      "valid": true,
+      "scenario": "LIVE stream state",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/gateway-event-envelope.v1.json",
+      "contract_name": "gateway-event-envelope.v1",
+      "schema_version": "gateway-event-envelope.v1",
+      "python_type": "GatewayEventEnvelope",
+      "valid": true,
+      "scenario": "Gateway envelope with depth_update payload",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/order-book-stream-item.v1.json",
+      "contract_name": "order-book-stream-item.v1",
+      "schema_version": "order-book-stream-item.v1",
+      "python_type": "OrderBookStreamItem",
+      "valid": true,
+      "scenario": "Order book stream item with snapshot payload",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/market-state-stream-item.v1.json",
+      "contract_name": "market-state-stream-item.v1",
+      "schema_version": "market-state-stream-item.v1",
+      "python_type": "MarketStateStreamItem",
+      "valid": true,
+      "scenario": "Market state stream item with market_state payload",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/gateway-status-snapshot.v1.json",
+      "contract_name": "gateway-status-snapshot.v1",
+      "schema_version": "gateway-status-snapshot.v1",
+      "python_type": "GatewayStatusSnapshot",
+      "valid": true,
+      "scenario": "Gateway status with one SPOT market",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "invalid/event-subscription-request.v1.empty-selectors.json",
+      "contract_name": "event-subscription-request.v1",
+      "schema_version": "event-subscription-request.v1",
+      "python_type": "EventSubscriptionRequest",
+      "valid": false,
+      "scenario": "Empty selectors list",
+      "validation_scope": "BOTH",
+      "expected_error_code": "too_short",
+      "expected_error_path": "selectors"
+    },
+    {
+      "path": "invalid/event-subscription-request.v1.depth-snapshot.json",
+      "contract_name": "event-subscription-request.v1",
+      "schema_version": "event-subscription-request.v1",
+      "python_type": "EventSubscriptionRequest",
+      "valid": false,
+      "scenario": "DEPTH_SNAPSHOT in event subscription selectors",
+      "validation_scope": "PYDANTIC_ONLY",
+      "expected_error_code": "value_error",
+      "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/order-book-subscription-request.v1.wrong-snapshot-mode.json",
+      "contract_name": "order-book-subscription-request.v1",
+      "schema_version": "order-book-subscription-request.v1",
+      "python_type": "OrderBookSubscriptionRequest",
+      "valid": false,
+      "scenario": "initial_snapshot_mode=NONE, V1 requires REQUIRED",
+      "validation_scope": "BOTH",
+      "expected_error_code": "literal_error",
+      "expected_error_path": "initial_snapshot_mode"
+    },
+    {
+      "path": "invalid/market-state-subscription-request.v1.wrong-delivery-mode.json",
+      "contract_name": "market-state-subscription-request.v1",
+      "schema_version": "market-state-subscription-request.v1",
+      "python_type": "MarketStateSubscriptionRequest",
+      "valid": false,
+      "scenario": "delivery_mode=CONTIGUOUS_EVENTS, must be LATEST_STATE",
+      "validation_scope": "BOTH",
+      "expected_error_code": "literal_error",
+      "expected_error_path": "delivery_mode"
+    },
+    {
+      "path": "invalid/consumer-gap-notice.v1.gap-with-null-action.json",
+      "contract_name": "consumer-gap-notice.v1",
+      "schema_version": "consumer-gap-notice.v1",
+      "python_type": "ConsumerGapNotice",
+      "valid": false,
+      "scenario": "SLOW_CONSUMER with NONE recovery (invalid)",
+      "validation_scope": "PYDANTIC_ONLY",
+      "expected_error_code": "value_error",
+      "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/gateway-event-envelope.v1.no-payload.json",
+      "contract_name": "gateway-event-envelope.v1",
+      "schema_version": "gateway-event-envelope.v1",
+      "python_type": "GatewayEventEnvelope",
+      "valid": false,
+      "scenario": "Envelope with no payload set",
+      "validation_scope": "PYDANTIC_ONLY",
+      "expected_error_code": "value_error",
+      "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/gateway-event-envelope.v1.wrong-payload-id.json",
+      "contract_name": "gateway-event-envelope.v1",
+      "schema_version": "gateway-event-envelope.v1",
+      "python_type": "GatewayEventEnvelope",
+      "valid": false,
+      "scenario": "Payload subscription_id doesn't match envelope",
+      "validation_scope": "PYDANTIC_ONLY",
+      "expected_error_code": "value_error",
+      "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/event-subscription-request.v1.empty-schema-versions.json",
+      "contract_name": "event-subscription-request.v1",
+      "schema_version": "event-subscription-request.v1",
+      "python_type": "EventSubscriptionRequest",
+      "valid": false,
+      "scenario": "Empty supported_payload_schema_versions",
+      "validation_scope": "BOTH",
+      "expected_error_code": "too_short",
+      "expected_error_path": "supported_payload_schema_versions"
+    },
+    {
+      "path": "invalid/event-subscription-request.v1.duplicate-selector.json",
+      "contract_name": "event-subscription-request.v1",
+      "schema_version": "event-subscription-request.v1",
+      "python_type": "EventSubscriptionRequest",
+      "valid": false,
+      "scenario": "Duplicate selectors",
+      "validation_scope": "PYDANTIC_ONLY",
+      "expected_error_code": "value_error",
+      "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/event-subscription-request.v1.duplicate-schema-version.json", "contract_name": "event-subscription-request.v1", "schema_version": "event-subscription-request.v1", "python_type": "EventSubscriptionRequest", "valid": false, "scenario": "Duplicate supported schema version", "validation_scope": "PYDANTIC_ONLY", "expected_error_code": "value_error", "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/event-subscription-request.v1.whitespace-schema-version.json", "contract_name": "event-subscription-request.v1", "schema_version": "event-subscription-request.v1", "python_type": "EventSubscriptionRequest", "valid": false, "scenario": "Whitespace supported schema version", "validation_scope": "PYDANTIC_ONLY", "expected_error_code": "value_error", "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/gateway-event-envelope.v1.generation-zero.json", "contract_name": "gateway-event-envelope.v1", "schema_version": "gateway-event-envelope.v1", "python_type": "GatewayEventEnvelope", "valid": false, "scenario": "Connection generation zero", "validation_scope": "BOTH", "expected_error_code": "greater_than_equal", "expected_error_path": "envelope_metadata.connection_generation"
+    },
+    {
+      "path": "invalid/gateway-event-envelope.v1.session-sequence-zero.json", "contract_name": "gateway-event-envelope.v1", "schema_version": "gateway-event-envelope.v1", "python_type": "GatewayEventEnvelope", "valid": false, "scenario": "Session sequence zero", "validation_scope": "BOTH", "expected_error_code": "greater_than_equal", "expected_error_path": "envelope_metadata.session_sequence"
+    },
+    {
+      "path": "invalid/gateway-event-envelope.v1.multiple-payloads.json", "contract_name": "gateway-event-envelope.v1", "schema_version": "gateway-event-envelope.v1", "python_type": "GatewayEventEnvelope", "valid": false, "scenario": "Multiple envelope payloads", "validation_scope": "PYDANTIC_ONLY", "expected_error_code": "value_error", "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/consumer-gap-notice.v1.reversed-sequence.json", "contract_name": "consumer-gap-notice.v1", "schema_version": "consumer-gap-notice.v1", "python_type": "ConsumerGapNotice", "valid": false, "scenario": "Reversed gap sequence", "validation_scope": "PYDANTIC_ONLY", "expected_error_code": "value_error", "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/order-book-subscription-request.v1.depth-limit-zero.json", "contract_name": "order-book-subscription-request.v1", "schema_version": "order-book-subscription-request.v1", "python_type": "OrderBookSubscriptionRequest", "valid": false, "scenario": "Order book depth limit zero", "validation_scope": "BOTH", "expected_error_code": "greater_than", "expected_error_path": "depth_limit"
+    },
+    {
+      "path": "invalid/market-state-subscription-request.v1.depth-limit-zero.json", "contract_name": "market-state-subscription-request.v1", "schema_version": "market-state-subscription-request.v1", "python_type": "MarketStateSubscriptionRequest", "valid": false, "scenario": "Market state depth limit zero", "validation_scope": "BOTH", "expected_error_code": "greater_than", "expected_error_path": "depth_limit"
+    },
+    {
+      "path": "invalid/gateway-status-snapshot.v1.negative-last-event-time.json", "contract_name": "gateway-status-snapshot.v1", "schema_version": "gateway-status-snapshot.v1", "python_type": "GatewayStatusSnapshot", "valid": false, "scenario": "Negative last event time", "validation_scope": "BOTH", "expected_error_code": "greater_than_equal", "expected_error_path": "markets.0.last_event_utc_ns"
+    },
+    {
+      "path": "invalid/order-book-stream-item.v1.wrong-gateway-instance.json", "contract_name": "order-book-stream-item.v1", "schema_version": "order-book-stream-item.v1", "python_type": "OrderBookStreamItem", "valid": false, "scenario": "Order book accepted gateway identity mismatch", "validation_scope": "PYDANTIC_ONLY", "expected_error_code": "value_error", "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/market-state-stream-item.v1.wrong-gateway-instance.json", "contract_name": "market-state-stream-item.v1", "schema_version": "market-state-stream-item.v1", "python_type": "MarketStateStreamItem", "valid": false, "scenario": "Market state accepted gateway identity mismatch", "validation_scope": "PYDANTIC_ONLY", "expected_error_code": "value_error", "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/gateway-status-snapshot.v1.unknown-field.json", "contract_name": "gateway-status-snapshot.v1", "schema_version": "gateway-status-snapshot.v1", "python_type": "GatewayStatusSnapshot", "valid": false, "scenario": "Unknown status snapshot field", "validation_scope": "BOTH", "expected_error_code": "extra_forbidden", "expected_error_path": "timestamp"
     }
   ]
 }

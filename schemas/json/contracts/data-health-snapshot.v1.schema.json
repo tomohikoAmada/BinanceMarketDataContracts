@@ -228,6 +228,17 @@
       ],
       "default": null
     },
+    "consumer_delivery_latency": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LatencySummary"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "gateway_alive": {
       "anyOf": [
         {

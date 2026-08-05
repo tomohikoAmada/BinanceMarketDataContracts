@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package binance_market_data.gateway.v1;
+
+import "binance_market_data/gateway/v1/gateway_messages.proto";
+
+option go_package = "github.com/tomohikoAmada/BinanceMarketDataContracts/gen/go/gateway/v1;gatewayv1";
+
+// BinanceMarketDataGatewayService provides streaming market data subscriptions.
+//
+// V1 RPCs:
+//   - SubscribeEvents: contiguous real-time event stream (DepthUpdate, AggTrade, BookTicker)
+//   - SubscribeOrderBook: order book snapshot + diff stream
+//   - SubscribeMarketState: latest market state stream
+//   - GetGatewayStatus: one-shot operational status query
+//
+// V1 does NOT include: trading, account, strategy, client-streaming,
+// bidirectional streaming, historical replay, or recorder RPCs.
+service BinanceMarketDataGatewayService {
+  // Subscribe to a contiguous event stream.
+  // Delivery mode: CONTIGUOUS_EVENTS. No silent message dropping.
+  rpc SubscribeEvents(EventSubscriptionRequest) returns (stream GatewayEventEnvelope);
+
+  // Subscribe to an order book snapshot + diff stream.
+  // Initial snapshot is required before live depth updates begin.
+  rpc SubscribeOrderBook(OrderBookSubscriptionRequest) returns (stream OrderBookStreamItem);
+
+  // Subscribe to latest market state updates.
+  // Delivery mode: LATEST_STATE. Intermediate states may be overwritten.
+  rpc SubscribeMarketState(MarketStateSubscriptionRequest) returns (stream MarketStateStreamItem);
+
+  // Get a one-shot snapshot of Gateway operational status.
+  rpc GetGatewayStatus(GatewayStatusRequest) returns (GatewayStatusSnapshot);
+}
