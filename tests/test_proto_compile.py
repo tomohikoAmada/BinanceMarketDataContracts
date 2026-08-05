@@ -4,8 +4,6 @@ from pathlib import Path
 
 import pytest
 
-from binance_market_data_contracts.wire import _GENERATED_DIR
-
 
 def _all_proto_files():
     proto_root = Path(__file__).resolve().parent.parent / "src" / "binance_market_data_contracts" / "proto"
@@ -18,7 +16,10 @@ def test_all_proto_files_exist():
 
 
 def test_generated_code_exists():
-    assert Path(_GENERATED_DIR).is_dir()
+    from pathlib import Path
+
+    gen_dir = Path(__file__).resolve().parent.parent / "src" / "binance_market_data"
+    assert gen_dir.is_dir()
 
 
 def test_all_importable():

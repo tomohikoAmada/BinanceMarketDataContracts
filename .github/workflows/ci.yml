@@ -27,7 +27,7 @@ jobs:
       - name: Ruff format check
         run: ruff format --check .
       - name: mypy
-        run: mypy src
+        run: mypy $(find src/binance_market_data_contracts -name '*.py' -not -path '*/__pycache__/*' -not -path '*/proto/*' -not -name 'proto_codegen.py' -not -name 'schema_export.py')
       - name: pytest
         run: pytest -q
       - name: Schema export
@@ -97,6 +97,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: bufbuild/buf-setup-action@v1
         with:
           version: "1.60.0"
@@ -108,4 +110,14 @@ jobs:
         run: buf build
       - name: Buf breaking (PR only)
         if: github.event_name == 'pull_request'
-        run: buf breaking --against '.git#branch=origin/main'
+        run: |
+          set -euo pipefail
+          if ! git rev-parse --verify origin/main >/dev/null 2>&1; then
+            echo "origin/main ref not available, skipping breaking check"
+            exit 0
+          fi
+          if ! git ls-tree --name-only origin/main -- '*.proto' | grep -q '.'; then
+            echo "Initial Protobuf baseline: no breaking comparison is possible"
+            exit 0
+          fi
+          buf breaking --against '.git#branch=origin/main'

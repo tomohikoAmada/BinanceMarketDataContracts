@@ -4,11 +4,20 @@ package binance_market_data.telemetry.v1;
 
 import "binance_market_data/common/v1/enums.proto";
 
-option go_package = "github.com/binance-market-data/contracts/gen/go/telemetry/v1;telemetryv1";
+option go_package = "github.com/tomohikoAmada/BinanceMarketDataContracts/gen/go/telemetry/v1;telemetryv1";
+
+enum TelemetryType {
+  TELEMETRY_TYPE_UNSPECIFIED = 0;
+  TELEMETRY_TYPE_CONNECTION = 1;
+  TELEMETRY_TYPE_SEQUENCE = 2;
+  TELEMETRY_TYPE_LATENCY = 3;
+  TELEMETRY_TYPE_QUEUE = 4;
+  TELEMETRY_TYPE_BOOK = 5;
+  TELEMETRY_TYPE_SYSTEM = 6;
+}
 
 // ConnectionMetrics reports connection health telemetry.
 message ConnectionMetrics {
-  string type = 1; // Fixed: "connection"
   bool connected = 2;
   optional uint64 last_message_age_ms = 3;
   uint64 reconnect_count = 4;
@@ -16,7 +25,6 @@ message ConnectionMetrics {
 
 // SequenceMetrics reports sequence integrity telemetry.
 message SequenceMetrics {
-  string type = 1; // Fixed: "sequence"
   optional uint64 last_update_id = 2;
   uint64 duplicate_count = 3;
   uint64 out_of_order_count = 4;
@@ -24,7 +32,6 @@ message SequenceMetrics {
 
 // LatencyMetrics reports latency telemetry.
 message LatencyMetrics {
-  string type = 1; // Fixed: "latency"
   optional uint64 receive_lag_ms = 2;
   optional uint64 publish_lag_ms = 3;
   optional uint64 consumer_delivery_lag_ms = 4;
@@ -32,25 +39,22 @@ message LatencyMetrics {
 
 // QueueMetrics reports queue health telemetry.
 message QueueMetrics {
-  string type = 1; // Fixed: "queue"
   uint64 queue_depth = 2;
   uint64 queue_capacity = 3;
-  double queue_utilization = 4;
-  uint64 oldest_message_age_ms = 5;
+  optional double queue_utilization = 4;
+  optional uint64 oldest_message_age_ms = 5;
   uint64 dropped = 6;
   uint64 disconnect_count = 7;
 }
 
 // BookMetrics reports order book health telemetry.
 message BookMetrics {
-  string type = 1; // Fixed: "book"
   bool synchronized = 2;
   optional uint64 sync_latency_ms = 3;
 }
 
 // SystemMetrics reports system resource telemetry.
 message SystemMetrics {
-  string type = 1; // Fixed: "system"
   optional double cpu_percent = 2;
   optional double memory_mb = 3;
   optional double disk_free_gb = 4;
@@ -59,7 +63,7 @@ message SystemMetrics {
 // TelemetryEnvelope is the DRAFT telemetry envelope for Gateway and Recorder.
 message TelemetryEnvelope {
   string schema_version = 1; // "telemetry.v1"
-  string telemetry_type = 2; // CONNECTION, SEQUENCE, LATENCY, QUEUE, BOOK, SYSTEM
+  TelemetryType telemetry_type = 2;
   string source_module = 3;
   string source_instance_id = 4;
   uint64 observed_time_utc_ns = 5;

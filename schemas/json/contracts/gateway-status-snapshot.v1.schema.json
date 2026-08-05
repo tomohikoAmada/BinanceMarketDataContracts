@@ -24,9 +24,16 @@
           "type": "integer"
         },
         "last_event_utc_ns": {
-          "minimum": 0,
-          "title": "Last Event Utc Ns",
-          "type": "integer"
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Event Utc Ns"
         },
         "market": {
           "$ref": "#/$defs/Market"
@@ -50,7 +57,6 @@
         "market",
         "symbol",
         "state",
-        "last_event_utc_ns",
         "connection_generation"
       ],
       "title": "MarketRuntimeStatus",

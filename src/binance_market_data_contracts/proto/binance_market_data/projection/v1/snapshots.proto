@@ -5,7 +5,7 @@ package binance_market_data.projection.v1;
 import "binance_market_data/common/v1/enums.proto";
 import "binance_market_data/common/v1/metadata.proto";
 
-option go_package = "github.com/binance-market-data/contracts/gen/go/projection/v1;projectionv1";
+option go_package = "github.com/tomohikoAmada/BinanceMarketDataContracts/gen/go/projection/v1;projectionv1";
 
 // GapDescriptor describes a sequence gap in a market data stream.
 message GapDescriptor {

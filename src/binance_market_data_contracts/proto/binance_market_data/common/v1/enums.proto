@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package binance_market_data.common.v1;
 
-option go_package = "github.com/binance-market-data/contracts/gen/go/common/v1;commonv1";
+option go_package = "github.com/tomohikoAmada/BinanceMarketDataContracts/gen/go/common/v1;commonv1";
 
 // Venue identifies the exchange or trading venue.
 // Venue values are stable — adding new venues is compatible,

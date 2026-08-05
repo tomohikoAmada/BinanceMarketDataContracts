@@ -1,0 +1,10 @@
+{
+  "request_id": "req-ms-wrong-001",
+  "schema_version": "market-state-subscription-request.v1",
+  "venue": "BINANCE",
+  "market": "SPOT",
+  "symbol": "BTCUSDT",
+  "delivery_mode": "CONTIGUOUS_EVENTS",
+  "minimum_publish_interval_ms": 1000,
+  "supported_schema_versions": ["market-state-snapshot.v1"]
+}

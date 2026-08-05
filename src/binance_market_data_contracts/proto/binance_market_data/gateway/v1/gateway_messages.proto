@@ -8,7 +8,7 @@ import "binance_market_data/common/v1/metadata.proto";
 import "binance_market_data/market/v1/market_events.proto";
 import "binance_market_data/projection/v1/snapshots.proto";
 
-option go_package = "github.com/binance-market-data/contracts/gen/go/gateway/v1;gatewayv1";
+option go_package = "github.com/tomohikoAmada/BinanceMarketDataContracts/gen/go/gateway/v1;gatewayv1";
 
 // ---------------------------------------------------------------------------
 // Subscription Request messages
@@ -147,7 +147,7 @@ message MarketRuntimeStatus {
   binance_market_data.common.v1.Market market = 2;
   string symbol = 3;
   binance_market_data.common.v1.StreamLifecycleState state = 4;
-  uint64 last_event_utc_ns = 5;
+  optional uint64 last_event_utc_ns = 5;
   uint64 connection_generation = 6;
   uint64 active_subscription_count = 7;
 }

@@ -1,0 +1,6 @@
+{
+  "schema_version": "stream-status.v1",
+  "subscription_id": "sub-btcusdt-spot-001",
+  "state": "LIVE",
+  "observed_time_utc_ns": 1690000010000000000
+}

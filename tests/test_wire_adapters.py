@@ -380,7 +380,6 @@ class TestGatewayRoundtrip:
 class TestNegativeAdapters:
     def test_unspecified_venue_rejected(self):
         from binance_market_data.common.v1 import enums_pb2 as pb_enums
-
         from binance_market_data_contracts.wire.adapters import _venue_from_pb
 
         with pytest.raises(UnspecifiedEnumError, match="Venue"):
@@ -388,7 +387,6 @@ class TestNegativeAdapters:
 
     def test_unspecified_market_rejected(self):
         from binance_market_data.common.v1 import enums_pb2 as pb_enums
-
         from binance_market_data_contracts.wire.adapters import _market_from_pb
 
         with pytest.raises(UnspecifiedEnumError, match="Market"):
@@ -396,7 +394,6 @@ class TestNegativeAdapters:
 
     def test_unspecified_stream_rejected(self):
         from binance_market_data.common.v1 import enums_pb2 as pb_enums
-
         from binance_market_data_contracts.wire.adapters import _stream_from_pb
 
         with pytest.raises(UnspecifiedEnumError, match="Stream"):
@@ -405,9 +402,8 @@ class TestNegativeAdapters:
     def test_wrong_schema_version_rejected(self):
         from binance_market_data.common.v1 import enums_pb2
         from binance_market_data.projection.v1 import snapshots_pb2
-
         from binance_market_data_contracts.wire.adapters import (
-            UnsupportedSchemaVersionError,
+            UnexpectedWireValueError,
             market_state_snapshot_from_pb,
         )
 
@@ -421,5 +417,5 @@ class TestNegativeAdapters:
         ms.generated_time_utc_ns = 1000
         ms.source_book_update_id = 1
 
-        with pytest.raises(UnsupportedSchemaVersionError):
+        with pytest.raises(UnexpectedWireValueError):
             market_state_snapshot_from_pb(ms)

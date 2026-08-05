@@ -44,6 +44,7 @@ ALLOWED_TIME_FIELD_NAMES: set[str] = {
     "archive_date_utc",
     "receive_latency",
     "publish_latency",
+    "consumer_delivery_latency",
     "missing_exchange_time_policy",
     "accepted_time_utc_ns",
     "publish_time_utc_ns",

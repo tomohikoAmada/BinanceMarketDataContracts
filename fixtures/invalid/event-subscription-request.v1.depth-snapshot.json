@@ -1,0 +1,14 @@
+{
+  "request_id": "req-ds-001",
+  "schema_version": "event-subscription-request.v1",
+  "selectors": [
+    {
+      "venue": "BINANCE",
+      "market": "SPOT",
+      "symbol": "BTCUSDT",
+      "stream": "DEPTH_SNAPSHOT"
+    }
+  ],
+  "delivery_mode": "CONTIGUOUS_EVENTS",
+  "supported_payload_schema_versions": ["depth-update.v1"]
+}

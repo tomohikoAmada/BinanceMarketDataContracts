@@ -1,6 +1,7 @@
 """Test Protobuf descriptor properties: field numbers, enum zero values, no forbidden types."""
 
 import pytest
+from google.protobuf import descriptor_pool
 
 # Ensure all generated modules are loaded so descriptors are in the pool
 from binance_market_data.common.v1 import (
@@ -15,10 +16,6 @@ from binance_market_data.gateway.v1 import (
 from binance_market_data.market.v1 import market_events_pb2  # noqa: F401
 from binance_market_data.projection.v1 import snapshots_pb2  # noqa: F401
 from binance_market_data.telemetry.v1 import telemetry_pb2  # noqa: F401
-from google.protobuf import descriptor_pool
-
-# Import wire module first to set up the binance_market_data import path
-from binance_market_data_contracts.wire import _GENERATED_DIR  # noqa: F401
 
 _pool = descriptor_pool.Default()
 

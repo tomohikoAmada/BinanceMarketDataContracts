@@ -12,7 +12,7 @@ from pydantic import Field, model_validator
 
 from binance_market_data_contracts.common import ContractModel, NonEmptyText
 from binance_market_data_contracts.enums import Market, QualityFlag, Stream
-from binance_market_data_contracts.identifiers import ConnectionId, InstanceId, Symbol
+from binance_market_data_contracts.identifiers import ConnectionId, InstanceId, SubscriptionId, Symbol
 
 
 class TelemetryType(StrEnum):
@@ -58,7 +58,7 @@ class LatencyMetrics(ContractModel):
 class QueueMetrics(ContractModel):
     type: Literal["queue"] = "queue"
     queue_depth: int = Field(default=0, ge=0)
-    queue_capacity: int = Field(default=0, ge=0)
+    queue_capacity: int = Field(..., gt=0)
     queue_utilization: float | None = Field(default=None, ge=0, le=1, allow_inf_nan=False)
     oldest_message_age_ms: int | None = Field(default=None, ge=0)
     dropped: int = Field(default=0, ge=0)
@@ -114,7 +114,7 @@ class TelemetryEnvelope(ContractModel):
     stream: Stream | None = None
     connection_id: ConnectionId | None = None
     connection_generation: int | None = Field(default=None, ge=1)
-    subscription_id: InstanceId | None = None
+    subscription_id: SubscriptionId | None = None
 
     @model_validator(mode="after")
     def _validate_metric_type(self) -> TelemetryEnvelope:

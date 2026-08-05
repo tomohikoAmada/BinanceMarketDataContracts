@@ -184,8 +184,7 @@
           "title": "Oldest Message Age Ms"
         },
         "queue_capacity": {
-          "default": 0,
-          "minimum": 0,
+          "exclusiveMinimum": 0,
           "title": "Queue Capacity",
           "type": "integer"
         },
@@ -216,6 +215,9 @@
           "type": "string"
         }
       },
+      "required": [
+        "queue_capacity"
+      ],
       "title": "QueueMetrics",
       "type": "object"
     },

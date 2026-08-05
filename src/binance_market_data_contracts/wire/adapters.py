@@ -18,8 +18,7 @@ from binance_market_data.common.v1 import metadata_pb2 as pb_meta
 from binance_market_data.gateway.v1 import gateway_messages_pb2 as pb_gw
 from binance_market_data.market.v1 import market_events_pb2 as pb_events
 from binance_market_data.projection.v1 import snapshots_pb2 as pb_snap
-from pydantic import ValidationError
-
+from binance_market_data.telemetry.v1 import telemetry_pb2 as pb_telemetry
 from binance_market_data_contracts.common import PriceString, QuantityString
 from binance_market_data_contracts.enums import (
     ConnectionState,
@@ -78,6 +77,16 @@ from binance_market_data_contracts.snapshots import (
     LocalOrderBookSnapshot,
     MarketStateSnapshot,
 )
+from binance_market_data_contracts.telemetry import (
+    BookMetrics,
+    ConnectionMetrics,
+    LatencyMetrics,
+    QueueMetrics,
+    SequenceMetrics,
+    SystemMetrics,
+    TelemetryEnvelope,
+    TelemetryType,
+)
 
 
 class WireError(Exception):
@@ -96,6 +105,26 @@ class UnsupportedSchemaVersionError(WireError):
 
     def __init__(self, expected: str, got: str) -> None:
         super().__init__(f"Unsupported schema version: expected '{expected}', got '{got}'")
+
+
+class UnexpectedWireValueError(WireError):
+    def __init__(self, contract: str, field: str, expected: str, got: str) -> None:
+        super().__init__(f"{contract}.{field}: expected '{expected}', got '{got}'")
+
+
+class UnknownEnumValueError(WireError):
+    def __init__(self, enum_name: str, value: int, context: str) -> None:
+        super().__init__(f"Unknown {enum_name} value {value} in {context}")
+
+
+class MissingWireFieldError(WireError):
+    def __init__(self, contract: str, field: str) -> None:
+        super().__init__(f"{contract}: missing required field '{field}'")
+
+
+def _require_exact_string(*, contract: str, field: str, actual: str, expected: str) -> None:
+    if actual != expected:
+        raise UnexpectedWireValueError(contract, field, expected, actual)
 
 
 # ---------------------------------------------------------------------------
@@ -275,22 +304,25 @@ def _event_metadata_to_pb(m: AggTradeMetadata | DepthUpdateMetadata | BookTicker
 
 
 def depth_update_from_pb(du: pb_events.DepthUpdate) -> DepthUpdate:
+    stream = _stream_from_pb(du.metadata.stream)
+    if stream != Stream.DIFF_DEPTH:
+        raise UnexpectedWireValueError("DepthUpdate", "stream", "DIFF_DEPTH", stream.value)
+    _require_exact_string(
+        contract="DepthUpdate", field="schema_version", actual=du.metadata.schema_version, expected="depth-update.v1"
+    )
     meta = _event_metadata_from_pb(du.metadata)
-    meta["stream"] = Stream.DIFF_DEPTH
-    meta["schema_version"] = "depth-update.v1"
-    try:
-        return DepthUpdate(
-            metadata=DepthUpdateMetadata(**meta),
-            first_update_id=du.first_update_id,
-            final_update_id=du.final_update_id,
-            previous_final_update_id=_optional_uint64(du.previous_final_update_id)
-            if du.HasField("previous_final_update_id")
-            else None,
-            bids=tuple(price_level_from_pb(b) for b in du.bids),
-            asks=tuple(price_level_from_pb(a) for a in du.asks),
-        )
-    except ValidationError:
-        raise
+    meta["stream"] = stream
+    meta["schema_version"] = du.metadata.schema_version
+    return DepthUpdate(
+        metadata=DepthUpdateMetadata(**meta),
+        first_update_id=du.first_update_id,
+        final_update_id=du.final_update_id,
+        previous_final_update_id=_optional_uint64(du.previous_final_update_id)
+        if du.HasField("previous_final_update_id")
+        else None,
+        bids=tuple(price_level_from_pb(b) for b in du.bids),
+        asks=tuple(price_level_from_pb(a) for a in du.asks),
+    )
 
 
 def depth_update_to_pb(du: DepthUpdate) -> pb_events.DepthUpdate:
@@ -311,22 +343,25 @@ def depth_update_to_pb(du: DepthUpdate) -> pb_events.DepthUpdate:
 
 
 def agg_trade_from_pb(at: pb_events.AggTrade) -> AggTrade:
+    stream = _stream_from_pb(at.metadata.stream)
+    if stream != Stream.AGG_TRADE:
+        raise UnexpectedWireValueError("AggTrade", "stream", "AGG_TRADE", stream.value)
+    _require_exact_string(
+        contract="AggTrade", field="schema_version", actual=at.metadata.schema_version, expected="agg-trade.v1"
+    )
     meta = _event_metadata_from_pb(at.metadata)
-    meta["stream"] = Stream.AGG_TRADE
-    meta["schema_version"] = "agg-trade.v1"
-    try:
-        return AggTrade(
-            metadata=AggTradeMetadata(**meta),
-            aggregate_trade_id=at.aggregate_trade_id,
-            price=PriceString(at.price),
-            quantity=QuantityString(at.quantity),
-            first_trade_id=at.first_trade_id,
-            last_trade_id=at.last_trade_id,
-            trade_time_ms=at.trade_time_ms,
-            buyer_is_maker=at.buyer_is_maker,
-        )
-    except ValidationError:
-        raise
+    meta["stream"] = stream
+    meta["schema_version"] = at.metadata.schema_version
+    return AggTrade(
+        metadata=AggTradeMetadata(**meta),
+        aggregate_trade_id=at.aggregate_trade_id,
+        price=PriceString(at.price),
+        quantity=QuantityString(at.quantity),
+        first_trade_id=at.first_trade_id,
+        last_trade_id=at.last_trade_id,
+        trade_time_ms=at.trade_time_ms,
+        buyer_is_maker=at.buyer_is_maker,
+    )
 
 
 def agg_trade_to_pb(at: AggTrade) -> pb_events.AggTrade:
@@ -348,20 +383,23 @@ def agg_trade_to_pb(at: AggTrade) -> pb_events.AggTrade:
 
 
 def book_ticker_from_pb(bt: pb_events.BookTicker) -> BookTicker:
+    stream = _stream_from_pb(bt.metadata.stream)
+    if stream != Stream.BOOK_TICKER:
+        raise UnexpectedWireValueError("BookTicker", "stream", "BOOK_TICKER", stream.value)
+    _require_exact_string(
+        contract="BookTicker", field="schema_version", actual=bt.metadata.schema_version, expected="book-ticker.v1"
+    )
     meta = _event_metadata_from_pb(bt.metadata)
-    meta["stream"] = Stream.BOOK_TICKER
-    meta["schema_version"] = "book-ticker.v1"
-    try:
-        return BookTicker(
-            metadata=BookTickerMetadata(**meta),
-            update_id=_optional_uint64(bt.update_id) if bt.HasField("update_id") else None,
-            best_bid_price=PriceString(bt.best_bid_price),
-            best_bid_quantity=QuantityString(bt.best_bid_quantity),
-            best_ask_price=PriceString(bt.best_ask_price),
-            best_ask_quantity=QuantityString(bt.best_ask_quantity),
-        )
-    except ValidationError:
-        raise
+    meta["stream"] = stream
+    meta["schema_version"] = bt.metadata.schema_version
+    return BookTicker(
+        metadata=BookTickerMetadata(**meta),
+        update_id=_optional_uint64(bt.update_id) if bt.HasField("update_id") else None,
+        best_bid_price=PriceString(bt.best_bid_price),
+        best_bid_quantity=QuantityString(bt.best_bid_quantity),
+        best_ask_price=PriceString(bt.best_ask_price),
+        best_ask_quantity=QuantityString(bt.best_ask_quantity),
+    )
 
 
 def book_ticker_to_pb(bt: BookTicker) -> pb_events.BookTicker:
@@ -382,33 +420,30 @@ def book_ticker_to_pb(bt: BookTicker) -> pb_events.BookTicker:
 
 
 def exchange_depth_snapshot_from_pb(es: pb_events.ExchangeDepthSnapshot) -> ExchangeDepthSnapshot:
-    if es.schema_version != "exchange-depth-snapshot.v1":
-        raise UnsupportedSchemaVersionError("exchange-depth-snapshot.v1", es.schema_version)
-    try:
-        return ExchangeDepthSnapshot(
-            venue=_venue_from_pb(es.venue),
-            market=_market_from_pb(es.market),
-            symbol=Symbol(es.symbol),
-            schema_version="exchange-depth-snapshot.v1",
-            producer=es.producer,
-            producer_version=es.producer_version,
-            request_id=RequestId(es.request_id),
-            last_update_id=es.last_update_id,
-            bids=tuple(price_level_from_pb(b) for b in es.bids),
-            asks=tuple(price_level_from_pb(a) for a in es.asks),
-            exchange_transaction_time_ms=_optional_uint64(es.exchange_transaction_time_ms)
-            if es.HasField("exchange_transaction_time_ms")
-            else None,
-            receive_time_utc_ns=_optional_uint64(es.receive_time_utc_ns)
-            if es.HasField("receive_time_utc_ns")
-            else None,
-            receive_monotonic_ns=_optional_uint64(es.receive_monotonic_ns)
-            if es.HasField("receive_monotonic_ns")
-            else None,
-            quality_flags=_quality_from_pb(list(es.quality_flags)),
-        )
-    except ValidationError:
-        raise
+    _require_exact_string(
+        contract="ExchangeDepthSnapshot",
+        field="schema_version",
+        actual=es.schema_version,
+        expected="exchange-depth-snapshot.v1",
+    )
+    return ExchangeDepthSnapshot(
+        venue=_venue_from_pb(es.venue),
+        market=_market_from_pb(es.market),
+        symbol=Symbol(es.symbol),
+        schema_version="exchange-depth-snapshot.v1",
+        producer=es.producer,
+        producer_version=es.producer_version,
+        request_id=RequestId(es.request_id),
+        last_update_id=es.last_update_id,
+        bids=tuple(price_level_from_pb(b) for b in es.bids),
+        asks=tuple(price_level_from_pb(a) for a in es.asks),
+        exchange_transaction_time_ms=_optional_uint64(es.exchange_transaction_time_ms)
+        if es.HasField("exchange_transaction_time_ms")
+        else None,
+        receive_time_utc_ns=_optional_uint64(es.receive_time_utc_ns) if es.HasField("receive_time_utc_ns") else None,
+        receive_monotonic_ns=_optional_uint64(es.receive_monotonic_ns) if es.HasField("receive_monotonic_ns") else None,
+        quality_flags=_quality_from_pb(list(es.quality_flags)),
+    )
 
 
 def exchange_depth_snapshot_to_pb(es: ExchangeDepthSnapshot) -> pb_events.ExchangeDepthSnapshot:
@@ -463,7 +498,9 @@ def _reason_code_from_pb(v: int) -> ReasonCode | None:
         pb_enums.ReasonCode.REASON_CODE_ARCHIVE_BACKLOG: ReasonCode.ARCHIVE_BACKLOG,
         pb_enums.ReasonCode.REASON_CODE_CONFIGURATION_ERROR: ReasonCode.CONFIGURATION_ERROR,
     }
-    return mapping.get(v)
+    if v not in mapping:
+        raise UnknownEnumValueError("ReasonCode", v, "_reason_code_from_pb")
+    return mapping[v]
 
 
 def _reason_code_to_pb(v: ReasonCode | None) -> int:
@@ -504,7 +541,9 @@ def _resync_state_from_pb(v: int) -> ResyncState | None:
         pb_enums.ResyncState.RESYNC_STATE_RECOVERED: ResyncState.RECOVERED,
         pb_enums.ResyncState.RESYNC_STATE_RESYNC_FAILED: ResyncState.RESYNC_FAILED,
     }
-    return mapping.get(v)
+    if v not in mapping:
+        raise UnknownEnumValueError("ResyncState", v, "_resync_state_from_pb")
+    return mapping[v]
 
 
 def _resync_state_to_pb(v: ResyncState | None) -> int:
@@ -541,17 +580,14 @@ def _snapshot_source_to_pb(v: SnapshotSource) -> int:
 
 
 def gap_descriptor_from_pb(g: pb_snap.GapDescriptor) -> GapDescriptor:
-    try:
-        return GapDescriptor(
-            stream=_stream_from_pb(g.stream),
-            detected_at_utc_ns=g.detected_at_utc_ns,
-            previous_sequence=_optional_uint64(g.previous_sequence) if g.HasField("previous_sequence") else None,
-            next_sequence=_optional_uint64(g.next_sequence) if g.HasField("next_sequence") else None,
-            reason_code=_reason_code_from_pb(g.reason_code) if g.HasField("reason_code") else None,
-            recovery_state=_resync_state_from_pb(g.recovery_state) if g.HasField("recovery_state") else None,
-        )
-    except ValidationError:
-        raise
+    return GapDescriptor(
+        stream=_stream_from_pb(g.stream),
+        detected_at_utc_ns=g.detected_at_utc_ns,
+        previous_sequence=_optional_uint64(g.previous_sequence) if g.HasField("previous_sequence") else None,
+        next_sequence=_optional_uint64(g.next_sequence) if g.HasField("next_sequence") else None,
+        reason_code=_reason_code_from_pb(g.reason_code) if g.HasField("reason_code") else None,
+        recovery_state=_resync_state_from_pb(g.recovery_state) if g.HasField("recovery_state") else None,
+    )
 
 
 def gap_descriptor_to_pb(g: GapDescriptor) -> pb_snap.GapDescriptor:
@@ -575,31 +611,32 @@ def gap_descriptor_to_pb(g: GapDescriptor) -> pb_snap.GapDescriptor:
 
 
 def local_order_book_snapshot_from_pb(ls: pb_snap.LocalOrderBookSnapshot) -> LocalOrderBookSnapshot:
-    if ls.schema_version != "local-order-book-snapshot.v1":
-        raise UnsupportedSchemaVersionError("local-order-book-snapshot.v1", ls.schema_version)
-    try:
-        return LocalOrderBookSnapshot(
-            venue=_venue_from_pb(ls.venue),
-            market=_market_from_pb(ls.market),
-            symbol=Symbol(ls.symbol),
-            schema_version="local-order-book-snapshot.v1",
-            producer=ls.producer,
-            producer_version=ls.producer_version,
-            source=_snapshot_source_from_pb(ls.source),
-            last_update_id=ls.last_update_id,
-            bids=tuple(price_level_from_pb(b) for b in ls.bids),
-            asks=tuple(price_level_from_pb(a) for a in ls.asks),
-            depth_limit=ls.depth_limit if ls.HasField("depth_limit") else None,
-            generated_time_utc_ns=ls.generated_time_utc_ns,
-            generated_monotonic_ns=_optional_uint64(ls.generated_monotonic_ns)
-            if ls.HasField("generated_monotonic_ns")
-            else None,
-            synchronized=ls.synchronized,
-            last_gap=gap_descriptor_from_pb(ls.last_gap) if ls.HasField("last_gap") else None,
-            quality_flags=_quality_from_pb(list(ls.quality_flags)),
-        )
-    except ValidationError:
-        raise
+    _require_exact_string(
+        contract="LocalOrderBookSnapshot",
+        field="schema_version",
+        actual=ls.schema_version,
+        expected="local-order-book-snapshot.v1",
+    )
+    return LocalOrderBookSnapshot(
+        venue=_venue_from_pb(ls.venue),
+        market=_market_from_pb(ls.market),
+        symbol=Symbol(ls.symbol),
+        schema_version="local-order-book-snapshot.v1",
+        producer=ls.producer,
+        producer_version=ls.producer_version,
+        source=_snapshot_source_from_pb(ls.source),
+        last_update_id=ls.last_update_id,
+        bids=tuple(price_level_from_pb(b) for b in ls.bids),
+        asks=tuple(price_level_from_pb(a) for a in ls.asks),
+        depth_limit=ls.depth_limit if ls.HasField("depth_limit") else None,
+        generated_time_utc_ns=ls.generated_time_utc_ns,
+        generated_monotonic_ns=_optional_uint64(ls.generated_monotonic_ns)
+        if ls.HasField("generated_monotonic_ns")
+        else None,
+        synchronized=ls.synchronized,
+        last_gap=gap_descriptor_from_pb(ls.last_gap) if ls.HasField("last_gap") else None,
+        quality_flags=_quality_from_pb(list(ls.quality_flags)),
+    )
 
 
 def local_order_book_snapshot_to_pb(ls: LocalOrderBookSnapshot) -> pb_snap.LocalOrderBookSnapshot:
@@ -632,53 +669,46 @@ def local_order_book_snapshot_to_pb(ls: LocalOrderBookSnapshot) -> pb_snap.Local
 
 
 def market_state_snapshot_from_pb(ms: pb_snap.MarketStateSnapshot) -> MarketStateSnapshot:
-    if ms.schema_version != "market-state-snapshot.v1":
-        raise UnsupportedSchemaVersionError("market-state-snapshot.v1", ms.schema_version)
-    try:
-        return MarketStateSnapshot(
-            venue=_venue_from_pb(ms.venue),
-            market=_market_from_pb(ms.market),
-            symbol=Symbol(ms.symbol),
-            schema_version="market-state-snapshot.v1",
-            producer=ms.producer,
-            producer_version=ms.producer_version,
-            best_bid_price=PriceString(ms.best_bid_price)
-            if ms.HasField("best_bid_price") and ms.best_bid_price
-            else None,
-            best_bid_quantity=QuantityString(ms.best_bid_quantity)
-            if ms.HasField("best_bid_quantity") and ms.best_bid_quantity
-            else None,
-            best_ask_price=PriceString(ms.best_ask_price)
-            if ms.HasField("best_ask_price") and ms.best_ask_price
-            else None,
-            best_ask_quantity=QuantityString(ms.best_ask_quantity)
-            if ms.HasField("best_ask_quantity") and ms.best_ask_quantity
-            else None,
-            mid_price=PriceString(ms.mid_price) if ms.HasField("mid_price") and ms.mid_price else None,
-            spread=QuantityString(ms.spread) if ms.HasField("spread") and ms.spread else None,
-            microprice=PriceString(ms.microprice) if ms.HasField("microprice") and ms.microprice else None,
-            top_bids=tuple(price_level_from_pb(b) for b in ms.top_bids),
-            top_asks=tuple(price_level_from_pb(a) for a in ms.top_asks),
-            depth_limit=ms.depth_limit if ms.HasField("depth_limit") else None,
-            mark_price=PriceString(ms.mark_price) if ms.HasField("mark_price") and ms.mark_price else None,
-            index_price=PriceString(ms.index_price) if ms.HasField("index_price") and ms.index_price else None,
-            funding_rate=ms.funding_rate if ms.HasField("funding_rate") and ms.funding_rate else None,
-            next_funding_time_ms=_optional_uint64(ms.next_funding_time_ms)
-            if ms.HasField("next_funding_time_ms")
-            else None,
-            open_interest=QuantityString(ms.open_interest)
-            if ms.HasField("open_interest") and ms.open_interest
-            else None,
-            generated_time_utc_ns=ms.generated_time_utc_ns,
-            data_freshness_ms=_optional_uint64(ms.data_freshness_ms) if ms.HasField("data_freshness_ms") else None,
-            book_synchronized=ms.book_synchronized if ms.HasField("book_synchronized") else None,
-            source_book_update_id=_optional_uint64(ms.source_book_update_id)
-            if ms.HasField("source_book_update_id")
-            else None,
-            source_trade_id=_optional_uint64(ms.source_trade_id) if ms.HasField("source_trade_id") else None,
-        )
-    except ValidationError:
-        raise
+    _require_exact_string(
+        contract="MarketStateSnapshot",
+        field="schema_version",
+        actual=ms.schema_version,
+        expected="market-state-snapshot.v1",
+    )
+    return MarketStateSnapshot(
+        venue=_venue_from_pb(ms.venue),
+        market=_market_from_pb(ms.market),
+        symbol=Symbol(ms.symbol),
+        schema_version="market-state-snapshot.v1",
+        producer=ms.producer,
+        producer_version=ms.producer_version,
+        best_bid_price=PriceString(ms.best_bid_price) if ms.HasField("best_bid_price") and ms.best_bid_price else None,
+        best_bid_quantity=QuantityString(ms.best_bid_quantity)
+        if ms.HasField("best_bid_quantity") and ms.best_bid_quantity
+        else None,
+        best_ask_price=PriceString(ms.best_ask_price) if ms.HasField("best_ask_price") and ms.best_ask_price else None,
+        best_ask_quantity=QuantityString(ms.best_ask_quantity)
+        if ms.HasField("best_ask_quantity") and ms.best_ask_quantity
+        else None,
+        mid_price=PriceString(ms.mid_price) if ms.HasField("mid_price") and ms.mid_price else None,
+        spread=QuantityString(ms.spread) if ms.HasField("spread") and ms.spread else None,
+        microprice=PriceString(ms.microprice) if ms.HasField("microprice") and ms.microprice else None,
+        top_bids=tuple(price_level_from_pb(b) for b in ms.top_bids),
+        top_asks=tuple(price_level_from_pb(a) for a in ms.top_asks),
+        depth_limit=ms.depth_limit if ms.HasField("depth_limit") else None,
+        mark_price=PriceString(ms.mark_price) if ms.HasField("mark_price") and ms.mark_price else None,
+        index_price=PriceString(ms.index_price) if ms.HasField("index_price") and ms.index_price else None,
+        funding_rate=ms.funding_rate if ms.HasField("funding_rate") and ms.funding_rate else None,
+        next_funding_time_ms=_optional_uint64(ms.next_funding_time_ms) if ms.HasField("next_funding_time_ms") else None,
+        open_interest=QuantityString(ms.open_interest) if ms.HasField("open_interest") and ms.open_interest else None,
+        generated_time_utc_ns=ms.generated_time_utc_ns,
+        data_freshness_ms=_optional_uint64(ms.data_freshness_ms) if ms.HasField("data_freshness_ms") else None,
+        book_synchronized=ms.book_synchronized if ms.HasField("book_synchronized") else None,
+        source_book_update_id=_optional_uint64(ms.source_book_update_id)
+        if ms.HasField("source_book_update_id")
+        else None,
+        source_trade_id=_optional_uint64(ms.source_trade_id) if ms.HasField("source_trade_id") else None,
+    )
 
 
 def market_state_snapshot_to_pb(ms: MarketStateSnapshot) -> pb_snap.MarketStateSnapshot:
@@ -766,7 +796,9 @@ def _connection_state_from_pb(v: int) -> ConnectionState | None:
         pb_enums.ConnectionState.CONNECTION_STATE_DISCONNECTED: ConnectionState.DISCONNECTED,
         pb_enums.ConnectionState.CONNECTION_STATE_FAILED: ConnectionState.FAILED,
     }
-    return mapping.get(v)
+    if v not in mapping:
+        raise UnknownEnumValueError("ConnectionState", v, "_connection_state_from_pb")
+    return mapping[v]
 
 
 def _connection_state_to_pb(v: ConnectionState | None) -> int:
@@ -831,6 +863,9 @@ def data_health_snapshot_from_pb(dhs: pb_snap.DataHealthSnapshot) -> DataHealthS
         last_message_age_ms=_optional_uint64(dhs.last_message_age_ms) if dhs.HasField("last_message_age_ms") else None,
         receive_latency=_latency_summary_from_pb(dhs.receive_latency) if dhs.HasField("receive_latency") else None,
         publish_latency=_latency_summary_from_pb(dhs.publish_latency) if dhs.HasField("publish_latency") else None,
+        consumer_delivery_latency=_latency_summary_from_pb(dhs.consumer_delivery_latency)
+        if dhs.HasField("consumer_delivery_latency")
+        else None,
         sequence_gap_count=dhs.sequence_gap_count,
         resync_state=_resync_state_from_pb(dhs.resync_state) if dhs.HasField("resync_state") else None,
         book_synchronized=dhs.book_synchronized if dhs.HasField("book_synchronized") else None,
@@ -863,6 +898,8 @@ def data_health_snapshot_to_pb(dhs: DataHealthSnapshot) -> pb_snap.DataHealthSna
         pb.receive_latency.CopyFrom(_latency_summary_to_pb(dhs.receive_latency))
     if dhs.publish_latency is not None:
         pb.publish_latency.CopyFrom(_latency_summary_to_pb(dhs.publish_latency))
+    if dhs.consumer_delivery_latency is not None:
+        pb.consumer_delivery_latency.CopyFrom(_latency_summary_to_pb(dhs.consumer_delivery_latency))
     pb.sequence_gap_count = dhs.sequence_gap_count
     if dhs.resync_state is not None:
         pb.resync_state = _resync_state_to_pb(dhs.resync_state)
@@ -875,7 +912,6 @@ def data_health_snapshot_to_pb(dhs: DataHealthSnapshot) -> pb_snap.DataHealthSna
     pb.reason_codes.extend(_reason_code_to_pb(r) for r in dhs.reason_codes)
     pb.observed_time_utc_ns = dhs.observed_time_utc_ns
     pb.quality_flags.extend(_quality_to_pb(dhs.quality_flags))
-    # Note: consumer_delivery_latency is not yet wired to Pydantic model
     return pb
 
 
@@ -908,6 +944,9 @@ def stream_selector_to_pb(ss: StreamSelector) -> pb_id.StreamSelector:
 
 
 def envelope_metadata_from_pb(em: pb_meta.EnvelopeMetadata) -> EnvelopeMetadata:
+    _require_exact_string(
+        contract="EnvelopeMetadata", field="protocol_version", actual=em.protocol_version, expected="gateway-stream.v1"
+    )
     return EnvelopeMetadata(
         protocol_version="gateway-stream.v1",
         gateway_instance_id=GatewayInstanceId(em.gateway_instance_id),
@@ -938,11 +977,17 @@ def envelope_metadata_to_pb(em: EnvelopeMetadata) -> pb_meta.EnvelopeMetadata:
 
 
 def subscription_accepted_from_pb(sa: pb_gw.SubscriptionAccepted) -> SubscriptionAccepted:
+    _require_exact_string(
+        contract="SubscriptionAccepted",
+        field="schema_version",
+        actual=sa.schema_version,
+        expected="subscription-accepted.v1",
+    )
     return SubscriptionAccepted(
         request_id=RequestId(sa.request_id),
         subscription_id=SubscriptionId(sa.subscription_id),
         schema_version="subscription-accepted.v1",
-        gateway_instance_id=InstanceId(sa.gateway_instance_id),
+        gateway_instance_id=GatewayInstanceId(sa.gateway_instance_id),
         accepted_time_utc_ns=sa.accepted_time_utc_ns,
         negotiated_payload_schema_versions=tuple(sa.negotiated_payload_schema_versions),
     )
@@ -1011,6 +1056,12 @@ def _recovery_action_to_pb(v: RecoveryAction) -> int:
 
 
 def consumer_gap_notice_from_pb(cgn: pb_gw.ConsumerGapNotice) -> ConsumerGapNotice:
+    _require_exact_string(
+        contract="ConsumerGapNotice",
+        field="schema_version",
+        actual=cgn.schema_version,
+        expected="consumer-gap-notice.v1",
+    )
     return ConsumerGapNotice(
         schema_version="consumer-gap-notice.v1",
         subscription_id=SubscriptionId(cgn.subscription_id),
@@ -1083,6 +1134,9 @@ def _stream_lifecycle_state_to_pb(v: StreamLifecycleState) -> int:
 
 
 def stream_status_from_pb(ss: pb_gw.StreamStatus) -> StreamStatus:
+    _require_exact_string(
+        contract="StreamStatus", field="schema_version", actual=ss.schema_version, expected="stream-status.v1"
+    )
     return StreamStatus(
         schema_version="stream-status.v1",
         subscription_id=SubscriptionId(ss.subscription_id),
@@ -1112,6 +1166,8 @@ def stream_status_to_pb(ss: StreamStatus) -> pb_gw.StreamStatus:
 
 
 def gateway_event_envelope_from_pb(env: pb_gw.GatewayEventEnvelope) -> GatewayEventEnvelope:
+    if not env.HasField("envelope_metadata"):
+        raise MissingWireFieldError("GatewayEventEnvelope", "envelope_metadata")
     kwargs: dict[str, Any] = {
         "envelope_metadata": envelope_metadata_from_pb(env.envelope_metadata),
     }
@@ -1157,6 +1213,8 @@ def gateway_event_envelope_to_pb(env: GatewayEventEnvelope) -> pb_gw.GatewayEven
 
 
 def order_book_stream_item_from_pb(item: pb_gw.OrderBookStreamItem) -> OrderBookStreamItem:
+    if not item.HasField("envelope_metadata"):
+        raise MissingWireFieldError("OrderBookStreamItem", "envelope_metadata")
     kwargs: dict[str, Any] = {
         "envelope_metadata": envelope_metadata_from_pb(item.envelope_metadata),
     }
@@ -1198,6 +1256,8 @@ def order_book_stream_item_to_pb(item: OrderBookStreamItem) -> pb_gw.OrderBookSt
 
 
 def market_state_stream_item_from_pb(item: pb_gw.MarketStateStreamItem) -> MarketStateStreamItem:
+    if not item.HasField("envelope_metadata"):
+        raise MissingWireFieldError("MarketStateStreamItem", "envelope_metadata")
     kwargs: dict[str, Any] = {
         "envelope_metadata": envelope_metadata_from_pb(item.envelope_metadata),
     }
@@ -1235,6 +1295,12 @@ def market_state_stream_item_to_pb(item: MarketStateStreamItem) -> pb_gw.MarketS
 
 
 def gateway_status_snapshot_from_pb(gs: pb_gw.GatewayStatusSnapshot) -> GatewayStatusSnapshot:
+    _require_exact_string(
+        contract="GatewayStatusSnapshot",
+        field="schema_version",
+        actual=gs.schema_version,
+        expected="gateway-status-snapshot.v1",
+    )
     return GatewayStatusSnapshot(
         schema_version="gateway-status-snapshot.v1",
         gateway_instance_id=GatewayInstanceId(gs.gateway_instance_id),
@@ -1246,7 +1312,7 @@ def gateway_status_snapshot_from_pb(gs: pb_gw.GatewayStatusSnapshot) -> GatewayS
                 market=_market_from_pb(m.market),
                 symbol=Symbol(m.symbol),
                 state=_stream_lifecycle_state_from_pb(m.state),
-                last_event_utc_ns=m.last_event_utc_ns,
+                last_event_utc_ns=m.last_event_utc_ns if m.HasField("last_event_utc_ns") else None,
                 connection_generation=m.connection_generation,
                 active_subscription_count=m.active_subscription_count,
             )
@@ -1268,7 +1334,8 @@ def gateway_status_snapshot_to_pb(gs: GatewayStatusSnapshot) -> pb_gw.GatewaySta
         mr.market = _market_to_pb(m.market)
         mr.symbol = m.symbol
         mr.state = _stream_lifecycle_state_to_pb(m.state)
-        mr.last_event_utc_ns = m.last_event_utc_ns
+        if m.last_event_utc_ns is not None:
+            mr.last_event_utc_ns = m.last_event_utc_ns
         mr.connection_generation = m.connection_generation
         mr.active_subscription_count = m.active_subscription_count
     pb.total_active_subscriptions = gs.total_active_subscriptions
@@ -1317,11 +1384,22 @@ def _initial_snapshot_mode_to_pb(v: InitialSnapshotMode) -> int:
 
 
 def event_subscription_request_from_pb(req: pb_gw.EventSubscriptionRequest) -> EventSubscriptionRequest:
+    _require_exact_string(
+        contract="EventSubscriptionRequest",
+        field="schema_version",
+        actual=req.schema_version,
+        expected="event-subscription-request.v1",
+    )
+    delivery_mode = _delivery_mode_from_pb(req.delivery_mode)
+    if delivery_mode != DeliveryMode.CONTIGUOUS_EVENTS:
+        raise UnexpectedWireValueError(
+            "EventSubscriptionRequest", "delivery_mode", "CONTIGUOUS_EVENTS", delivery_mode.value
+        )
     return EventSubscriptionRequest(
         request_id=RequestId(req.request_id),
         schema_version="event-subscription-request.v1",
         selectors=tuple(stream_selector_from_pb(s) for s in req.selectors),
-        delivery_mode=DeliveryMode.CONTIGUOUS_EVENTS,
+        delivery_mode=delivery_mode,
         supported_payload_schema_versions=tuple(req.supported_payload_schema_versions),
     )
 
@@ -1337,6 +1415,17 @@ def event_subscription_request_to_pb(req: EventSubscriptionRequest) -> pb_gw.Eve
 
 
 def order_book_subscription_request_from_pb(req: pb_gw.OrderBookSubscriptionRequest) -> OrderBookSubscriptionRequest:
+    _require_exact_string(
+        contract="OrderBookSubscriptionRequest",
+        field="schema_version",
+        actual=req.schema_version,
+        expected="order-book-subscription-request.v1",
+    )
+    initial_snapshot_mode = _initial_snapshot_mode_from_pb(req.initial_snapshot_mode)
+    if initial_snapshot_mode != InitialSnapshotMode.REQUIRED:
+        raise UnexpectedWireValueError(
+            "OrderBookSubscriptionRequest", "initial_snapshot_mode", "REQUIRED", initial_snapshot_mode.value
+        )
     return OrderBookSubscriptionRequest(
         request_id=RequestId(req.request_id),
         schema_version="order-book-subscription-request.v1",
@@ -1344,7 +1433,7 @@ def order_book_subscription_request_from_pb(req: pb_gw.OrderBookSubscriptionRequ
         market=_market_from_pb(req.market),
         symbol=Symbol(req.symbol),
         depth_limit=req.depth_limit if req.HasField("depth_limit") else None,
-        initial_snapshot_mode=InitialSnapshotMode.REQUIRED,
+        initial_snapshot_mode=initial_snapshot_mode,
         supported_snapshot_schema_versions=tuple(req.supported_snapshot_schema_versions),
         supported_update_schema_versions=tuple(req.supported_update_schema_versions),
     )
@@ -1368,13 +1457,24 @@ def order_book_subscription_request_to_pb(req: OrderBookSubscriptionRequest) -> 
 def market_state_subscription_request_from_pb(
     req: pb_gw.MarketStateSubscriptionRequest,
 ) -> MarketStateSubscriptionRequest:
+    _require_exact_string(
+        contract="MarketStateSubscriptionRequest",
+        field="schema_version",
+        actual=req.schema_version,
+        expected="market-state-subscription-request.v1",
+    )
+    delivery_mode = _delivery_mode_from_pb(req.delivery_mode)
+    if delivery_mode != DeliveryMode.LATEST_STATE:
+        raise UnexpectedWireValueError(
+            "MarketStateSubscriptionRequest", "delivery_mode", "LATEST_STATE", delivery_mode.value
+        )
     return MarketStateSubscriptionRequest(
         request_id=RequestId(req.request_id),
         schema_version="market-state-subscription-request.v1",
         venue=_venue_from_pb(req.venue),
         market=_market_from_pb(req.market),
         symbol=Symbol(req.symbol),
-        delivery_mode=DeliveryMode.LATEST_STATE,
+        delivery_mode=delivery_mode,
         depth_limit=req.depth_limit if req.HasField("depth_limit") else None,
         minimum_publish_interval_ms=_optional_uint64(req.minimum_publish_interval_ms)
         if req.HasField("minimum_publish_interval_ms")
@@ -1399,3 +1499,248 @@ def market_state_subscription_request_to_pb(
         pb.minimum_publish_interval_ms = req.minimum_publish_interval_ms
     pb.supported_schema_versions.extend(req.supported_schema_versions)
     return pb
+
+
+# ---------------------------------------------------------------------------
+# Telemetry: enum mapping
+# ---------------------------------------------------------------------------
+
+_TELEMETRY_TYPE_PB_TO_PY: Mapping[int, TelemetryType] = {
+    pb_telemetry.TelemetryType.TELEMETRY_TYPE_CONNECTION: TelemetryType.CONNECTION,
+    pb_telemetry.TelemetryType.TELEMETRY_TYPE_SEQUENCE: TelemetryType.SEQUENCE,
+    pb_telemetry.TelemetryType.TELEMETRY_TYPE_LATENCY: TelemetryType.LATENCY,
+    pb_telemetry.TelemetryType.TELEMETRY_TYPE_QUEUE: TelemetryType.QUEUE,
+    pb_telemetry.TelemetryType.TELEMETRY_TYPE_BOOK: TelemetryType.BOOK,
+    pb_telemetry.TelemetryType.TELEMETRY_TYPE_SYSTEM: TelemetryType.SYSTEM,
+}
+
+_TELEMETRY_TYPE_PY_TO_PB: Mapping[TelemetryType, int] = {v: k for k, v in _TELEMETRY_TYPE_PB_TO_PY.items()}
+
+
+def _telemetry_type_from_pb(v: int) -> TelemetryType:
+    if v == pb_telemetry.TelemetryType.TELEMETRY_TYPE_UNSPECIFIED:
+        raise UnspecifiedEnumError("TelemetryType")
+    try:
+        return _TELEMETRY_TYPE_PB_TO_PY[v]
+    except KeyError:
+        raise UnknownEnumValueError("TelemetryType", v, "TelemetryEnvelope") from None
+
+
+def _telemetry_type_to_pb(v: TelemetryType) -> int:
+    return _TELEMETRY_TYPE_PY_TO_PB[v]
+
+
+# Mapping from TelemetryType → oneof field name in TelemetryEnvelope
+_TELEMETRY_TYPE_ONEOF: dict[TelemetryType, str] = {
+    TelemetryType.CONNECTION: "connection",
+    TelemetryType.SEQUENCE: "sequence",
+    TelemetryType.LATENCY: "latency",
+    TelemetryType.QUEUE: "queue",
+    TelemetryType.BOOK: "book",
+    TelemetryType.SYSTEM: "system",
+}
+
+
+# ---------------------------------------------------------------------------
+# Telemetry: metrics adapters
+# ---------------------------------------------------------------------------
+
+
+def connection_metrics_to_pb(cm: ConnectionMetrics) -> pb_telemetry.ConnectionMetrics:
+    pb = pb_telemetry.ConnectionMetrics()
+    pb.connected = cm.connected
+    if cm.last_message_age_ms is not None:
+        pb.last_message_age_ms = cm.last_message_age_ms
+    pb.reconnect_count = cm.reconnect_count
+    return pb
+
+
+def connection_metrics_from_pb(cm: pb_telemetry.ConnectionMetrics) -> ConnectionMetrics:
+    return ConnectionMetrics(
+        connected=cm.connected,
+        last_message_age_ms=cm.last_message_age_ms if cm.HasField("last_message_age_ms") else None,
+        reconnect_count=cm.reconnect_count,
+    )
+
+
+def sequence_metrics_to_pb(sm: SequenceMetrics) -> pb_telemetry.SequenceMetrics:
+    pb = pb_telemetry.SequenceMetrics()
+    if sm.last_update_id is not None:
+        pb.last_update_id = sm.last_update_id
+    pb.duplicate_count = sm.duplicate_count
+    pb.out_of_order_count = sm.out_of_order_count
+    return pb
+
+
+def sequence_metrics_from_pb(sm: pb_telemetry.SequenceMetrics) -> SequenceMetrics:
+    return SequenceMetrics(
+        last_update_id=sm.last_update_id if sm.HasField("last_update_id") else None,
+        duplicate_count=sm.duplicate_count,
+        out_of_order_count=sm.out_of_order_count,
+    )
+
+
+def latency_metrics_to_pb(lm: LatencyMetrics) -> pb_telemetry.LatencyMetrics:
+    pb = pb_telemetry.LatencyMetrics()
+    if lm.receive_lag_ms is not None:
+        pb.receive_lag_ms = lm.receive_lag_ms
+    if lm.publish_lag_ms is not None:
+        pb.publish_lag_ms = lm.publish_lag_ms
+    if lm.consumer_delivery_lag_ms is not None:
+        pb.consumer_delivery_lag_ms = lm.consumer_delivery_lag_ms
+    return pb
+
+
+def latency_metrics_from_pb(lm: pb_telemetry.LatencyMetrics) -> LatencyMetrics:
+    return LatencyMetrics(
+        receive_lag_ms=lm.receive_lag_ms if lm.HasField("receive_lag_ms") else None,
+        publish_lag_ms=lm.publish_lag_ms if lm.HasField("publish_lag_ms") else None,
+        consumer_delivery_lag_ms=lm.consumer_delivery_lag_ms if lm.HasField("consumer_delivery_lag_ms") else None,
+    )
+
+
+def queue_metrics_to_pb(qm: QueueMetrics) -> pb_telemetry.QueueMetrics:
+    pb = pb_telemetry.QueueMetrics()
+    pb.queue_depth = qm.queue_depth
+    pb.queue_capacity = qm.queue_capacity
+    if qm.queue_utilization is not None:
+        pb.queue_utilization = qm.queue_utilization
+    if qm.oldest_message_age_ms is not None:
+        pb.oldest_message_age_ms = qm.oldest_message_age_ms
+    pb.dropped = qm.dropped
+    pb.disconnect_count = qm.disconnect_count
+    return pb
+
+
+def queue_metrics_from_pb(qm: pb_telemetry.QueueMetrics) -> QueueMetrics:
+    return QueueMetrics(
+        queue_depth=qm.queue_depth,
+        queue_capacity=qm.queue_capacity,
+        queue_utilization=qm.queue_utilization if qm.HasField("queue_utilization") else None,
+        oldest_message_age_ms=qm.oldest_message_age_ms if qm.HasField("oldest_message_age_ms") else None,
+        dropped=qm.dropped,
+        disconnect_count=qm.disconnect_count,
+    )
+
+
+def book_metrics_to_pb(bm: BookMetrics) -> pb_telemetry.BookMetrics:
+    pb = pb_telemetry.BookMetrics()
+    pb.synchronized = bm.synchronized
+    if bm.sync_latency_ms is not None:
+        pb.sync_latency_ms = bm.sync_latency_ms
+    return pb
+
+
+def book_metrics_from_pb(bm: pb_telemetry.BookMetrics) -> BookMetrics:
+    return BookMetrics(
+        synchronized=bm.synchronized,
+        sync_latency_ms=bm.sync_latency_ms if bm.HasField("sync_latency_ms") else None,
+    )
+
+
+def system_metrics_to_pb(sm: SystemMetrics) -> pb_telemetry.SystemMetrics:
+    pb = pb_telemetry.SystemMetrics()
+    if sm.cpu_percent is not None:
+        pb.cpu_percent = sm.cpu_percent
+    if sm.memory_mb is not None:
+        pb.memory_mb = sm.memory_mb
+    if sm.disk_free_gb is not None:
+        pb.disk_free_gb = sm.disk_free_gb
+    return pb
+
+
+def system_metrics_from_pb(sm: pb_telemetry.SystemMetrics) -> SystemMetrics:
+    return SystemMetrics(
+        cpu_percent=sm.cpu_percent if sm.HasField("cpu_percent") else None,
+        memory_mb=sm.memory_mb if sm.HasField("memory_mb") else None,
+        disk_free_gb=sm.disk_free_gb if sm.HasField("disk_free_gb") else None,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Telemetry: envelope adapter
+# ---------------------------------------------------------------------------
+
+
+def telemetry_envelope_to_pb(env: TelemetryEnvelope) -> pb_telemetry.TelemetryEnvelope:
+    pb = pb_telemetry.TelemetryEnvelope()
+    pb.schema_version = env.schema_version
+    pb.telemetry_type = _telemetry_type_to_pb(env.telemetry_type)
+    pb.source_module = env.source_module
+    pb.source_instance_id = env.source_instance_id
+    pb.observed_time_utc_ns = env.observed_time_utc_ns
+    if env.market is not None:
+        pb.market = _market_to_pb(env.market)
+    if env.symbol is not None:
+        pb.symbol = env.symbol
+    if env.metrics is not None:
+        if isinstance(env.metrics, ConnectionMetrics):
+            pb.connection.CopyFrom(connection_metrics_to_pb(env.metrics))
+        elif isinstance(env.metrics, SequenceMetrics):
+            pb.sequence.CopyFrom(sequence_metrics_to_pb(env.metrics))
+        elif isinstance(env.metrics, LatencyMetrics):
+            pb.latency.CopyFrom(latency_metrics_to_pb(env.metrics))
+        elif isinstance(env.metrics, QueueMetrics):
+            pb.queue.CopyFrom(queue_metrics_to_pb(env.metrics))
+        elif isinstance(env.metrics, BookMetrics):
+            pb.book.CopyFrom(book_metrics_to_pb(env.metrics))
+        elif isinstance(env.metrics, SystemMetrics):
+            pb.system.CopyFrom(system_metrics_to_pb(env.metrics))
+    pb.quality_flags.extend(_quality_to_pb(env.quality_flags))
+    if env.stream is not None:
+        pb.stream = _stream_to_pb(env.stream)
+    if env.connection_id is not None:
+        pb.connection_id = env.connection_id
+    if env.connection_generation is not None:
+        pb.connection_generation = env.connection_generation
+    if env.subscription_id is not None:
+        pb.subscription_id = env.subscription_id
+    return pb
+
+
+def telemetry_envelope_from_pb(env: pb_telemetry.TelemetryEnvelope) -> TelemetryEnvelope:
+    _require_exact_string(
+        contract="TelemetryEnvelope", field="schema_version", actual=env.schema_version, expected="telemetry.v1"
+    )
+    telemetry_type = _telemetry_type_from_pb(env.telemetry_type)
+
+    which = env.WhichOneof("metrics")
+    if which is None:
+        raise MissingWireFieldError("TelemetryEnvelope", "metrics")
+
+    expected_oneof = _TELEMETRY_TYPE_ONEOF[telemetry_type]
+    if which != expected_oneof:
+        raise UnexpectedWireValueError("TelemetryEnvelope", "metrics oneof", expected_oneof, which)
+
+    if which == "connection":
+        metrics = connection_metrics_from_pb(env.connection)  # type: ignore[arg-type]
+    elif which == "sequence":
+        metrics = sequence_metrics_from_pb(env.sequence)  # type: ignore[arg-type]
+    elif which == "latency":
+        metrics = latency_metrics_from_pb(env.latency)  # type: ignore[arg-type]
+    elif which == "queue":
+        metrics = queue_metrics_from_pb(env.queue)  # type: ignore[arg-type]
+    elif which == "book":
+        metrics = book_metrics_from_pb(env.book)  # type: ignore[arg-type]
+    elif which == "system":
+        metrics = system_metrics_from_pb(env.system)  # type: ignore[arg-type]
+    else:
+        raise WireError(f"TelemetryEnvelope: unexpected oneof value '{which}'")
+
+    return TelemetryEnvelope(
+        schema_version="telemetry.v1",
+        telemetry_type=telemetry_type,
+        source_module=env.source_module,
+        source_instance_id=InstanceId(env.source_instance_id),
+        observed_time_utc_ns=env.observed_time_utc_ns,
+        market=_market_from_pb(env.market) if env.HasField("market") else None,
+        symbol=Symbol(env.symbol) if env.HasField("symbol") and env.symbol else None,
+        metrics=metrics,
+        quality_flags=_quality_from_pb(list(env.quality_flags)),
+        stream=_stream_from_pb(env.stream) if env.HasField("stream") else None,
+        connection_id=ConnectionId(env.connection_id) if env.HasField("connection_id") and env.connection_id else None,
+        connection_generation=env.connection_generation if env.HasField("connection_generation") else None,
+        subscription_id=SubscriptionId(env.subscription_id)
+        if env.HasField("subscription_id") and env.subscription_id
+        else None,
+    )

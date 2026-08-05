@@ -1,0 +1,8 @@
+{
+  "request_id": "req-accept-001",
+  "subscription_id": "sub-btcusdt-spot-001",
+  "schema_version": "subscription-accepted.v1",
+  "gateway_instance_id": "gw-instance-01",
+  "accepted_time_utc_ns": 1690000010000000000,
+  "negotiated_payload_schema_versions": ["depth-update.v1", "agg-trade.v1"]
+}

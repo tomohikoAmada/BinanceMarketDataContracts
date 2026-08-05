@@ -7,11 +7,12 @@ Network I/O and server implementation are not part of this module.
 
 from __future__ import annotations
 
+import re
 from typing import Literal
 
 from pydantic import Field, model_validator
 
-from binance_market_data_contracts.common import ContractModel, NonEmptyText
+from binance_market_data_contracts.common import NON_EMPTY_TEXT_PATTERN, ContractModel, NonEmptyText
 from binance_market_data_contracts.enums import (
     ConsumerGapReason,
     DeliveryMode,
@@ -23,9 +24,20 @@ from binance_market_data_contracts.enums import (
     StreamLifecycleState,
     Venue,
 )
-from binance_market_data_contracts.identifiers import GatewayInstanceId, InstanceId, RequestId, SubscriptionId, Symbol
+from binance_market_data_contracts.identifiers import GatewayInstanceId, RequestId, SubscriptionId, Symbol
 from binance_market_data_contracts.market_events import AggTrade, BookTicker, DepthUpdate
 from binance_market_data_contracts.snapshots import LocalOrderBookSnapshot, MarketStateSnapshot
+
+
+def _validate_schema_version_tuple(versions: tuple[str, ...], field_name: str) -> None:
+    non_empty = re.compile(NON_EMPTY_TEXT_PATTERN)
+    seen: set[str] = set()
+    for v in versions:
+        if not non_empty.match(v):
+            raise ValueError(f"{field_name} must contain non-empty, non-whitespace strings, got {v!r}")
+        if v in seen:
+            raise ValueError(f"{field_name} must not contain duplicates, got {v!r}")
+        seen.add(v)
 
 
 class StreamSelector(ContractModel):
@@ -62,6 +74,18 @@ class EventSubscriptionRequest(ContractModel):
             raise ValueError(f"Event subscription requires CONTIGUOUS_EVENTS, got {self.delivery_mode}")
         return self
 
+    @model_validator(mode="after")
+    def _validate_supported_payload_schema_versions(self) -> EventSubscriptionRequest:
+        _validate_schema_version_tuple(self.supported_payload_schema_versions, "supported_payload_schema_versions")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_no_snapshot_selectors(self) -> EventSubscriptionRequest:
+        for sel in self.selectors:
+            if sel.stream == Stream.DEPTH_SNAPSHOT:
+                raise ValueError("DEPTH_SNAPSHOT cannot be subscribed via event stream (REST snapshot only)")
+        return self
+
 
 class OrderBookSubscriptionRequest(ContractModel):
     """Request to subscribe to an order book snapshot + diff stream."""
@@ -80,6 +104,16 @@ class OrderBookSubscriptionRequest(ContractModel):
     def _validate_snapshot_mode(self) -> OrderBookSubscriptionRequest:
         if self.initial_snapshot_mode != InitialSnapshotMode.REQUIRED:
             raise ValueError(f"Order book V1 requires REQUIRED initial snapshot, got {self.initial_snapshot_mode}")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_supported_snapshot_schema_versions(self) -> OrderBookSubscriptionRequest:
+        _validate_schema_version_tuple(self.supported_snapshot_schema_versions, "supported_snapshot_schema_versions")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_supported_update_schema_versions(self) -> OrderBookSubscriptionRequest:
+        _validate_schema_version_tuple(self.supported_update_schema_versions, "supported_update_schema_versions")
         return self
 
 
@@ -102,6 +136,11 @@ class MarketStateSubscriptionRequest(ContractModel):
             raise ValueError(f"Market state subscription requires LATEST_STATE, got {self.delivery_mode}")
         return self
 
+    @model_validator(mode="after")
+    def _validate_supported_schema_versions(self) -> MarketStateSubscriptionRequest:
+        _validate_schema_version_tuple(self.supported_schema_versions, "supported_schema_versions")
+        return self
+
 
 class SubscriptionAccepted(ContractModel):
     """Confirms a subscription was accepted by the Gateway."""
@@ -109,9 +148,14 @@ class SubscriptionAccepted(ContractModel):
     request_id: RequestId
     subscription_id: SubscriptionId
     schema_version: Literal["subscription-accepted.v1"]
-    gateway_instance_id: InstanceId
+    gateway_instance_id: GatewayInstanceId
     accepted_time_utc_ns: int = Field(..., ge=0)
     negotiated_payload_schema_versions: tuple[str, ...] = Field(..., min_length=1)
+
+    @model_validator(mode="after")
+    def _validate_negotiated_payload_schema_versions(self) -> SubscriptionAccepted:
+        _validate_schema_version_tuple(self.negotiated_payload_schema_versions, "negotiated_payload_schema_versions")
+        return self
 
 
 class ConsumerGapNotice(ContractModel):
@@ -208,6 +252,27 @@ class GatewayEventEnvelope(ContractModel):
             raise ValueError(f"GatewayEventEnvelope must have exactly one payload, got {len(non_none)}")
         return self
 
+    @model_validator(mode="after")
+    def _validate_identity_consistency(self) -> GatewayEventEnvelope:
+        payload = self.subscription_accepted or self.consumer_gap or self.stream_status
+        if payload is not None and hasattr(payload, "subscription_id"):
+            if payload.subscription_id != self.envelope_metadata.subscription_id:
+                raise ValueError(
+                    f"Identity conflict: payload subscription_id ({payload.subscription_id}) "
+                    f"!= envelope_metadata.subscription_id ({self.envelope_metadata.subscription_id})"
+                )
+        if (
+            self.subscription_accepted is not None
+            and self.subscription_accepted.gateway_instance_id != self.envelope_metadata.gateway_instance_id
+        ):
+            raise ValueError(
+                f"Identity conflict: SubscriptionAccepted gateway_instance_id "
+                f"({self.subscription_accepted.gateway_instance_id}) "
+                f"!= envelope_metadata.gateway_instance_id "
+                f"({self.envelope_metadata.gateway_instance_id})"
+            )
+        return self
+
 
 class OrderBookStreamItem(ContractModel):
     """Wraps a single item for the order book stream.
@@ -239,6 +304,17 @@ class OrderBookStreamItem(ContractModel):
             raise ValueError(f"OrderBookStreamItem must have exactly one payload, got {len(non_none)}")
         return self
 
+    @model_validator(mode="after")
+    def _validate_identity_consistency(self) -> OrderBookStreamItem:
+        payload = self.subscription_accepted or self.consumer_gap or self.stream_status
+        if payload is not None and hasattr(payload, "subscription_id"):
+            if payload.subscription_id != self.envelope_metadata.subscription_id:
+                raise ValueError(
+                    f"Identity conflict: payload subscription_id ({payload.subscription_id}) "
+                    f"!= envelope_metadata.subscription_id ({self.envelope_metadata.subscription_id})"
+                )
+        return self
+
 
 class MarketStateStreamItem(ContractModel):
     """Wraps a single item for the market state stream.
@@ -268,6 +344,17 @@ class MarketStateStreamItem(ContractModel):
             raise ValueError(f"MarketStateStreamItem must have exactly one payload, got {len(non_none)}")
         return self
 
+    @model_validator(mode="after")
+    def _validate_identity_consistency(self) -> MarketStateStreamItem:
+        payload = self.subscription_accepted or self.consumer_gap or self.stream_status
+        if payload is not None and hasattr(payload, "subscription_id"):
+            if payload.subscription_id != self.envelope_metadata.subscription_id:
+                raise ValueError(
+                    f"Identity conflict: payload subscription_id ({payload.subscription_id}) "
+                    f"!= envelope_metadata.subscription_id ({self.envelope_metadata.subscription_id})"
+                )
+        return self
+
 
 class GatewayStatusRequest(ContractModel):
     """One-shot request for Gateway operational status."""
@@ -283,7 +370,7 @@ class MarketRuntimeStatus(ContractModel):
     market: Market
     symbol: Symbol
     state: StreamLifecycleState
-    last_event_utc_ns: int = Field(..., ge=0)
+    last_event_utc_ns: int | None = None
     connection_generation: int = Field(..., ge=1)
     active_subscription_count: int = Field(default=0, ge=0)
 

@@ -1,0 +1,14 @@
+{
+  "request_id": "req-empty-versions-001",
+  "schema_version": "event-subscription-request.v1",
+  "selectors": [
+    {
+      "venue": "BINANCE",
+      "market": "SPOT",
+      "symbol": "BTCUSDT",
+      "stream": "DIFF_DEPTH"
+    }
+  ],
+  "delivery_mode": "CONTIGUOUS_EVENTS",
+  "supported_payload_schema_versions": []
+}

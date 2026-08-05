@@ -4,7 +4,7 @@ package binance_market_data.common.v1;
 
 import "binance_market_data/common/v1/enums.proto";
 
-option go_package = "github.com/binance-market-data/contracts/gen/go/common/v1;commonv1";
+option go_package = "github.com/tomohikoAmada/BinanceMarketDataContracts/gen/go/common/v1;commonv1";
 
 // PriceLevel represents a single price level in an order book.
 // price is a > 0 decimal string. quantity is a >= 0 decimal string.
@@ -17,7 +17,7 @@ message PriceLevel {
 }
 
 // EventMetadata carries producer context for a market event.
-// All time values use None/0 to indicate "not available".
+// Optional field absence means "not available". Zero is not a missing-value sentinel.
 // Do not use a single ambiguous "timestamp" field.
 message EventMetadata {
   Venue venue = 1;

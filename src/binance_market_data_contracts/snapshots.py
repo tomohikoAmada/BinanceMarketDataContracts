@@ -217,6 +217,7 @@ class DataHealthSnapshot(ContractModel):
     book_synchronized: bool | None = None
     recorder_alive: bool | None = None
     gateway_alive: bool | None = None
+    consumer_delivery_latency: LatencySummary | None = None
     reason_codes: tuple[ReasonCode, ...] = ()
     observed_time_utc_ns: int = Field(..., ge=0)
     quality_flags: tuple[QualityFlag, ...] = ()

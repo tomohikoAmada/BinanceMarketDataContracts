@@ -4,7 +4,7 @@ package binance_market_data.gateway.v1;
 
 import "binance_market_data/gateway/v1/gateway_messages.proto";
 
-option go_package = "github.com/binance-market-data/contracts/gen/go/gateway/v1;gatewayv1";
+option go_package = "github.com/tomohikoAmada/BinanceMarketDataContracts/gen/go/gateway/v1;gatewayv1";
 
 // BinanceMarketDataGatewayService provides streaming market data subscriptions.
 //

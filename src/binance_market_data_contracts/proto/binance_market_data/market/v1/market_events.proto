@@ -5,7 +5,7 @@ package binance_market_data.market.v1;
 import "binance_market_data/common/v1/enums.proto";
 import "binance_market_data/common/v1/metadata.proto";
 
-option go_package = "github.com/binance-market-data/contracts/gen/go/market/v1;marketv1";
+option go_package = "github.com/tomohikoAmada/BinanceMarketDataContracts/gen/go/market/v1;marketv1";
 
 // DepthUpdate represents a Binance order book depth update.
 // Uses DIFF_DEPTH stream semantics. quantity "0" means remove the price level.

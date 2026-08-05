@@ -963,8 +963,8 @@ Python Consumer 共享相同的消息定义。Gateway 实现语言未由本仓�
 
 ### 注意事项
 
-- **浏览器消费者**不直接使用 gRPC。浏览器通过 WebSocket 或 HTTP 接入，由 Gateway 或中间层进行协议转换。
-- **生成的 `.proto` 代码**（Python stubs 等）**不得手动编辑**。生成代码位于 `src/binance_market_data_contracts/wire/generated/`，由 `buf generate` 自动生成。
+- **浏览器消费者**不直接使用 gRPC。浏览器通过 WebSocket 或 HTTP 接入 View Backend / BFF，由 View Backend 负责协议转换，而非 Gateway。
+- **生成的 `.proto` 代码**（Python stubs 等）**不得手动编辑**。生成代码位于 `src/binance_market_data_contracts/wire/generated/`，由 `python -m binance_market_data_contracts.proto_codegen` 自动生成。
 - 第一版不引入 Kafka、Kubernetes 或分布式一致性系统。
 
 ## 10.4 多语言原则
