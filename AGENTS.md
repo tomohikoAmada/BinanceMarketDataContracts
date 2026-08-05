@@ -45,7 +45,7 @@ This package provides **public data types only**:
   reserved "old_field_name";
   ```
 - Wire breaking change → new major package (e.g., `v2/`)
-- Generated files under `src/binance_market_data_contracts/wire/generated/` are **never** hand-edited
+- Generated files under `src/binance_market_data/` are **never** hand-edited
 - No binary floating-point for price/quantity fields in protobuf; use string representation
 - No `google.protobuf.Any` or `google.protobuf.Struct`
 - No `timestamp` as a field name; use `exchange_event_time_ms`, `receive_time_utc_ns`, etc.
@@ -64,7 +64,7 @@ This package provides **public data types only**:
 python -m pip install -e ".[dev]"
 ruff check .
 ruff format --check .
-mypy src
+mypy src/binance_market_data_contracts
 pytest -q
 python -m binance_market_data_contracts.schema_export --output schemas/json
 git diff --exit-code -- schemas/json

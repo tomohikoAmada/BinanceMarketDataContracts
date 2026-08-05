@@ -1,0 +1,1 @@
+{"stream_type":"EVENT","delivery_mode":"CONTIGUOUS_EVENTS","items":[{"session_sequence":1,"connection_generation":1,"payload":"SUBSCRIPTION_ACCEPTED"},{"session_sequence":3,"connection_generation":1,"payload":"DEPTH_UPDATE","update_id":500}]}

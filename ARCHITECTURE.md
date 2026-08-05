@@ -31,10 +31,16 @@ PROPOSED/DRAFT until they meet the formal acceptance criteria below.
 | telemetry | DRAFT | v1 |
 | control-command | DRAFT | v1 |
 | command-result | DRAFT | v1 |
-| gateway-stream-market-snapshot | DRAFT | v1 |
-| gateway-stream-depth-update | DRAFT | v1 |
-| gateway-stream-agg-trade | DRAFT | v1 |
-| gateway-control-command | DRAFT | v1 |
+| event-subscription-request | DRAFT | v1 |
+| order-book-subscription-request | DRAFT | v1 |
+| market-state-subscription-request | DRAFT | v1 |
+| subscription-accepted | DRAFT | v1 |
+| consumer-gap-notice | DRAFT | v1 |
+| stream-status | DRAFT | v1 |
+| gateway-event-envelope | DRAFT | v1 |
+| order-book-stream-item | DRAFT | v1 |
+| market-state-stream-item | DRAFT | v1 |
+| gateway-status-snapshot | DRAFT | v1 |
 
 ## Acceptance criteria
 

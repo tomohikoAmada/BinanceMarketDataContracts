@@ -26,6 +26,7 @@
         "last_event_utc_ns": {
           "anyOf": [
             {
+              "minimum": 0,
               "type": "integer"
             },
             {

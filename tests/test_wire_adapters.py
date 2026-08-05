@@ -399,6 +399,111 @@ class TestNegativeAdapters:
         with pytest.raises(UnspecifiedEnumError, match="Stream"):
             _stream_from_pb(pb_enums.Stream.STREAM_UNSPECIFIED)
 
+    @pytest.mark.parametrize(
+        ("enum_name", "mapper"),
+        [
+            (
+                "Venue",
+                lambda: __import__(
+                    "binance_market_data_contracts.wire.adapters", fromlist=["_venue_from_pb"]
+                )._venue_from_pb(999, "TestContract.venue"),
+            ),
+            (
+                "Market",
+                lambda: __import__(
+                    "binance_market_data_contracts.wire.adapters", fromlist=["_market_from_pb"]
+                )._market_from_pb(999, "TestContract.market"),
+            ),
+            (
+                "Stream",
+                lambda: __import__(
+                    "binance_market_data_contracts.wire.adapters", fromlist=["_stream_from_pb"]
+                )._stream_from_pb(999, "TestContract.stream"),
+            ),
+            (
+                "QualityFlag",
+                lambda: __import__(
+                    "binance_market_data_contracts.wire.adapters", fromlist=["_quality_from_pb"]
+                )._quality_from_pb([999], "TestContract.quality_flags"),
+            ),
+            (
+                "ReasonCode",
+                lambda: __import__(
+                    "binance_market_data_contracts.wire.adapters", fromlist=["_reason_code_from_pb"]
+                )._reason_code_from_pb(999, "TestContract.reason_code"),
+            ),
+            (
+                "ConnectionState",
+                lambda: __import__(
+                    "binance_market_data_contracts.wire.adapters", fromlist=["_connection_state_from_pb"]
+                )._connection_state_from_pb(999, "TestContract.connection_state"),
+            ),
+            (
+                "ResyncState",
+                lambda: __import__(
+                    "binance_market_data_contracts.wire.adapters", fromlist=["_resync_state_from_pb"]
+                )._resync_state_from_pb(999, "TestContract.resync_state"),
+            ),
+            (
+                "SnapshotSource",
+                lambda: __import__(
+                    "binance_market_data_contracts.wire.adapters", fromlist=["_snapshot_source_from_pb"]
+                )._snapshot_source_from_pb(999, "TestContract.source"),
+            ),
+            (
+                "DeliveryMode",
+                lambda: __import__(
+                    "binance_market_data_contracts.wire.adapters", fromlist=["_delivery_mode_from_pb"]
+                )._delivery_mode_from_pb(999, "TestContract.delivery_mode"),
+            ),
+            (
+                "InitialSnapshotMode",
+                lambda: __import__(
+                    "binance_market_data_contracts.wire.adapters", fromlist=["_initial_snapshot_mode_from_pb"]
+                )._initial_snapshot_mode_from_pb(999, "TestContract.initial_snapshot_mode"),
+            ),
+            (
+                "ConsumerGapReason",
+                lambda: __import__(
+                    "binance_market_data_contracts.wire.adapters", fromlist=["_consumer_gap_reason_from_pb"]
+                )._consumer_gap_reason_from_pb(999, "TestContract.reason"),
+            ),
+            (
+                "RecoveryAction",
+                lambda: __import__(
+                    "binance_market_data_contracts.wire.adapters", fromlist=["_recovery_action_from_pb"]
+                )._recovery_action_from_pb(999, "TestContract.recovery_action"),
+            ),
+            (
+                "StreamLifecycleState",
+                lambda: __import__(
+                    "binance_market_data_contracts.wire.adapters", fromlist=["_stream_lifecycle_state_from_pb"]
+                )._stream_lifecycle_state_from_pb(999, "TestContract.state"),
+            ),
+            (
+                "HealthState",
+                lambda: __import__(
+                    "binance_market_data_contracts.wire.adapters", fromlist=["_health_state_from_pb"]
+                )._health_state_from_pb(999, "TestContract.health"),
+            ),
+            (
+                "TelemetryType",
+                lambda: __import__(
+                    "binance_market_data_contracts.wire.adapters", fromlist=["_telemetry_type_from_pb"]
+                )._telemetry_type_from_pb(999, "TestContract.telemetry_type"),
+            ),
+        ],
+    )
+    def test_unknown_enum_values_are_normalized(self, enum_name, mapper):
+        from binance_market_data_contracts.wire.adapters import UnknownEnumValueError
+
+        with pytest.raises(UnknownEnumValueError) as exc_info:
+            mapper()
+        message = str(exc_info.value)
+        assert enum_name in message
+        assert "999" in message
+        assert "TestContract." in message
+
     def test_wrong_schema_version_rejected(self):
         from binance_market_data.common.v1 import enums_pb2
         from binance_market_data.projection.v1 import snapshots_pb2

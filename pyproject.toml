@@ -50,6 +50,7 @@ binance_market_data_contracts = [
     "py.typed",
     "proto/**/*.proto",
 ]
+binance_market_data = ["**/*.pyi"]
 
 [tool.ruff]
 target-version = "py311"
@@ -69,19 +70,9 @@ line-ending = "lf"
 strict = true
 python_version = "3.11"
 show_error_codes = true
-exclude = ["build", "dist", ".venv", "venv", "src/binance_market_data"]
+exclude = "^src/binance_market_data/"
 
-[[tool.mypy.overrides]]
-module = [
-    "binance_market_data.*",
-]
-ignore_missing_imports = true
 
-[[tool.mypy.overrides]]
-module = [
-    "binance_market_data_contracts.wire.adapters",
-]
-ignore_errors = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -11,11 +11,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import shutil
 import subprocess
 import sys
-from contextlib import suppress
 from pathlib import Path
-from tempfile import TemporaryDirectory
+from tempfile import TemporaryDirectory, gettempdir
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 ROOT = PACKAGE_DIR.parent
@@ -45,6 +45,9 @@ def _collect_proto_files() -> list[Path]:
 
 def _add_init_files(base_dir: Path) -> None:
     """Add __init__.py files to all directories under base_dir."""
+    root_init = base_dir / "__init__.py"
+    if not root_init.exists():
+        root_init.write_text("")
     for path in base_dir.rglob("*"):
         if path.is_dir():
             init_file = path / "__init__.py"
@@ -60,21 +63,26 @@ def _collect_tracked_files(base_dir: Path) -> set[str]:
     return files
 
 
-def _safe_clean_target(target: Path, gen_package: str = "binance_market_data") -> None:
-    """Remove only the generated package directory."""
-    pkg_dir = target / gen_package
-    if not pkg_dir.exists():
-        return
-    for path in sorted(pkg_dir.rglob("*"), reverse=True):
-        if path.is_dir():
-            with suppress(OSError):
-                path.rmdir()
-    if pkg_dir.exists():
-        pkg_dir.rmdir()
+def _safe_clean_generated_package(output_dir: Path) -> None:
+    """Remove only the generated package from an approved output directory."""
+    resolved_output = output_dir.resolve()
+    resolved_repo_src = ROOT.resolve()
+    resolved_temp_root = Path(gettempdir()).resolve()
+    is_temporary_src = resolved_output.name == "src" and resolved_output.is_relative_to(resolved_temp_root)
+    if resolved_output != resolved_repo_src and not is_temporary_src:
+        raise RuntimeError(f"Refusing to clean generated package outside an approved src directory: {resolved_output}")
+
+    package_dir = resolved_output / "binance_market_data"
+    if package_dir.name != "binance_market_data" or package_dir.parent != resolved_output:
+        raise RuntimeError(f"Unsafe generated package path: {package_dir}")
+    if package_dir.is_symlink():
+        raise RuntimeError(f"Refusing to remove generated package symlink: {package_dir}")
+    if package_dir.exists():
+        shutil.rmtree(package_dir)
 
 
 def _generate(output_dir: Path) -> None:
-    _safe_clean_target(output_dir)
+    _safe_clean_generated_package(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     protoc = _find_protoc()
@@ -88,6 +96,7 @@ def _generate(output_dir: Path) -> None:
         [
             f"--proto_path={PROTO_ROOT}",
             f"--python_out={output_dir}",
+            f"--pyi_out={output_dir}",
             f"--grpc_python_out={output_dir}",
         ]
     )
@@ -97,7 +106,7 @@ def _generate(output_dir: Path) -> None:
         print(f"protoc failed:\n{result.stderr}", file=sys.stderr)
         sys.exit(1)
 
-    _add_init_files(output_dir)
+    _add_init_files(output_dir / "binance_market_data")
 
     # Remove empty _pb2_grpc.py stubs for files that have no services
     for grpc_file in sorted(output_dir.rglob("*_pb2_grpc.py")):

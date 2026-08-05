@@ -1,0 +1,4 @@
+{
+  "schema_version": "gateway-status-snapshot.v1", "gateway_instance_id": "gw-1", "observed_time_utc_ns": 1, "uptime_seconds": 1,
+  "markets": [], "total_active_subscriptions": 0, "timestamp": 1
+}

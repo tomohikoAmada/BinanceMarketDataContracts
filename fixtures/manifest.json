@@ -571,6 +571,42 @@
       "validation_scope": "PYDANTIC_ONLY",
       "expected_error_code": "value_error",
       "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/event-subscription-request.v1.duplicate-schema-version.json", "contract_name": "event-subscription-request.v1", "schema_version": "event-subscription-request.v1", "python_type": "EventSubscriptionRequest", "valid": false, "scenario": "Duplicate supported schema version", "validation_scope": "PYDANTIC_ONLY", "expected_error_code": "value_error", "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/event-subscription-request.v1.whitespace-schema-version.json", "contract_name": "event-subscription-request.v1", "schema_version": "event-subscription-request.v1", "python_type": "EventSubscriptionRequest", "valid": false, "scenario": "Whitespace supported schema version", "validation_scope": "PYDANTIC_ONLY", "expected_error_code": "value_error", "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/gateway-event-envelope.v1.generation-zero.json", "contract_name": "gateway-event-envelope.v1", "schema_version": "gateway-event-envelope.v1", "python_type": "GatewayEventEnvelope", "valid": false, "scenario": "Connection generation zero", "validation_scope": "BOTH", "expected_error_code": "greater_than_equal", "expected_error_path": "envelope_metadata.connection_generation"
+    },
+    {
+      "path": "invalid/gateway-event-envelope.v1.session-sequence-zero.json", "contract_name": "gateway-event-envelope.v1", "schema_version": "gateway-event-envelope.v1", "python_type": "GatewayEventEnvelope", "valid": false, "scenario": "Session sequence zero", "validation_scope": "BOTH", "expected_error_code": "greater_than_equal", "expected_error_path": "envelope_metadata.session_sequence"
+    },
+    {
+      "path": "invalid/gateway-event-envelope.v1.multiple-payloads.json", "contract_name": "gateway-event-envelope.v1", "schema_version": "gateway-event-envelope.v1", "python_type": "GatewayEventEnvelope", "valid": false, "scenario": "Multiple envelope payloads", "validation_scope": "PYDANTIC_ONLY", "expected_error_code": "value_error", "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/consumer-gap-notice.v1.reversed-sequence.json", "contract_name": "consumer-gap-notice.v1", "schema_version": "consumer-gap-notice.v1", "python_type": "ConsumerGapNotice", "valid": false, "scenario": "Reversed gap sequence", "validation_scope": "PYDANTIC_ONLY", "expected_error_code": "value_error", "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/order-book-subscription-request.v1.depth-limit-zero.json", "contract_name": "order-book-subscription-request.v1", "schema_version": "order-book-subscription-request.v1", "python_type": "OrderBookSubscriptionRequest", "valid": false, "scenario": "Order book depth limit zero", "validation_scope": "BOTH", "expected_error_code": "greater_than", "expected_error_path": "depth_limit"
+    },
+    {
+      "path": "invalid/market-state-subscription-request.v1.depth-limit-zero.json", "contract_name": "market-state-subscription-request.v1", "schema_version": "market-state-subscription-request.v1", "python_type": "MarketStateSubscriptionRequest", "valid": false, "scenario": "Market state depth limit zero", "validation_scope": "BOTH", "expected_error_code": "greater_than", "expected_error_path": "depth_limit"
+    },
+    {
+      "path": "invalid/gateway-status-snapshot.v1.negative-last-event-time.json", "contract_name": "gateway-status-snapshot.v1", "schema_version": "gateway-status-snapshot.v1", "python_type": "GatewayStatusSnapshot", "valid": false, "scenario": "Negative last event time", "validation_scope": "BOTH", "expected_error_code": "greater_than_equal", "expected_error_path": "markets.0.last_event_utc_ns"
+    },
+    {
+      "path": "invalid/order-book-stream-item.v1.wrong-gateway-instance.json", "contract_name": "order-book-stream-item.v1", "schema_version": "order-book-stream-item.v1", "python_type": "OrderBookStreamItem", "valid": false, "scenario": "Order book accepted gateway identity mismatch", "validation_scope": "PYDANTIC_ONLY", "expected_error_code": "value_error", "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/market-state-stream-item.v1.wrong-gateway-instance.json", "contract_name": "market-state-stream-item.v1", "schema_version": "market-state-stream-item.v1", "python_type": "MarketStateStreamItem", "valid": false, "scenario": "Market state accepted gateway identity mismatch", "validation_scope": "PYDANTIC_ONLY", "expected_error_code": "value_error", "expected_error_path": "$"
+    },
+    {
+      "path": "invalid/gateway-status-snapshot.v1.unknown-field.json", "contract_name": "gateway-status-snapshot.v1", "schema_version": "gateway-status-snapshot.v1", "python_type": "GatewayStatusSnapshot", "valid": false, "scenario": "Unknown status snapshot field", "validation_scope": "BOTH", "expected_error_code": "extra_forbidden", "expected_error_path": "timestamp"
     }
   ]
 }

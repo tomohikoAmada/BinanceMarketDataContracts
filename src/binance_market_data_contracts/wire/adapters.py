@@ -6,7 +6,7 @@ All Proto → Pydantic conversions validate through Pydantic strict mode.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -96,8 +96,8 @@ class WireError(Exception):
 class UnspecifiedEnumError(WireError):
     """A protobuf enum was UNSPECIFIED (0), which is not a legal business value."""
 
-    def __init__(self, enum_name: str) -> None:
-        super().__init__(f"Protobuf enum {enum_name} is UNSPECIFIED — not a valid business value")
+    def __init__(self, enum_name: str, value: int, context: str) -> None:
+        super().__init__(f"{context}: Protobuf enum {enum_name} value {value} is UNSPECIFIED")
 
 
 class UnsupportedSchemaVersionError(WireError):
@@ -127,6 +127,29 @@ def _require_exact_string(*, contract: str, field: str, actual: str, expected: s
         raise UnexpectedWireValueError(contract, field, expected, actual)
 
 
+TEnum = TypeVar("TEnum")
+
+
+def _mapped_enum_from_pb(
+    *,
+    value: int,
+    mapping: Mapping[int, TEnum],
+    enum_name: str,
+    context: str,
+    unspecified_value: int,
+    allow_unspecified_none: bool = False,
+) -> TEnum | None:
+    """Map a protobuf enum while preserving optional presence semantics."""
+    if value == unspecified_value:
+        if allow_unspecified_none:
+            return None
+        raise UnspecifiedEnumError(enum_name, value, context)
+    try:
+        return mapping[value]
+    except KeyError:
+        raise UnknownEnumValueError(enum_name, value, context) from None
+
+
 # ---------------------------------------------------------------------------
 # Enum mapping dictionaries
 # ---------------------------------------------------------------------------
@@ -138,13 +161,19 @@ _VENUE_PB_TO_PY: Mapping[int, Venue] = {
 _VENUE_PY_TO_PB: Mapping[Venue, int] = {v: k for k, v in _VENUE_PB_TO_PY.items()}
 
 
-def _venue_from_pb(v: int) -> Venue:
-    if v == pb_enums.Venue.VENUE_UNSPECIFIED:
-        raise UnspecifiedEnumError("Venue")
-    return _VENUE_PB_TO_PY[v]
+def _venue_from_pb(v: int, context: str = "WireContract.venue") -> Venue:
+    result = _mapped_enum_from_pb(
+        value=v,
+        mapping=_VENUE_PB_TO_PY,
+        enum_name="Venue",
+        context=context,
+        unspecified_value=pb_enums.Venue.VENUE_UNSPECIFIED,
+    )
+    assert result is not None
+    return result
 
 
-def _venue_to_pb(v: Venue) -> int:
+def _venue_to_pb(v: Venue) -> Any:
     return _VENUE_PY_TO_PB[v]
 
 
@@ -156,13 +185,19 @@ _MARKET_PB_TO_PY: Mapping[int, Market] = {
 _MARKET_PY_TO_PB: Mapping[Market, int] = {v: k for k, v in _MARKET_PB_TO_PY.items()}
 
 
-def _market_from_pb(v: int) -> Market:
-    if v == pb_enums.Market.MARKET_UNSPECIFIED:
-        raise UnspecifiedEnumError("Market")
-    return _MARKET_PB_TO_PY[v]
+def _market_from_pb(v: int, context: str = "WireContract.market") -> Market:
+    result = _mapped_enum_from_pb(
+        value=v,
+        mapping=_MARKET_PB_TO_PY,
+        enum_name="Market",
+        context=context,
+        unspecified_value=pb_enums.Market.MARKET_UNSPECIFIED,
+    )
+    assert result is not None
+    return result
 
 
-def _market_to_pb(v: Market) -> int:
+def _market_to_pb(v: Market) -> Any:
     return _MARKET_PY_TO_PB[v]
 
 
@@ -176,13 +211,19 @@ _STREAM_PB_TO_PY: Mapping[int, Stream] = {
 _STREAM_PY_TO_PB: Mapping[Stream, int] = {v: k for k, v in _STREAM_PB_TO_PY.items()}
 
 
-def _stream_from_pb(v: int) -> Stream:
-    if v == pb_enums.Stream.STREAM_UNSPECIFIED:
-        raise UnspecifiedEnumError("Stream")
-    return _STREAM_PB_TO_PY[v]
+def _stream_from_pb(v: int, context: str = "WireContract.stream") -> Stream:
+    result = _mapped_enum_from_pb(
+        value=v,
+        mapping=_STREAM_PB_TO_PY,
+        enum_name="Stream",
+        context=context,
+        unspecified_value=pb_enums.Stream.STREAM_UNSPECIFIED,
+    )
+    assert result is not None
+    return result
 
 
-def _stream_to_pb(v: Stream) -> int:
+def _stream_to_pb(v: Stream) -> Any:
     return _STREAM_PY_TO_PB[v]
 
 
@@ -208,27 +249,28 @@ _QUALITY_FLAG_PB_TO_PY: Mapping[int, QualityFlag] = {
 _QUALITY_FLAG_PY_TO_PB: Mapping[QualityFlag, int] = {v: k for k, v in _QUALITY_FLAG_PB_TO_PY.items()}
 
 
-def _quality_from_pb(flags: list[int]) -> tuple[QualityFlag, ...]:
+def _quality_from_pb(flags: list[int], context: str = "WireContract.quality_flags") -> tuple[QualityFlag, ...]:
     result: list[QualityFlag] = []
     for f in flags:
-        if f == pb_enums.QualityFlag.QUALITY_FLAG_UNSPECIFIED:
-            raise UnspecifiedEnumError("QualityFlag")
-        result.append(_QUALITY_FLAG_PB_TO_PY[f])
+        mapped = _mapped_enum_from_pb(
+            value=f,
+            mapping=_QUALITY_FLAG_PB_TO_PY,
+            enum_name="QualityFlag",
+            context=context,
+            unspecified_value=pb_enums.QualityFlag.QUALITY_FLAG_UNSPECIFIED,
+        )
+        assert mapped is not None
+        result.append(mapped)
     return tuple(result)
 
 
-def _quality_to_pb(flags: tuple[QualityFlag, ...]) -> list[int]:
+def _quality_to_pb(flags: tuple[QualityFlag, ...]) -> list[Any]:
     return [_QUALITY_FLAG_PY_TO_PB[f] for f in flags]
 
 
 def _optional_uint64(v: int | None) -> int | None:
     """Return None if the value represents 'not set', else the value."""
     return v if v is not None else None
-
-
-def _none_to_zero(v: int | None) -> int:
-    """Protobuf doesn't support None for uint64; use 0 for 'not set' in proto."""
-    return v if v is not None else 0
 
 
 # ---------------------------------------------------------------------------
@@ -249,10 +291,10 @@ def price_level_to_pb(pl: PriceLevel) -> pb_meta.PriceLevel:
 # ---------------------------------------------------------------------------
 
 
-def _event_metadata_from_pb(m: pb_meta.EventMetadata) -> dict[str, Any]:
+def _event_metadata_from_pb(m: pb_meta.EventMetadata, contract: str) -> dict[str, Any]:
     return {
-        "venue": _venue_from_pb(m.venue),
-        "market": _market_from_pb(m.market),
+        "venue": _venue_from_pb(m.venue, f"{contract}.metadata.venue"),
+        "market": _market_from_pb(m.market, f"{contract}.metadata.market"),
         "symbol": Symbol(m.symbol),
         "producer": m.producer,
         "producer_version": m.producer_version,
@@ -270,7 +312,7 @@ def _event_metadata_from_pb(m: pb_meta.EventMetadata) -> dict[str, Any]:
         "receive_monotonic_ns": _optional_uint64(m.receive_monotonic_ns)
         if m.HasField("receive_monotonic_ns")
         else None,
-        "quality_flags": _quality_from_pb(list(m.quality_flags)),
+        "quality_flags": _quality_from_pb(list(m.quality_flags), f"{contract}.metadata.quality_flags"),
     }
 
 
@@ -304,13 +346,13 @@ def _event_metadata_to_pb(m: AggTradeMetadata | DepthUpdateMetadata | BookTicker
 
 
 def depth_update_from_pb(du: pb_events.DepthUpdate) -> DepthUpdate:
-    stream = _stream_from_pb(du.metadata.stream)
+    stream = _stream_from_pb(du.metadata.stream, "DepthUpdate.metadata.stream")
     if stream != Stream.DIFF_DEPTH:
         raise UnexpectedWireValueError("DepthUpdate", "stream", "DIFF_DEPTH", stream.value)
     _require_exact_string(
         contract="DepthUpdate", field="schema_version", actual=du.metadata.schema_version, expected="depth-update.v1"
     )
-    meta = _event_metadata_from_pb(du.metadata)
+    meta = _event_metadata_from_pb(du.metadata, "DepthUpdate")
     meta["stream"] = stream
     meta["schema_version"] = du.metadata.schema_version
     return DepthUpdate(
@@ -343,13 +385,13 @@ def depth_update_to_pb(du: DepthUpdate) -> pb_events.DepthUpdate:
 
 
 def agg_trade_from_pb(at: pb_events.AggTrade) -> AggTrade:
-    stream = _stream_from_pb(at.metadata.stream)
+    stream = _stream_from_pb(at.metadata.stream, "AggTrade.metadata.stream")
     if stream != Stream.AGG_TRADE:
         raise UnexpectedWireValueError("AggTrade", "stream", "AGG_TRADE", stream.value)
     _require_exact_string(
         contract="AggTrade", field="schema_version", actual=at.metadata.schema_version, expected="agg-trade.v1"
     )
-    meta = _event_metadata_from_pb(at.metadata)
+    meta = _event_metadata_from_pb(at.metadata, "AggTrade")
     meta["stream"] = stream
     meta["schema_version"] = at.metadata.schema_version
     return AggTrade(
@@ -383,13 +425,13 @@ def agg_trade_to_pb(at: AggTrade) -> pb_events.AggTrade:
 
 
 def book_ticker_from_pb(bt: pb_events.BookTicker) -> BookTicker:
-    stream = _stream_from_pb(bt.metadata.stream)
+    stream = _stream_from_pb(bt.metadata.stream, "BookTicker.metadata.stream")
     if stream != Stream.BOOK_TICKER:
         raise UnexpectedWireValueError("BookTicker", "stream", "BOOK_TICKER", stream.value)
     _require_exact_string(
         contract="BookTicker", field="schema_version", actual=bt.metadata.schema_version, expected="book-ticker.v1"
     )
-    meta = _event_metadata_from_pb(bt.metadata)
+    meta = _event_metadata_from_pb(bt.metadata, "BookTicker")
     meta["stream"] = stream
     meta["schema_version"] = bt.metadata.schema_version
     return BookTicker(
@@ -427,8 +469,8 @@ def exchange_depth_snapshot_from_pb(es: pb_events.ExchangeDepthSnapshot) -> Exch
         expected="exchange-depth-snapshot.v1",
     )
     return ExchangeDepthSnapshot(
-        venue=_venue_from_pb(es.venue),
-        market=_market_from_pb(es.market),
+        venue=_venue_from_pb(es.venue, "ExchangeDepthSnapshot.venue"),
+        market=_market_from_pb(es.market, "ExchangeDepthSnapshot.market"),
         symbol=Symbol(es.symbol),
         schema_version="exchange-depth-snapshot.v1",
         producer=es.producer,
@@ -442,7 +484,7 @@ def exchange_depth_snapshot_from_pb(es: pb_events.ExchangeDepthSnapshot) -> Exch
         else None,
         receive_time_utc_ns=_optional_uint64(es.receive_time_utc_ns) if es.HasField("receive_time_utc_ns") else None,
         receive_monotonic_ns=_optional_uint64(es.receive_monotonic_ns) if es.HasField("receive_monotonic_ns") else None,
-        quality_flags=_quality_from_pb(list(es.quality_flags)),
+        quality_flags=_quality_from_pb(list(es.quality_flags), "ExchangeDepthSnapshot.quality_flags"),
     )
 
 
@@ -473,9 +515,7 @@ def exchange_depth_snapshot_to_pb(es: ExchangeDepthSnapshot) -> pb_events.Exchan
 # ---------------------------------------------------------------------------
 
 
-def _reason_code_from_pb(v: int) -> ReasonCode | None:
-    if v == 0:
-        return None
+def _reason_code_from_pb(v: int, context: str = "WireContract.reason_code") -> ReasonCode | None:
     mapping: dict[int, ReasonCode] = {
         pb_enums.ReasonCode.REASON_CODE_CONNECTION_LOST: ReasonCode.CONNECTION_LOST,
         pb_enums.ReasonCode.REASON_CODE_CONNECTION_RESUMED: ReasonCode.CONNECTION_RESUMED,
@@ -498,12 +538,17 @@ def _reason_code_from_pb(v: int) -> ReasonCode | None:
         pb_enums.ReasonCode.REASON_CODE_ARCHIVE_BACKLOG: ReasonCode.ARCHIVE_BACKLOG,
         pb_enums.ReasonCode.REASON_CODE_CONFIGURATION_ERROR: ReasonCode.CONFIGURATION_ERROR,
     }
-    if v not in mapping:
-        raise UnknownEnumValueError("ReasonCode", v, "_reason_code_from_pb")
-    return mapping[v]
+    return _mapped_enum_from_pb(
+        value=v,
+        mapping=mapping,
+        enum_name="ReasonCode",
+        context=context,
+        unspecified_value=pb_enums.ReasonCode.REASON_CODE_UNSPECIFIED,
+        allow_unspecified_none=True,
+    )
 
 
-def _reason_code_to_pb(v: ReasonCode | None) -> int:
+def _reason_code_to_pb(v: ReasonCode | None) -> Any:
     if v is None:
         return 0
     mapping: dict[ReasonCode, int] = {
@@ -531,9 +576,7 @@ def _reason_code_to_pb(v: ReasonCode | None) -> int:
     return mapping[v]
 
 
-def _resync_state_from_pb(v: int) -> ResyncState | None:
-    if v == 0:
-        return None
+def _resync_state_from_pb(v: int, context: str = "WireContract.resync_state") -> ResyncState | None:
     mapping: dict[int, ResyncState] = {
         pb_enums.ResyncState.RESYNC_STATE_SYNCHRONIZED: ResyncState.SYNCHRONIZED,
         pb_enums.ResyncState.RESYNC_STATE_RESYNC_REQUIRED: ResyncState.RESYNC_REQUIRED,
@@ -541,12 +584,17 @@ def _resync_state_from_pb(v: int) -> ResyncState | None:
         pb_enums.ResyncState.RESYNC_STATE_RECOVERED: ResyncState.RECOVERED,
         pb_enums.ResyncState.RESYNC_STATE_RESYNC_FAILED: ResyncState.RESYNC_FAILED,
     }
-    if v not in mapping:
-        raise UnknownEnumValueError("ResyncState", v, "_resync_state_from_pb")
-    return mapping[v]
+    return _mapped_enum_from_pb(
+        value=v,
+        mapping=mapping,
+        enum_name="ResyncState",
+        context=context,
+        unspecified_value=pb_enums.ResyncState.RESYNC_STATE_UNSPECIFIED,
+        allow_unspecified_none=True,
+    )
 
 
-def _resync_state_to_pb(v: ResyncState | None) -> int:
+def _resync_state_to_pb(v: ResyncState | None) -> Any:
     if v is None:
         return 0
     mapping: dict[ResyncState, int] = {
@@ -559,18 +607,24 @@ def _resync_state_to_pb(v: ResyncState | None) -> int:
     return mapping[v]
 
 
-def _snapshot_source_from_pb(v: int) -> SnapshotSource:
-    if v == pb_enums.SnapshotSource.SNAPSHOT_SOURCE_UNSPECIFIED:
-        raise UnspecifiedEnumError("SnapshotSource")
+def _snapshot_source_from_pb(v: int, context: str = "LocalOrderBookSnapshot.source") -> SnapshotSource:
     mapping: dict[int, SnapshotSource] = {
         pb_enums.SnapshotSource.SNAPSHOT_SOURCE_GATEWAY_LIVE: SnapshotSource.GATEWAY_LIVE,
         pb_enums.SnapshotSource.SNAPSHOT_SOURCE_RECORDER_REPLAY: SnapshotSource.RECORDER_REPLAY,
         pb_enums.SnapshotSource.SNAPSHOT_SOURCE_HISTORY_REPLAY: SnapshotSource.HISTORY_REPLAY,
     }
-    return mapping[v]
+    result = _mapped_enum_from_pb(
+        value=v,
+        mapping=mapping,
+        enum_name="SnapshotSource",
+        context=context,
+        unspecified_value=pb_enums.SnapshotSource.SNAPSHOT_SOURCE_UNSPECIFIED,
+    )
+    assert result is not None
+    return result
 
 
-def _snapshot_source_to_pb(v: SnapshotSource) -> int:
+def _snapshot_source_to_pb(v: SnapshotSource) -> Any:
     mapping: dict[SnapshotSource, int] = {
         SnapshotSource.GATEWAY_LIVE: pb_enums.SnapshotSource.SNAPSHOT_SOURCE_GATEWAY_LIVE,
         SnapshotSource.RECORDER_REPLAY: pb_enums.SnapshotSource.SNAPSHOT_SOURCE_RECORDER_REPLAY,
@@ -581,12 +635,16 @@ def _snapshot_source_to_pb(v: SnapshotSource) -> int:
 
 def gap_descriptor_from_pb(g: pb_snap.GapDescriptor) -> GapDescriptor:
     return GapDescriptor(
-        stream=_stream_from_pb(g.stream),
+        stream=_stream_from_pb(g.stream, "GapDescriptor.stream"),
         detected_at_utc_ns=g.detected_at_utc_ns,
         previous_sequence=_optional_uint64(g.previous_sequence) if g.HasField("previous_sequence") else None,
         next_sequence=_optional_uint64(g.next_sequence) if g.HasField("next_sequence") else None,
-        reason_code=_reason_code_from_pb(g.reason_code) if g.HasField("reason_code") else None,
-        recovery_state=_resync_state_from_pb(g.recovery_state) if g.HasField("recovery_state") else None,
+        reason_code=_reason_code_from_pb(g.reason_code, "GapDescriptor.reason_code")
+        if g.HasField("reason_code")
+        else None,
+        recovery_state=_resync_state_from_pb(g.recovery_state, "GapDescriptor.recovery_state")
+        if g.HasField("recovery_state")
+        else None,
     )
 
 
@@ -618,8 +676,8 @@ def local_order_book_snapshot_from_pb(ls: pb_snap.LocalOrderBookSnapshot) -> Loc
         expected="local-order-book-snapshot.v1",
     )
     return LocalOrderBookSnapshot(
-        venue=_venue_from_pb(ls.venue),
-        market=_market_from_pb(ls.market),
+        venue=_venue_from_pb(ls.venue, "LocalOrderBookSnapshot.venue"),
+        market=_market_from_pb(ls.market, "LocalOrderBookSnapshot.market"),
         symbol=Symbol(ls.symbol),
         schema_version="local-order-book-snapshot.v1",
         producer=ls.producer,
@@ -635,7 +693,7 @@ def local_order_book_snapshot_from_pb(ls: pb_snap.LocalOrderBookSnapshot) -> Loc
         else None,
         synchronized=ls.synchronized,
         last_gap=gap_descriptor_from_pb(ls.last_gap) if ls.HasField("last_gap") else None,
-        quality_flags=_quality_from_pb(list(ls.quality_flags)),
+        quality_flags=_quality_from_pb(list(ls.quality_flags), "LocalOrderBookSnapshot.quality_flags"),
     )
 
 
@@ -676,8 +734,8 @@ def market_state_snapshot_from_pb(ms: pb_snap.MarketStateSnapshot) -> MarketStat
         expected="market-state-snapshot.v1",
     )
     return MarketStateSnapshot(
-        venue=_venue_from_pb(ms.venue),
-        market=_market_from_pb(ms.market),
+        venue=_venue_from_pb(ms.venue, "MarketStateSnapshot.venue"),
+        market=_market_from_pb(ms.market, "MarketStateSnapshot.market"),
         symbol=Symbol(ms.symbol),
         schema_version="market-state-snapshot.v1",
         producer=ms.producer,
@@ -764,19 +822,25 @@ def market_state_snapshot_to_pb(ms: MarketStateSnapshot) -> pb_snap.MarketStateS
 # ---------------------------------------------------------------------------
 
 
-def _health_state_from_pb(v: int) -> HealthState:
-    if v == pb_enums.HealthState.HEALTH_STATE_UNSPECIFIED:
-        raise UnspecifiedEnumError("HealthState")
+def _health_state_from_pb(v: int, context: str = "DataHealthSnapshot.state") -> HealthState:
     mapping: dict[int, HealthState] = {
         pb_enums.HealthState.HEALTH_STATE_HEALTHY: HealthState.HEALTHY,
         pb_enums.HealthState.HEALTH_STATE_DEGRADED: HealthState.DEGRADED,
         pb_enums.HealthState.HEALTH_STATE_UNRELIABLE: HealthState.UNRELIABLE,
         pb_enums.HealthState.HEALTH_STATE_UNAVAILABLE: HealthState.UNAVAILABLE,
     }
-    return mapping[v]
+    result = _mapped_enum_from_pb(
+        value=v,
+        mapping=mapping,
+        enum_name="HealthState",
+        context=context,
+        unspecified_value=pb_enums.HealthState.HEALTH_STATE_UNSPECIFIED,
+    )
+    assert result is not None
+    return result
 
 
-def _health_state_to_pb(v: HealthState) -> int:
+def _health_state_to_pb(v: HealthState) -> Any:
     mapping: dict[HealthState, int] = {
         HealthState.HEALTHY: pb_enums.HealthState.HEALTH_STATE_HEALTHY,
         HealthState.DEGRADED: pb_enums.HealthState.HEALTH_STATE_DEGRADED,
@@ -786,9 +850,7 @@ def _health_state_to_pb(v: HealthState) -> int:
     return mapping[v]
 
 
-def _connection_state_from_pb(v: int) -> ConnectionState | None:
-    if v == 0:
-        return None
+def _connection_state_from_pb(v: int, context: str = "DataHealthSnapshot.connection_state") -> ConnectionState | None:
     mapping: dict[int, ConnectionState] = {
         pb_enums.ConnectionState.CONNECTION_STATE_CONNECTING: ConnectionState.CONNECTING,
         pb_enums.ConnectionState.CONNECTION_STATE_CONNECTED: ConnectionState.CONNECTED,
@@ -796,12 +858,17 @@ def _connection_state_from_pb(v: int) -> ConnectionState | None:
         pb_enums.ConnectionState.CONNECTION_STATE_DISCONNECTED: ConnectionState.DISCONNECTED,
         pb_enums.ConnectionState.CONNECTION_STATE_FAILED: ConnectionState.FAILED,
     }
-    if v not in mapping:
-        raise UnknownEnumValueError("ConnectionState", v, "_connection_state_from_pb")
-    return mapping[v]
+    return _mapped_enum_from_pb(
+        value=v,
+        mapping=mapping,
+        enum_name="ConnectionState",
+        context=context,
+        unspecified_value=pb_enums.ConnectionState.CONNECTION_STATE_UNSPECIFIED,
+        allow_unspecified_none=True,
+    )
 
 
-def _connection_state_to_pb(v: ConnectionState | None) -> int:
+def _connection_state_to_pb(v: ConnectionState | None) -> Any:
     if v is None:
         return 0
     mapping: dict[ConnectionState, int] = {
@@ -850,16 +917,18 @@ def data_health_snapshot_from_pb(dhs: pb_snap.DataHealthSnapshot) -> DataHealthS
         raise UnsupportedSchemaVersionError("data-health-snapshot.v1", dhs.schema_version)
     return DataHealthSnapshot(
         health_snapshot_id=SnapshotId(dhs.health_snapshot_id),
-        overall_state=_health_state_from_pb(dhs.overall_state),
-        venue=_venue_from_pb(dhs.venue),
-        market=_market_from_pb(dhs.market),
+        overall_state=_health_state_from_pb(dhs.overall_state, "DataHealthSnapshot.overall_state"),
+        venue=_venue_from_pb(dhs.venue, "DataHealthSnapshot.venue"),
+        market=_market_from_pb(dhs.market, "DataHealthSnapshot.market"),
         symbol=Symbol(dhs.symbol),
         schema_version="data-health-snapshot.v1",
         producer=dhs.producer,
         producer_version=dhs.producer_version,
         source_instance_id=InstanceId(dhs.source_instance_id),
-        stream=_stream_from_pb(dhs.stream) if dhs.HasField("stream") else None,
-        connection_state=_connection_state_from_pb(dhs.connection_state) if dhs.HasField("connection_state") else None,
+        stream=_stream_from_pb(dhs.stream, "DataHealthSnapshot.stream") if dhs.HasField("stream") else None,
+        connection_state=_connection_state_from_pb(dhs.connection_state, "DataHealthSnapshot.connection_state")
+        if dhs.HasField("connection_state")
+        else None,
         last_message_age_ms=_optional_uint64(dhs.last_message_age_ms) if dhs.HasField("last_message_age_ms") else None,
         receive_latency=_latency_summary_from_pb(dhs.receive_latency) if dhs.HasField("receive_latency") else None,
         publish_latency=_latency_summary_from_pb(dhs.publish_latency) if dhs.HasField("publish_latency") else None,
@@ -867,13 +936,19 @@ def data_health_snapshot_from_pb(dhs: pb_snap.DataHealthSnapshot) -> DataHealthS
         if dhs.HasField("consumer_delivery_latency")
         else None,
         sequence_gap_count=dhs.sequence_gap_count,
-        resync_state=_resync_state_from_pb(dhs.resync_state) if dhs.HasField("resync_state") else None,
+        resync_state=_resync_state_from_pb(dhs.resync_state, "DataHealthSnapshot.resync_state")
+        if dhs.HasField("resync_state")
+        else None,
         book_synchronized=dhs.book_synchronized if dhs.HasField("book_synchronized") else None,
         recorder_alive=dhs.recorder_alive if dhs.HasField("recorder_alive") else None,
         gateway_alive=dhs.gateway_alive if dhs.HasField("gateway_alive") else None,
-        reason_codes=tuple(r for rc in dhs.reason_codes if (r := _reason_code_from_pb(rc)) is not None),
+        reason_codes=tuple(
+            r
+            for rc in dhs.reason_codes
+            if (r := _reason_code_from_pb(rc, "DataHealthSnapshot.reason_codes")) is not None
+        ),
         observed_time_utc_ns=dhs.observed_time_utc_ns,
-        quality_flags=_quality_from_pb(list(dhs.quality_flags)),
+        quality_flags=_quality_from_pb(list(dhs.quality_flags), "DataHealthSnapshot.quality_flags"),
     )
 
 
@@ -922,10 +997,10 @@ def data_health_snapshot_to_pb(dhs: DataHealthSnapshot) -> pb_snap.DataHealthSna
 
 def stream_selector_from_pb(ss: pb_id.StreamSelector) -> StreamSelector:
     return StreamSelector(
-        venue=_venue_from_pb(ss.venue),
-        market=_market_from_pb(ss.market),
+        venue=_venue_from_pb(ss.venue, "StreamSelector.venue"),
+        market=_market_from_pb(ss.market, "StreamSelector.market"),
         symbol=Symbol(ss.symbol),
-        stream=_stream_from_pb(ss.stream),
+        stream=_stream_from_pb(ss.stream, "StreamSelector.stream"),
     )
 
 
@@ -1009,9 +1084,7 @@ def subscription_accepted_to_pb(sa: SubscriptionAccepted) -> pb_gw.SubscriptionA
 # ---------------------------------------------------------------------------
 
 
-def _consumer_gap_reason_from_pb(v: int) -> ConsumerGapReason:
-    if v == pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_UNSPECIFIED:
-        raise UnspecifiedEnumError("ConsumerGapReason")
+def _consumer_gap_reason_from_pb(v: int, context: str = "ConsumerGapNotice.reason") -> ConsumerGapReason:
     mapping: dict[int, ConsumerGapReason] = {
         pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_SLOW_CONSUMER: ConsumerGapReason.SLOW_CONSUMER,
         pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_RESUME_NOT_AVAILABLE: ConsumerGapReason.RESUME_NOT_AVAILABLE,
@@ -1020,10 +1093,18 @@ def _consumer_gap_reason_from_pb(v: int) -> ConsumerGapReason:
         pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_CONNECTION_GENERATION_CHANGED: ConsumerGapReason.CONNECTION_GENERATION_CHANGED,  # noqa: E501
         pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_SUBSCRIPTION_RECONFIGURED: ConsumerGapReason.SUBSCRIPTION_RECONFIGURED,  # noqa: E501
     }
-    return mapping[v]
+    result = _mapped_enum_from_pb(
+        value=v,
+        mapping=mapping,
+        enum_name="ConsumerGapReason",
+        context=context,
+        unspecified_value=pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_UNSPECIFIED,
+    )
+    assert result is not None
+    return result
 
 
-def _consumer_gap_reason_to_pb(v: ConsumerGapReason) -> int:
+def _consumer_gap_reason_to_pb(v: ConsumerGapReason) -> Any:
     mapping: dict[ConsumerGapReason, int] = {
         ConsumerGapReason.SLOW_CONSUMER: pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_SLOW_CONSUMER,
         ConsumerGapReason.RESUME_NOT_AVAILABLE: pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_RESUME_NOT_AVAILABLE,
@@ -1035,18 +1116,24 @@ def _consumer_gap_reason_to_pb(v: ConsumerGapReason) -> int:
     return mapping[v]
 
 
-def _recovery_action_from_pb(v: int) -> RecoveryAction:
-    if v == pb_enums.RecoveryAction.RECOVERY_ACTION_UNSPECIFIED:
-        raise UnspecifiedEnumError("RecoveryAction")
+def _recovery_action_from_pb(v: int, context: str = "ConsumerGapNotice.recovery_action") -> RecoveryAction:
     mapping: dict[int, RecoveryAction] = {
         pb_enums.RecoveryAction.RECOVERY_ACTION_NONE: RecoveryAction.NONE,
         pb_enums.RecoveryAction.RECOVERY_ACTION_RESUBSCRIBE: RecoveryAction.RESUBSCRIBE,
         pb_enums.RecoveryAction.RECOVERY_ACTION_REQUEST_NEW_SNAPSHOT: RecoveryAction.REQUEST_NEW_SNAPSHOT,
     }
-    return mapping[v]
+    result = _mapped_enum_from_pb(
+        value=v,
+        mapping=mapping,
+        enum_name="RecoveryAction",
+        context=context,
+        unspecified_value=pb_enums.RecoveryAction.RECOVERY_ACTION_UNSPECIFIED,
+    )
+    assert result is not None
+    return result
 
 
-def _recovery_action_to_pb(v: RecoveryAction) -> int:
+def _recovery_action_to_pb(v: RecoveryAction) -> Any:
     mapping: dict[RecoveryAction, int] = {
         RecoveryAction.NONE: pb_enums.RecoveryAction.RECOVERY_ACTION_NONE,
         RecoveryAction.RESUBSCRIBE: pb_enums.RecoveryAction.RECOVERY_ACTION_RESUBSCRIBE,
@@ -1074,9 +1161,9 @@ def consumer_gap_notice_from_pb(cgn: pb_gw.ConsumerGapNotice) -> ConsumerGapNoti
         else None,
         reason=_consumer_gap_reason_from_pb(cgn.reason),
         recovery_action=_recovery_action_from_pb(cgn.recovery_action),
-        market=_market_from_pb(cgn.market) if cgn.HasField("market") else None,
+        market=_market_from_pb(cgn.market, "ConsumerGapNotice.market") if cgn.HasField("market") else None,
         symbol=Symbol(cgn.symbol) if cgn.HasField("symbol") and cgn.symbol else None,
-        stream=_stream_from_pb(cgn.stream) if cgn.HasField("stream") else None,
+        stream=_stream_from_pb(cgn.stream, "ConsumerGapNotice.stream") if cgn.HasField("stream") else None,
     )
 
 
@@ -1105,9 +1192,7 @@ def consumer_gap_notice_to_pb(cgn: ConsumerGapNotice) -> pb_gw.ConsumerGapNotice
 # ---------------------------------------------------------------------------
 
 
-def _stream_lifecycle_state_from_pb(v: int) -> StreamLifecycleState:
-    if v == pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_UNSPECIFIED:
-        raise UnspecifiedEnumError("StreamLifecycleState")
+def _stream_lifecycle_state_from_pb(v: int, context: str = "StreamStatus.state") -> StreamLifecycleState:
     mapping: dict[int, StreamLifecycleState] = {
         pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_ACCEPTED: StreamLifecycleState.ACCEPTED,
         pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_SNAPSHOT_PENDING: StreamLifecycleState.SNAPSHOT_PENDING,
@@ -1117,10 +1202,18 @@ def _stream_lifecycle_state_from_pb(v: int) -> StreamLifecycleState:
         pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_CLOSING: StreamLifecycleState.CLOSING,
         pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_CLOSED: StreamLifecycleState.CLOSED,
     }
-    return mapping[v]
+    result = _mapped_enum_from_pb(
+        value=v,
+        mapping=mapping,
+        enum_name="StreamLifecycleState",
+        context=context,
+        unspecified_value=pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_UNSPECIFIED,
+    )
+    assert result is not None
+    return result
 
 
-def _stream_lifecycle_state_to_pb(v: StreamLifecycleState) -> int:
+def _stream_lifecycle_state_to_pb(v: StreamLifecycleState) -> Any:
     mapping: dict[StreamLifecycleState, int] = {
         StreamLifecycleState.ACCEPTED: pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_ACCEPTED,
         StreamLifecycleState.SNAPSHOT_PENDING: pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_SNAPSHOT_PENDING,
@@ -1142,7 +1235,9 @@ def stream_status_from_pb(ss: pb_gw.StreamStatus) -> StreamStatus:
         subscription_id=SubscriptionId(ss.subscription_id),
         state=_stream_lifecycle_state_from_pb(ss.state),
         observed_time_utc_ns=ss.observed_time_utc_ns,
-        reason_code=_reason_code_from_pb(ss.reason_code) if ss.HasField("reason_code") else None,
+        reason_code=_reason_code_from_pb(ss.reason_code, "StreamStatus.reason_code")
+        if ss.HasField("reason_code")
+        else None,
         message=ss.message if ss.HasField("message") and ss.message else None,
     )
 
@@ -1308,10 +1403,10 @@ def gateway_status_snapshot_from_pb(gs: pb_gw.GatewayStatusSnapshot) -> GatewayS
         uptime_seconds=gs.uptime_seconds,
         markets=tuple(
             MarketRuntimeStatus(
-                venue=_venue_from_pb(m.venue),
-                market=_market_from_pb(m.market),
+                venue=_venue_from_pb(m.venue, "GatewayStatusSnapshot.markets.venue"),
+                market=_market_from_pb(m.market, "GatewayStatusSnapshot.markets.market"),
                 symbol=Symbol(m.symbol),
-                state=_stream_lifecycle_state_from_pb(m.state),
+                state=_stream_lifecycle_state_from_pb(m.state, "GatewayStatusSnapshot.markets.state"),
                 last_event_utc_ns=m.last_event_utc_ns if m.HasField("last_event_utc_ns") else None,
                 connection_generation=m.connection_generation,
                 active_subscription_count=m.active_subscription_count,
@@ -1347,17 +1442,23 @@ def gateway_status_snapshot_to_pb(gs: GatewayStatusSnapshot) -> pb_gw.GatewaySta
 # ---------------------------------------------------------------------------
 
 
-def _delivery_mode_from_pb(v: int) -> DeliveryMode:
-    if v == pb_enums.DeliveryMode.DELIVERY_MODE_UNSPECIFIED:
-        raise UnspecifiedEnumError("DeliveryMode")
+def _delivery_mode_from_pb(v: int, context: str = "SubscriptionRequest.delivery_mode") -> DeliveryMode:
     mapping: dict[int, DeliveryMode] = {
         pb_enums.DeliveryMode.DELIVERY_MODE_CONTIGUOUS_EVENTS: DeliveryMode.CONTIGUOUS_EVENTS,
         pb_enums.DeliveryMode.DELIVERY_MODE_LATEST_STATE: DeliveryMode.LATEST_STATE,
     }
-    return mapping[v]
+    result = _mapped_enum_from_pb(
+        value=v,
+        mapping=mapping,
+        enum_name="DeliveryMode",
+        context=context,
+        unspecified_value=pb_enums.DeliveryMode.DELIVERY_MODE_UNSPECIFIED,
+    )
+    assert result is not None
+    return result
 
 
-def _delivery_mode_to_pb(v: DeliveryMode) -> int:
+def _delivery_mode_to_pb(v: DeliveryMode) -> Any:
     mapping: dict[DeliveryMode, int] = {
         DeliveryMode.CONTIGUOUS_EVENTS: pb_enums.DeliveryMode.DELIVERY_MODE_CONTIGUOUS_EVENTS,
         DeliveryMode.LATEST_STATE: pb_enums.DeliveryMode.DELIVERY_MODE_LATEST_STATE,
@@ -1365,17 +1466,25 @@ def _delivery_mode_to_pb(v: DeliveryMode) -> int:
     return mapping[v]
 
 
-def _initial_snapshot_mode_from_pb(v: int) -> InitialSnapshotMode:
-    if v == pb_enums.InitialSnapshotMode.INITIAL_SNAPSHOT_MODE_UNSPECIFIED:
-        raise UnspecifiedEnumError("InitialSnapshotMode")
+def _initial_snapshot_mode_from_pb(
+    v: int, context: str = "OrderBookSubscriptionRequest.initial_snapshot_mode"
+) -> InitialSnapshotMode:
     mapping: dict[int, InitialSnapshotMode] = {
         pb_enums.InitialSnapshotMode.INITIAL_SNAPSHOT_MODE_NONE: InitialSnapshotMode.NONE,
         pb_enums.InitialSnapshotMode.INITIAL_SNAPSHOT_MODE_REQUIRED: InitialSnapshotMode.REQUIRED,
     }
-    return mapping[v]
+    result = _mapped_enum_from_pb(
+        value=v,
+        mapping=mapping,
+        enum_name="InitialSnapshotMode",
+        context=context,
+        unspecified_value=pb_enums.InitialSnapshotMode.INITIAL_SNAPSHOT_MODE_UNSPECIFIED,
+    )
+    assert result is not None
+    return result
 
 
-def _initial_snapshot_mode_to_pb(v: InitialSnapshotMode) -> int:
+def _initial_snapshot_mode_to_pb(v: InitialSnapshotMode) -> Any:
     mapping: dict[InitialSnapshotMode, int] = {
         InitialSnapshotMode.NONE: pb_enums.InitialSnapshotMode.INITIAL_SNAPSHOT_MODE_NONE,
         InitialSnapshotMode.REQUIRED: pb_enums.InitialSnapshotMode.INITIAL_SNAPSHOT_MODE_REQUIRED,
@@ -1390,7 +1499,7 @@ def event_subscription_request_from_pb(req: pb_gw.EventSubscriptionRequest) -> E
         actual=req.schema_version,
         expected="event-subscription-request.v1",
     )
-    delivery_mode = _delivery_mode_from_pb(req.delivery_mode)
+    delivery_mode = _delivery_mode_from_pb(req.delivery_mode, "EventSubscriptionRequest.delivery_mode")
     if delivery_mode != DeliveryMode.CONTIGUOUS_EVENTS:
         raise UnexpectedWireValueError(
             "EventSubscriptionRequest", "delivery_mode", "CONTIGUOUS_EVENTS", delivery_mode.value
@@ -1421,7 +1530,9 @@ def order_book_subscription_request_from_pb(req: pb_gw.OrderBookSubscriptionRequ
         actual=req.schema_version,
         expected="order-book-subscription-request.v1",
     )
-    initial_snapshot_mode = _initial_snapshot_mode_from_pb(req.initial_snapshot_mode)
+    initial_snapshot_mode = _initial_snapshot_mode_from_pb(
+        req.initial_snapshot_mode, "OrderBookSubscriptionRequest.initial_snapshot_mode"
+    )
     if initial_snapshot_mode != InitialSnapshotMode.REQUIRED:
         raise UnexpectedWireValueError(
             "OrderBookSubscriptionRequest", "initial_snapshot_mode", "REQUIRED", initial_snapshot_mode.value
@@ -1429,8 +1540,8 @@ def order_book_subscription_request_from_pb(req: pb_gw.OrderBookSubscriptionRequ
     return OrderBookSubscriptionRequest(
         request_id=RequestId(req.request_id),
         schema_version="order-book-subscription-request.v1",
-        venue=_venue_from_pb(req.venue),
-        market=_market_from_pb(req.market),
+        venue=_venue_from_pb(req.venue, "OrderBookSubscriptionRequest.venue"),
+        market=_market_from_pb(req.market, "OrderBookSubscriptionRequest.market"),
         symbol=Symbol(req.symbol),
         depth_limit=req.depth_limit if req.HasField("depth_limit") else None,
         initial_snapshot_mode=initial_snapshot_mode,
@@ -1463,7 +1574,7 @@ def market_state_subscription_request_from_pb(
         actual=req.schema_version,
         expected="market-state-subscription-request.v1",
     )
-    delivery_mode = _delivery_mode_from_pb(req.delivery_mode)
+    delivery_mode = _delivery_mode_from_pb(req.delivery_mode, "MarketStateSubscriptionRequest.delivery_mode")
     if delivery_mode != DeliveryMode.LATEST_STATE:
         raise UnexpectedWireValueError(
             "MarketStateSubscriptionRequest", "delivery_mode", "LATEST_STATE", delivery_mode.value
@@ -1471,8 +1582,8 @@ def market_state_subscription_request_from_pb(
     return MarketStateSubscriptionRequest(
         request_id=RequestId(req.request_id),
         schema_version="market-state-subscription-request.v1",
-        venue=_venue_from_pb(req.venue),
-        market=_market_from_pb(req.market),
+        venue=_venue_from_pb(req.venue, "MarketStateSubscriptionRequest.venue"),
+        market=_market_from_pb(req.market, "MarketStateSubscriptionRequest.market"),
         symbol=Symbol(req.symbol),
         delivery_mode=delivery_mode,
         depth_limit=req.depth_limit if req.HasField("depth_limit") else None,
@@ -1517,16 +1628,19 @@ _TELEMETRY_TYPE_PB_TO_PY: Mapping[int, TelemetryType] = {
 _TELEMETRY_TYPE_PY_TO_PB: Mapping[TelemetryType, int] = {v: k for k, v in _TELEMETRY_TYPE_PB_TO_PY.items()}
 
 
-def _telemetry_type_from_pb(v: int) -> TelemetryType:
-    if v == pb_telemetry.TelemetryType.TELEMETRY_TYPE_UNSPECIFIED:
-        raise UnspecifiedEnumError("TelemetryType")
-    try:
-        return _TELEMETRY_TYPE_PB_TO_PY[v]
-    except KeyError:
-        raise UnknownEnumValueError("TelemetryType", v, "TelemetryEnvelope") from None
+def _telemetry_type_from_pb(v: int, context: str = "TelemetryEnvelope.telemetry_type") -> TelemetryType:
+    result = _mapped_enum_from_pb(
+        value=v,
+        mapping=_TELEMETRY_TYPE_PB_TO_PY,
+        enum_name="TelemetryType",
+        context=context,
+        unspecified_value=pb_telemetry.TelemetryType.TELEMETRY_TYPE_UNSPECIFIED,
+    )
+    assert result is not None
+    return result
 
 
-def _telemetry_type_to_pb(v: TelemetryType) -> int:
+def _telemetry_type_to_pb(v: TelemetryType) -> Any:
     return _TELEMETRY_TYPE_PY_TO_PB[v]
 
 
@@ -1712,18 +1826,19 @@ def telemetry_envelope_from_pb(env: pb_telemetry.TelemetryEnvelope) -> Telemetry
     if which != expected_oneof:
         raise UnexpectedWireValueError("TelemetryEnvelope", "metrics oneof", expected_oneof, which)
 
+    metrics: ConnectionMetrics | SequenceMetrics | LatencyMetrics | QueueMetrics | BookMetrics | SystemMetrics
     if which == "connection":
-        metrics = connection_metrics_from_pb(env.connection)  # type: ignore[arg-type]
+        metrics = connection_metrics_from_pb(env.connection)
     elif which == "sequence":
-        metrics = sequence_metrics_from_pb(env.sequence)  # type: ignore[arg-type]
+        metrics = sequence_metrics_from_pb(env.sequence)
     elif which == "latency":
-        metrics = latency_metrics_from_pb(env.latency)  # type: ignore[arg-type]
+        metrics = latency_metrics_from_pb(env.latency)
     elif which == "queue":
-        metrics = queue_metrics_from_pb(env.queue)  # type: ignore[arg-type]
+        metrics = queue_metrics_from_pb(env.queue)
     elif which == "book":
-        metrics = book_metrics_from_pb(env.book)  # type: ignore[arg-type]
+        metrics = book_metrics_from_pb(env.book)
     elif which == "system":
-        metrics = system_metrics_from_pb(env.system)  # type: ignore[arg-type]
+        metrics = system_metrics_from_pb(env.system)
     else:
         raise WireError(f"TelemetryEnvelope: unexpected oneof value '{which}'")
 
@@ -1733,11 +1848,11 @@ def telemetry_envelope_from_pb(env: pb_telemetry.TelemetryEnvelope) -> Telemetry
         source_module=env.source_module,
         source_instance_id=InstanceId(env.source_instance_id),
         observed_time_utc_ns=env.observed_time_utc_ns,
-        market=_market_from_pb(env.market) if env.HasField("market") else None,
+        market=_market_from_pb(env.market, "TelemetryEnvelope.market") if env.HasField("market") else None,
         symbol=Symbol(env.symbol) if env.HasField("symbol") and env.symbol else None,
         metrics=metrics,
-        quality_flags=_quality_from_pb(list(env.quality_flags)),
-        stream=_stream_from_pb(env.stream) if env.HasField("stream") else None,
+        quality_flags=_quality_from_pb(list(env.quality_flags), "TelemetryEnvelope.quality_flags"),
+        stream=_stream_from_pb(env.stream, "TelemetryEnvelope.stream") if env.HasField("stream") else None,
         connection_id=ConnectionId(env.connection_id) if env.HasField("connection_id") and env.connection_id else None,
         connection_generation=env.connection_generation if env.HasField("connection_generation") else None,
         subscription_id=SubscriptionId(env.subscription_id)

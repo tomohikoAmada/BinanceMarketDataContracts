@@ -1,0 +1,9 @@
+{
+  "schema_version": "consumer-gap-notice.v1",
+  "subscription_id": "sub-1",
+  "detected_time_utc_ns": 1,
+  "last_delivered_session_sequence": 20,
+  "next_available_session_sequence": 10,
+  "reason": "UPSTREAM_SEQUENCE_GAP",
+  "recovery_action": "REQUEST_NEW_SNAPSHOT"
+}

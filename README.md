@@ -32,9 +32,12 @@ The Gateway Runtime is **not implemented** in this repository. This package prov
 
 ```bash
 # Domain contracts only (Pydantic + JSON Schema)
+python -m pip install -e .
+
+# Wire runtime (generated Protobuf and gRPC imports)
 python -m pip install -e ".[wire]"
 
-# Domain + Wire contracts + dev tools (includes protobuf codegen via [dev])
+# Development environment (including code generation and wire runtime)
 python -m pip install -e ".[dev,wire]"
 ```
 
@@ -123,21 +126,16 @@ event = DepthUpdate(metadata=metadata, first_update_id=1001, final_update_id=100
 | Telemetry | DRAFT | v1 |
 | ControlCommand / CommandResult | DRAFT | v1 |
 
-### Wire Contracts (Protobuf) — DRAFT
+### Wire Contracts (Protobuf)
 
 Wire contracts are defined in proto files under `src/binance_market_data_contracts/proto/binance_market_data/`:
 
-| Contract | Proto File | Status |
-|----------|-----------|--------|
-| DepthUpdate | market/v1/market_events.proto | DRAFT |
-| AggTrade | market/v1/market_events.proto | DRAFT |
-| BookTicker | market/v1/market_events.proto | DRAFT |
-| ExchangeDepthSnapshot | market/v1/market_events.proto | DRAFT |
-| MarketStateSnapshot | projection/v1/snapshots.proto | DRAFT |
-| LocalOrderBookSnapshot | projection/v1/snapshots.proto | DRAFT |
-| DataHealthSnapshot | projection/v1/snapshots.proto | DRAFT |
-| GatewayStatusSnapshot | gateway/v1/gateway_messages.proto | DRAFT |
-| TelemetryEnvelope | telemetry/v1/telemetry.proto | DRAFT |
+| Contract group | Status |
+|----------------|--------|
+| Core Market Wire Contracts | PROPOSED |
+| Projection Wire Contracts | PROPOSED |
+| Gateway Wire Contracts | DRAFT |
+| Telemetry Wire Contract | DRAFT |
 
 DRAFT wire contracts are **not frozen** and may change.
 
@@ -167,10 +165,11 @@ src/binance_market_data_contracts/proto/binance_market_data/
 ├── gateway/v1/
 │   ├── gateway_messages.proto — Gateway request/response messages
 │   └── gateway_service.proto  — gRPC service definitions
-├── telemetry/v1/
-│   └── telemetry.proto        — Telemetry metrics and envelope
-└── buf.yaml
+└── telemetry/v1/
+    └── telemetry.proto        — Telemetry metrics and envelope
 ```
+
+`buf.yaml` is located at the repository root, outside the Proto source tree.
 
 ## Code generation
 
@@ -179,7 +178,7 @@ python -m binance_market_data_contracts.proto_codegen
 python -m binance_market_data_contracts.proto_codegen --check
 ```
 
-Generated Python code is placed in `src/binance_market_data_contracts/wire/generated/`.
+Generated Python code is placed in `src/binance_market_data/`.
 Generated files are **never hand-edited**.
 
 ## Adapter usage

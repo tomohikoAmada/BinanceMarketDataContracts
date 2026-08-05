@@ -220,6 +220,31 @@ class EnvelopeMetadata(ContractModel):
     publish_monotonic_ns: int | None = Field(default=None, ge=0)
 
 
+def _validate_stream_item_identity(
+    *,
+    envelope_metadata: EnvelopeMetadata,
+    subscription_accepted: SubscriptionAccepted | None,
+    consumer_gap: ConsumerGapNotice | None,
+    stream_status: StreamStatus | None,
+) -> None:
+    """Validate lifecycle payload identity consistently across all stream envelopes."""
+    lifecycle_payload = subscription_accepted or consumer_gap or stream_status
+    if lifecycle_payload is not None and lifecycle_payload.subscription_id != envelope_metadata.subscription_id:
+        raise ValueError(
+            f"Identity conflict: payload subscription_id ({lifecycle_payload.subscription_id}) "
+            f"!= envelope_metadata.subscription_id ({envelope_metadata.subscription_id})"
+        )
+    if (
+        subscription_accepted is not None
+        and subscription_accepted.gateway_instance_id != envelope_metadata.gateway_instance_id
+    ):
+        raise ValueError(
+            f"Identity conflict: SubscriptionAccepted gateway_instance_id "
+            f"({subscription_accepted.gateway_instance_id}) != envelope_metadata.gateway_instance_id "
+            f"({envelope_metadata.gateway_instance_id})"
+        )
+
+
 class GatewayEventEnvelope(ContractModel):
     """Wraps a single event for the contiguous event stream.
 
@@ -254,23 +279,12 @@ class GatewayEventEnvelope(ContractModel):
 
     @model_validator(mode="after")
     def _validate_identity_consistency(self) -> GatewayEventEnvelope:
-        payload = self.subscription_accepted or self.consumer_gap or self.stream_status
-        if payload is not None and hasattr(payload, "subscription_id"):
-            if payload.subscription_id != self.envelope_metadata.subscription_id:
-                raise ValueError(
-                    f"Identity conflict: payload subscription_id ({payload.subscription_id}) "
-                    f"!= envelope_metadata.subscription_id ({self.envelope_metadata.subscription_id})"
-                )
-        if (
-            self.subscription_accepted is not None
-            and self.subscription_accepted.gateway_instance_id != self.envelope_metadata.gateway_instance_id
-        ):
-            raise ValueError(
-                f"Identity conflict: SubscriptionAccepted gateway_instance_id "
-                f"({self.subscription_accepted.gateway_instance_id}) "
-                f"!= envelope_metadata.gateway_instance_id "
-                f"({self.envelope_metadata.gateway_instance_id})"
-            )
+        _validate_stream_item_identity(
+            envelope_metadata=self.envelope_metadata,
+            subscription_accepted=self.subscription_accepted,
+            consumer_gap=self.consumer_gap,
+            stream_status=self.stream_status,
+        )
         return self
 
 
@@ -306,13 +320,12 @@ class OrderBookStreamItem(ContractModel):
 
     @model_validator(mode="after")
     def _validate_identity_consistency(self) -> OrderBookStreamItem:
-        payload = self.subscription_accepted or self.consumer_gap or self.stream_status
-        if payload is not None and hasattr(payload, "subscription_id"):
-            if payload.subscription_id != self.envelope_metadata.subscription_id:
-                raise ValueError(
-                    f"Identity conflict: payload subscription_id ({payload.subscription_id}) "
-                    f"!= envelope_metadata.subscription_id ({self.envelope_metadata.subscription_id})"
-                )
+        _validate_stream_item_identity(
+            envelope_metadata=self.envelope_metadata,
+            subscription_accepted=self.subscription_accepted,
+            consumer_gap=self.consumer_gap,
+            stream_status=self.stream_status,
+        )
         return self
 
 
@@ -346,13 +359,12 @@ class MarketStateStreamItem(ContractModel):
 
     @model_validator(mode="after")
     def _validate_identity_consistency(self) -> MarketStateStreamItem:
-        payload = self.subscription_accepted or self.consumer_gap or self.stream_status
-        if payload is not None and hasattr(payload, "subscription_id"):
-            if payload.subscription_id != self.envelope_metadata.subscription_id:
-                raise ValueError(
-                    f"Identity conflict: payload subscription_id ({payload.subscription_id}) "
-                    f"!= envelope_metadata.subscription_id ({self.envelope_metadata.subscription_id})"
-                )
+        _validate_stream_item_identity(
+            envelope_metadata=self.envelope_metadata,
+            subscription_accepted=self.subscription_accepted,
+            consumer_gap=self.consumer_gap,
+            stream_status=self.stream_status,
+        )
         return self
 
 
@@ -370,7 +382,7 @@ class MarketRuntimeStatus(ContractModel):
     market: Market
     symbol: Symbol
     state: StreamLifecycleState
-    last_event_utc_ns: int | None = None
+    last_event_utc_ns: int | None = Field(default=None, ge=0)
     connection_generation: int = Field(..., ge=1)
     active_subscription_count: int = Field(default=0, ge=0)
 
