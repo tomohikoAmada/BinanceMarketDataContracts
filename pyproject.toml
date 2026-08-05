@@ -50,7 +50,10 @@ binance_market_data_contracts = [
     "py.typed",
     "proto/**/*.proto",
 ]
-binance_market_data = ["**/*.pyi"]
+binance_market_data = [
+    "py.typed",
+    "**/*.pyi",
+]
 
 [tool.ruff]
 target-version = "py311"

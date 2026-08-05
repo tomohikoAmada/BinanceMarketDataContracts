@@ -51,7 +51,8 @@ jobs:
           wheel = next(Path("dist").glob("*.whl"))
           with ZipFile(wheel) as archive:
               names = set(archive.namelist())
-          assert "binance_market_data_contracts/py.typed" in names, "py.typed is missing from wheel"
+          assert "binance_market_data_contracts/py.typed" in names
+          assert "binance_market_data/py.typed" in names
           proto_files = sorted(n for n in names if n.endswith(".proto"))
           pb2_files = sorted(n for n in names if n.endswith("_pb2.py"))
           pyi_files = sorted(n for n in names if n.startswith("binance_market_data/") and n.endswith(".pyi"))
@@ -76,11 +77,13 @@ jobs:
           cd "$TEST_ROOT"
           "$TEST_ROOT/venv/bin/python" - <<'PY'
           import sys
+          from importlib.resources import files
           from pathlib import Path
           from binance_market_data_contracts import DepthUpdate
 
           assert "grpc" not in sys.modules
           assert "binance_market_data.gateway.v1.gateway_service_pb2_grpc" not in sys.modules
+          assert files("binance_market_data").joinpath("py.typed").is_file()
           payload = Path("depth-update.v1.spot.json").read_text(encoding="utf-8")
           event = DepthUpdate.model_validate_json(payload)
           assert event.metadata.stream.value == "DIFF_DEPTH"
@@ -107,6 +110,7 @@ jobs:
           cd "$TEST_ROOT"
           "$TEST_ROOT/venv/bin/python" - <<'PY'
           import sys
+          from importlib.resources import files
           from pathlib import Path
 
           before = tuple(sys.path)
@@ -118,6 +122,7 @@ jobs:
           from binance_market_data_contracts.wire.adapters import depth_update_from_pb, depth_update_to_pb
           after = tuple(sys.path)
           assert after == before
+          assert files("binance_market_data").joinpath("py.typed").is_file()
           assert enums_pb2.Venue.VENUE_BINANCE == 1
           assert market_events_pb2.DepthUpdate is not None
           assert gateway_service_pb2_grpc.BinanceMarketDataGatewayServiceStub is not None
@@ -147,6 +152,8 @@ jobs:
         run: buf lint
       - name: Buf build
         run: buf build
+      - name: Buf breaking integration
+        run: python tests/buf_breaking_integration.py
       - name: Buf breaking (PR only)
         if: github.event_name == 'pull_request'
         run: bash scripts/check_buf_breaking.sh origin/main

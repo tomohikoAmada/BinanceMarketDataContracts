@@ -82,14 +82,14 @@ def _safe_clean_generated_package(output_dir: Path) -> None:
 
 
 def _generate(output_dir: Path) -> None:
+    proto_files = _collect_proto_files()
+    if not proto_files:
+        raise RuntimeError(f"No .proto files found under {PROTO_ROOT}; refusing to delete generated output")
+
     _safe_clean_generated_package(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     protoc = _find_protoc()
-    proto_files = _collect_proto_files()
-    if not proto_files:
-        print("No .proto files found", file=sys.stderr)
-        return
 
     args: list[str] = [str(pf) for pf in proto_files]
     args.extend(
@@ -107,6 +107,7 @@ def _generate(output_dir: Path) -> None:
         sys.exit(1)
 
     _add_init_files(output_dir / "binance_market_data")
+    (output_dir / "binance_market_data" / "py.typed").write_text("", encoding="utf-8")
 
     # Remove empty _pb2_grpc.py stubs for files that have no services
     for grpc_file in sorted(output_dir.rglob("*_pb2_grpc.py")):

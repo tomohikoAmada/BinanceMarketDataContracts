@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+import binance_market_data_contracts.proto_codegen as proto_codegen
 from binance_market_data_contracts.proto_codegen import _generate, _safe_clean_generated_package
 
 if TYPE_CHECKING:
@@ -27,6 +28,7 @@ def test_generation_is_repeatable_and_removes_only_stale_package_files(tmp_path:
     assert not stale.exists()
     assert preserved.read_text(encoding="utf-8") == "keep"
     assert list((output / "binance_market_data").rglob("*.pyi"))
+    assert (output / "binance_market_data" / "py.typed").is_file()
 
 
 def test_generated_package_symlink_is_rejected(tmp_path: Path) -> None:
@@ -40,3 +42,20 @@ def test_generated_package_symlink_is_rejected(tmp_path: Path) -> None:
     with pytest.raises(RuntimeError, match="symlink"):
         _safe_clean_generated_package(output)
     assert outside.exists()
+
+
+def test_missing_proto_sources_preserve_generated_output(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    output = tmp_path / "src"
+    package = output / "binance_market_data"
+    package.mkdir(parents=True)
+    sentinel = package / "sentinel.txt"
+    sentinel.write_text("preserve", encoding="utf-8")
+    empty_proto_root = tmp_path / "empty-proto"
+    empty_proto_root.mkdir()
+    monkeypatch.setattr(proto_codegen, "PROTO_ROOT", empty_proto_root)
+
+    with pytest.raises(RuntimeError, match=r"No \.proto files found.*refusing to delete"):
+        _generate(output)
+
+    assert package.is_dir()
+    assert sentinel.read_text(encoding="utf-8") == "preserve"

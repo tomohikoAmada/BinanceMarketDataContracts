@@ -11,7 +11,8 @@ from typing import TYPE_CHECKING, Any, TypeVar
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-# Protobuf generated stubs — accessible after wire/__init__.py sets up path
+# Generated Protobuf stubs are installed as the normal top-level
+# binance_market_data package. Importing wire does not modify sys.path.
 from binance_market_data.common.v1 import enums_pb2 as pb_enums
 from binance_market_data.common.v1 import identifiers_pb2 as pb_id
 from binance_market_data.common.v1 import metadata_pb2 as pb_meta
