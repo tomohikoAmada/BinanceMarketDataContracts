@@ -179,7 +179,8 @@ C-M4-001 does not:
 - copy `.proto` files or generated C++ files into Projection;
 - let an arbitrary consumer run code generation against an undocumented source checkout;
 - publish a package, create a release, or close C-M4-001 in this design PR; or
-- accept any contract or ADR.
+- accept or freeze any Domain or Wire Contract; ADR-0009 is accepted separately as the
+  architecture decision governing this design.
 
 ## Consumer requirements from Projection M4
 
@@ -907,12 +908,13 @@ own implementation and external review gates.
 
 This document records an approved Design-only architecture.
 
-Design Merge Readiness Review Round 1 and Round 2 are historical review
-records. Round 1 findings MR1-1 and MR1-2 have been corrected. Round 2
-identified MR2-1, which is corrected by the current documentation update.
+Design Merge Readiness Reviews Round 1, Round 2, and Round 3 are historical
+review records. Round 1 findings MR1-1 and MR1-2 have been corrected. Round 2
+identified MR2-1, which has been corrected. Round 3 identified MR3-1, which is
+corrected by the current documentation update.
 
 The next step is:
 
 ```text
-Independent C-M4-001 Design Merge Readiness Review — Round 3
+Independent C-M4-001 Design Merge Readiness Review — Round 4
 ```
