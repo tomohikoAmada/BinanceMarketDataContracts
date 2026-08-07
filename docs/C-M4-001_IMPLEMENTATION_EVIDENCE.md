@@ -1,15 +1,51 @@
-# C-M4-001 Implementation Candidate Evidence
+# C-M4-001 Implementation Evidence and Acceptance
 
 ## Status
 
-- Implementation: **CORRECTED CANDIDATE / PENDING INDEPENDENT RE-REVIEW**
-- Implementation acceptance: **NOT YET APPROVED**
-- C-M4-001: **OPEN / PENDING INDEPENDENT IMPLEMENTATION RE-REVIEW**
+- Implementation: **APPROVED / PENDING MERGE**
+- Independent implementation review: **CHANGES REQUESTED** (historical), resolved
+- Independent implementation re-review: **APPROVED**
+- Implementation acceptance: **APPROVED / PENDING MERGE**
+- C-M4-001: **OPEN / PENDING MERGE**
 - Projection M4: **NOT STARTED / BLOCKED**
 - Published: **NO**
 
-This document records author-implementation evidence. It does not perform or substitute for the
-required independent implementation review.
+This document records author-implementation evidence and the recorded independent
+implementation acceptance. It is not itself a substitute for the independent review, which
+concluded in the acceptance recorded below.
+
+## Independent implementation acceptance record
+
+Historical review sequence, recorded after the fact:
+
+| Step | Result |
+|---|---|
+| Independent C-M4-001 Implementation Review | CHANGES REQUESTED |
+| Independent C-M4-001 Implementation Re-Review | APPROVED |
+
+Reviewed corrected head and CI:
+
+| Item | Value |
+|---|---|
+| Reviewed corrected head | `4e5d3d846afba982ab5e48d2737bc40560e34a6c` |
+| Reviewed CI run | `31167981350` |
+| Reviewed CI result | 15/15 PASS |
+
+Re-review findings:
+
+| Finding | Status |
+|---|---|
+| IIR-1 | CLOSED |
+| IIR-2 | CLOSED |
+| IIR-3 | CLOSED |
+| IIR-4 | CLOSED |
+| IIR-5 | CLOSED |
+
+| Severity | Count |
+|---|---|
+| P0 | 0 |
+| P1 | 0 |
+| P2 | 0 |
 
 ## Immutable inputs and candidate identities
 
@@ -18,10 +54,10 @@ required independent implementation review.
 | Implementation branch base | `57b8cd9295ffc73f0bb9c9f96bfa331b1c386eef` |
 | Schema baseline | `01d76a41929f36d89573159f5f458f9f1e378ada` |
 | Fingerprint algorithm | Version 1 |
-| Schema fingerprint candidate | `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0` |
-| Formal fingerprint approval | PENDING INDEPENDENT IMPLEMENTATION RE-REVIEW |
+| Schema fingerprint | `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0` |
+| Formal fingerprint approval | APPROVED |
 | Package version candidate | `0.1.0` |
-| Package revision | `NOT_FORMALLY_ASSIGNED` |
+| Package revision | `NOT_FORMALLY_ASSIGNED` (assignment gate: RELEASE) |
 | Conan coordinate candidate | `binance-market-data-contracts-cpp/0.1.0` |
 | Host/runtime dependency | `protobuf/6.33.5` |
 | Build/tool dependency | `protobuf/6.33.5` |
@@ -30,6 +66,37 @@ required independent implementation review.
 | Generator options | `cpp_out=dllexport_decl=BMD_CONTRACTS_PROTOBUF_API` |
 | Runtime flavor | full |
 | Runtime linkage | static or shared, according to the built binary |
+
+### Formal schema fingerprint approval
+
+| Item | Value |
+|---|---|
+| Formal Schema Fingerprint | APPROVED |
+| Algorithm | M4 Schema Fingerprint Algorithm Version 1 |
+| Implementation digest | `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0` |
+| Independent digest | `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0` |
+| Match | YES |
+
+This is the formal approved C-M4-001 M4 schema fingerprint. Algorithm Version 1 is not
+redesigned and no different digest is regenerated.
+
+### Identity separation
+
+Distinct identities are never conflated:
+
+| Identity | Value |
+|---|---|
+| Schema Baseline | `01d76a41929f36d89573159f5f458f9f1e378ada` |
+| Schema Fingerprint | `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0` |
+| Fingerprint Algorithm | Version 1 |
+| Package Version | `0.1.0` candidate |
+| Contracts Package Revision | NOT FORMALLY ASSIGNED (release gate) |
+| Contracts Git SHA | build/source-specific |
+| Conan RREV | build/package identity |
+| Conan PREV | binary artifact identity |
+
+The Contracts Package Revision remains **NOT FORMALLY ASSIGNED** until release. It is never
+replaced by the Conan RREV, Conan PREV, Git SHA, or Package Version.
 
 The installed CMake, C++, and source/package provenance surfaces contain only identities knowable
 before Conan computes PREV. They keep runtime flavor and linkage distinct and identify binary-only
@@ -81,13 +148,82 @@ plus shared Release validation on Ubuntu GCC and macOS AppleClang. It also perfo
 consumer and `test_package` validation, a fresh-cache Conan build, lock drift detection, an offline
 replay, and an AppleClang arm64 deterministic double-build job. The double-build job uploads the
 generated `c-m4-001-artifact-provenance.json`; that external artifact is the authoritative exact
-RREV/package-ID/PREV record for its corrected head and build tuple. Those rows are implementation
-acceptance evidence only when the Draft PR checks pass.
+RREV/package-ID/PREV record for its corrected head and build tuple.
+
+## Proven support
+
+### Static support (PROVEN)
+
+| Platform | Compiler | Config |
+|---|---|---|
+| Ubuntu x86_64 | GCC | Release |
+| Ubuntu x86_64 | GCC | Debug |
+| Ubuntu x86_64 | Clang | Release |
+| Ubuntu x86_64 | Clang | Debug |
+| macOS arm64 | AppleClang | Release |
+| macOS arm64 | AppleClang | Debug |
+
+Static support is **PROVEN** for exactly these rows. Windows is not claimed.
+
+### Shared support (PROVEN)
+
+| Platform | Compiler | Config |
+|---|---|---|
+| Ubuntu x86_64 | GCC | Release |
+| macOS arm64 | AppleClang | Release |
+
+Shared support is **PROVEN** only for these two rows. Ubuntu Clang shared, Debug shared, and
+Windows are not claimed.
+
+## Reproducibility acceptance (IIR-1 CLOSED)
+
+| Item | Result |
+|---|---|
+| macOS deterministic static archive | PASS |
+| Independent same-input double build | PASS |
+| Archive SHA match | YES |
+| PREV match | YES |
+
+Candidate native evidence remains recorded as platform/options-specific evidence:
+
+| Identity | Value |
+|---|---|
+| Contracts RREV | `c90effa0eff5c7915809dcdbd5406d77` |
+| Package ID | `a1a286da6ca09b590d78bcb14d8250c025131c29` |
+| PREV | `eee4bdf3c274d457770b48c7850d8d6a` |
+
+These values are evidence, not portable identity constants.
+
+## Binary provenance acceptance
+
+| Item | Result |
+|---|---|
+| Concrete Binary Provenance | PASS |
+| Cross-Surface Provenance | PASS |
+| Runtime Flavor | full |
+| Runtime Linkage | static/shared according to built artifact |
+
+The external post-package provenance mechanism is preserved. No self-referential PREV is embedded
+into package content.
+
+## Consumer acceptance
+
+| Item | Result |
+|---|---|
+| Release Consumer Calls | ACTIVE |
+| consumer_a Final-Link Participation | PASS |
+| consumer_b Final-Link Participation | PASS |
+| Duplicate Generated Symbol Ownership | PASS |
+| Release test_package | PASS |
+| Build-Tree Consumer | PASS |
+| Install-Tree Consumer | PASS |
+| Relocation Consumer | PASS |
+| No Consumer Regeneration | PASS |
 
 ## Deferred lifecycle gates
 
-- Independent implementation re-review has not been performed.
-- The fingerprint candidate is not formally approved.
-- The formal Contracts package revision is not assigned; release mode fails closed without it.
+- The acceptance-recorded head has not been merged into `main`; C-M4-001 remains OPEN / PENDING
+  MERGE and Projection M4 remains NOT STARTED / BLOCKED until the merge.
+- The formal Contracts package revision is not assigned; assignment is gated on RELEASE, and
+  release mode fails closed without it.
 - No Conan package, Git tag, GitHub release, or other public artifact has been published.
-- Projection M4 remains blocked and has not been modified or started by this implementation.

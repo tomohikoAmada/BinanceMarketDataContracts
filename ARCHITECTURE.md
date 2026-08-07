@@ -74,12 +74,15 @@ contract status, field semantics, or generated Python artifact.
 - ADR-0009: **ACCEPTED**
 - External architecture review: **APPROVED**
 - Architecture blocking findings: **0**
-- Implementation: **IMPLEMENTED CANDIDATE / PENDING INDEPENDENT REVIEW**
+- Implementation: **APPROVED / PENDING MERGE**
+- Independent implementation re-review: **APPROVED** (IIR-1 through IIR-5 CLOSED; P0/P1/P2 = 0)
+- Reviewed corrected head: `4e5d3d846afba982ab5e48d2737bc40560e34a6c`
+- Reviewed CI: `31167981350` — 15/15 PASS
 - Schema baseline: `01d76a41929f36d89573159f5f458f9f1e378ada`
-- Schema fingerprint candidate: `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`
-- Formal fingerprint approval: **PENDING INDEPENDENT IMPLEMENTATION REVIEW**
-- Package version candidate: `0.1.0`; package revision: **NOT FORMALLY ASSIGNED**
-- C-M4-001: **OPEN / PENDING INDEPENDENT IMPLEMENTATION REVIEW**
+- Schema fingerprint: `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`
+- Formal fingerprint approval: **APPROVED** (Algorithm Version 1)
+- Package version candidate: `0.1.0`; package revision: **NOT FORMALLY ASSIGNED — RELEASE GATE**
+- C-M4-001: **OPEN / PENDING MERGE**
 - Projection M4 Implementation: **NOT STARTED / BLOCKED**
 - Design: [`docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md`](docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md)
 - Candidate evidence: [`docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md`](docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md)

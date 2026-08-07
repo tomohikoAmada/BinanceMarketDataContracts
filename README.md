@@ -13,9 +13,10 @@ All contracts are **PROPOSED** or **DRAFT**. DRAFT contracts are **not frozen** 
 structure may change. No contract has been formally ACCEPTED yet.
 
 The C-M4-001 architecture is **APPROVED** and ADR-0009 is **ACCEPTED** after an independent
-architecture review with zero blocking findings. The implementation is a **CORRECTED CANDIDATE /
-PENDING INDEPENDENT RE-REVIEW**. C-M4-001 remains **OPEN**, and Projection M4 remains **NOT STARTED /
-BLOCKED** until that review accepts the implementation. The candidate provides the Contracts-owned
+architecture review with zero blocking findings. The implementation passed its independent
+implementation re-review and is **APPROVED / PENDING MERGE** (IIR-1 through IIR-5 CLOSED;
+reviewed CI `31167981350` — 15/15 PASS). C-M4-001 remains **OPEN / PENDING MERGE**, and Projection
+M4 remains **NOT STARTED / BLOCKED** until that merge. The candidate provides the Contracts-owned
 CMake and Conan C++ message package described below; it is not published.
 
 ## Wire Protocol Target Languages
@@ -30,7 +31,7 @@ generated artifacts for that language.
 | Python Consumer | Python | Generated Protobuf/gRPC artifacts available |
 | Go Consumer | Go | Protocol-compatible target; artifacts not published here |
 | Rust Consumer | Rust | Protocol-compatible target; artifacts not published here |
-| C++ Consumer | C++ | C-M4-001 candidate package implemented; review and publication pending |
+| C++ Consumer | C++ | C-M4-001 candidate package implemented; independent review APPROVED, merge and publication pending |
 
 The currently tracked generated wire artifacts are Python artifacts.
 
@@ -71,11 +72,10 @@ find_package(BinanceMarketDataContracts CONFIG REQUIRED COMPONENTS Protobuf)
 target_link_libraries(my_target PRIVATE BinanceMarketDataContracts::Protobuf)
 ```
 
-The Schema Fingerprint Algorithm Version 1 candidate is
-`33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`. It is pending independent
-implementation re-review and is not a formally approved fingerprint. Package revision is
-`NOT_FORMALLY_ASSIGNED` and release-mode configuration fails closed until a formal revision is
-provided.
+The Schema Fingerprint Algorithm Version 1 digest is
+`33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0` and is formally **APPROVED**
+as the C-M4-001 M4 schema fingerprint. Package revision is **NOT FORMALLY ASSIGNED** (assignment
+gate: release) and release-mode configuration fails closed until a formal revision is provided.
 
 ## Quick start
 
