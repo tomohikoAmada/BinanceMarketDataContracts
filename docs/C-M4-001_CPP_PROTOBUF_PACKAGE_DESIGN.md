@@ -266,6 +266,7 @@ The installed generated include root is proposed as:
 
 ```text
 <prefix>/include/binance_market_data/common/v1/enums.pb.h
+<prefix>/include/binance_market_data/common/v1/identifiers.pb.h
 <prefix>/include/binance_market_data/common/v1/metadata.pb.h
 <prefix>/include/binance_market_data/market/v1/market_events.pb.h
 <prefix>/include/binance_market_data/projection/v1/snapshots.pb.h
@@ -279,6 +280,10 @@ headers retain the namespace emitted from the existing package declarations.
 
 The message package generates all current non-service message protos so that the C++ artifact is a
 complete message package. The M4 fingerprint closure is narrower and is defined separately below.
+
+The implementation plan makes this mapping exhaustive by including `identifiers.pb.h`, which is
+required by `gateway_messages.proto` even though `identifiers.proto` is outside the M4 fingerprint
+closure.
 
 ## Code-generation ownership
 
@@ -827,14 +832,16 @@ and must be closed with evidence in the implementation planning/review cycle:
 | ID | Question | Recommended answer | Alternatives | Impact | Blocks implementation? | Evidence required | Owner |
 |---|---|---|---|---|---:|---|---|
 | OD-CM4-001 | Which Conan package provides the C++ runtime/compiler? | Pin the exact Protobuf `6.33.5` package/tool set first | A verified compatible patch range | Dependency lock, ABI, offline build | **No — CLOSED** | Conan availability and clean-cache build completed | Contracts implementation owner |
-| OD-CM4-002 | Are generated C++ sources built at package time or shipped in source archives? | Package-build generation; optional signed source archive later | Release-generated source archive | Provenance and offline source build | No beyond implementation gate | Reproducible package build | Contracts implementation owner |
-| OD-CM4-003 | What exact C++ Package Version is released first? | Independent C++ version, proposed initial `0.1.0` | Reuse Python `0.2.0a1` | Release cadence and lock clarity | Yes for publication | Release/versioning review | Contracts maintainer |
-| OD-CM4-004 | What exact Conan recipe/package coordinates are published? | `binance-market-data-contracts-cpp` | Unified Python/C++ recipe | Consumer discovery and migration | Yes for publication | Recipe and test package | Contracts maintainer |
-| OD-CM4-005 | Which shared-library export strategy is used? | Generated API macro plus platform-specific visibility tests | Default visibility only; static-only first release | ABI and platform support | Yes for shared support | Linux/macOS symbol and consumer tests | Contracts implementation owner |
-| OD-CM4-006 | Which static/shared combinations are supported initially? | Linux GCC/Clang and macOS AppleClang with explicit tested matrix | Static-only first release; Windows later | CI and package IDs | Yes for claimed combinations | Matrix results | Contracts implementation owner |
-| OD-CM4-007 | Is a semantic manifest needed beside the descriptor fingerprint? | Keep Pydantic/adapter semantics separately tested; add a manifest only if package checks need it | Hash Python semantics into the descriptor digest | Prevents identity conflation | No for initial descriptor package | Projection/Contracts integration review | Contracts and Projection maintainers |
+| OD-CM4-002 | Are generated C++ sources built at package time or shipped in source archives? | Package-build generation; optional signed source archive later | Release-generated source archive | Provenance and offline source build | **No — CLOSED** | Reproducible package-build evidence | Contracts implementation owner |
+| OD-CM4-003 | What exact C++ Package Version is released first? | Independent C++ version, initial planned `0.1.0` | Reuse Python `0.2.0a1` | Release cadence and lock clarity | **No — CLOSED FOR PLANNING; publication gated** | Release/versioning review | Contracts maintainer |
+| OD-CM4-004 | What exact Conan recipe/package coordinates are published? | `binance-market-data-contracts-cpp/0.1.0` | Unified Python/C++ recipe | Consumer discovery and migration | **Publication only — DEFERRED** | Recipe and publication review | Contracts maintainer |
+| OD-CM4-005 | Which shared-library export strategy is used? | Generated API macro plus platform-specific visibility tests | Default visibility only; static-only first release | ABI and platform support | **Shared support only — DEFERRED** | Linux/macOS symbol and consumer tests | Contracts implementation owner |
+| OD-CM4-006 | Which static/shared combinations are supported initially? | Linux GCC/Clang and macOS AppleClang with explicit tested matrix | Static-only first release; Windows later | CI and package IDs | **Claimed support only — DEFERRED** | Matrix results | Contracts implementation owner |
+| OD-CM4-007 | Is a semantic manifest needed beside the descriptor fingerprint? | Keep Pydantic/adapter semantics separately tested; no manifest initially | Hash Python semantics into the descriptor digest | Prevents identity conflation | **No — CLOSED FOR INITIAL PACKAGE** | Projection/Contracts integration review | Contracts and Projection maintainers |
 
-An Open Decision is not a license to weaken the fixed `.proto` or Projection consumer requirements.
+The implementation plan records these planning outcomes; deferred publication and support claims
+still require their stated evidence. An Open Decision is not a license to weaken the fixed `.proto`
+or Projection consumer requirements.
 
 ### OD-CM4-001 closure record
 
@@ -879,6 +886,25 @@ implementation planning.
 
 Closing OD-CM4-001 does not itself start or approve C-M4-001 implementation. The next step is
 C-M4-001 Implementation Planning and its independent review/authorization gate.
+
+## Implementation planning handoff
+
+The authoritative implementation plan is
+[`docs/C-M4-001_IMPLEMENTATION_PLAN.md`](C-M4-001_IMPLEMENTATION_PLAN.md). It records the
+file-level implementation sequence, exact M4 closure versus package generation set, CMake/Conan
+graph, identity lifecycle, test matrix, risks, and authorization gate.
+
+Planning outcomes are:
+
+- OD-CM4-002: **CLOSED** — package-build generation;
+- OD-CM4-003: **CLOSED FOR PLANNING** — initial planned C++ Package Version `0.1.0`;
+- OD-CM4-004: **DEFERRED** — logical package coordinate selected, publication procedure pending;
+- OD-CM4-005: **DEFERRED** — shared support waits for export/consumer evidence;
+- OD-CM4-006: **DEFERRED** — platform/support claims wait for the implementation matrix; and
+- OD-CM4-007: **CLOSED FOR INITIAL PACKAGE** — no semantic manifest is required initially.
+
+These outcomes do not assign a Contracts Package Version or Revision, generate a Schema Fingerprint,
+authorize implementation, or change the status of any Domain or Wire Contract.
 
 ## Implementation sequence
 
@@ -974,5 +1000,5 @@ implementation or Projection M4 implementation.
 The next step is:
 
 ```text
-Final CI Gate and Final Pre-Merge Verification for PR #3
+Independent C-M4-001 Implementation Plan Review
 ```
