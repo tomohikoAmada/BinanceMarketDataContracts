@@ -30,4 +30,3 @@ inline constexpr std::string_view contracts_source_revision =
     "@BinanceMarketDataContracts_CONTRACTS_SOURCE_REVISION@";
 
 }  // namespace binance_market_data::contracts
-

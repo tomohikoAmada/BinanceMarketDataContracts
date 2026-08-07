@@ -7,4 +7,3 @@ std::string serialize_snapshot() {
   value.set_depth_limit(20);
   return value.SerializeAsString();
 }
-

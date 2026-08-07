@@ -7,4 +7,3 @@ std::string serialize_depth() {
   value.set_previous_final_update_id(1000);
   return value.SerializeAsString();
 }
-
