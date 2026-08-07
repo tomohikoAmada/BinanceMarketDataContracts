@@ -826,7 +826,7 @@ and must be closed with evidence in the implementation planning/review cycle:
 
 | ID | Question | Recommended answer | Alternatives | Impact | Blocks implementation? | Evidence required | Owner |
 |---|---|---|---|---|---:|---|---|
-| OD-CM4-001 | Which Conan package provides the C++ runtime/compiler? | Pin the exact Protobuf `6.33.5` package/tool set first | A verified compatible patch range | Dependency lock, ABI, offline build | Yes | Conan availability and clean-cache build | Contracts implementation owner |
+| OD-CM4-001 | Which Conan package provides the C++ runtime/compiler? | Pin the exact Protobuf `6.33.5` package/tool set first | A verified compatible patch range | Dependency lock, ABI, offline build | **No — CLOSED** | Conan availability and clean-cache build completed | Contracts implementation owner |
 | OD-CM4-002 | Are generated C++ sources built at package time or shipped in source archives? | Package-build generation; optional signed source archive later | Release-generated source archive | Provenance and offline source build | No beyond implementation gate | Reproducible package build | Contracts implementation owner |
 | OD-CM4-003 | What exact C++ Package Version is released first? | Independent C++ version, proposed initial `0.1.0` | Reuse Python `0.2.0a1` | Release cadence and lock clarity | Yes for publication | Release/versioning review | Contracts maintainer |
 | OD-CM4-004 | What exact Conan recipe/package coordinates are published? | `binance-market-data-contracts-cpp` | Unified Python/C++ recipe | Consumer discovery and migration | Yes for publication | Recipe and test package | Contracts maintainer |
@@ -836,8 +836,49 @@ and must be closed with evidence in the implementation planning/review cycle:
 
 An Open Decision is not a license to weaken the fixed `.proto` or Projection consumer requirements.
 
-OD-CM4-001 remains **OPEN / BLOCKING C-M4-001 IMPLEMENTATION**. Its final Conan Protobuf runtime
-and compiler/tool coordinates must be selected and verified before C-M4-001 implementation starts.
+### OD-CM4-001 closure record
+
+Status: **CLOSED**
+
+Decision: Use `protobuf/6.33.5` for both the host C++ runtime and the build-context `protoc` tool.
+
+```text
+Host declaration: requires("protobuf/6.33.5")
+Build declaration: tool_requires("protobuf/6.33.5")
+Verified recipe revision (RREV): ca5ff466767b31a1b496ec60247e105c
+Pinning mechanism: Conan 2 lockfile
+protoc --version: libprotoc 33.5
+Runtime CMake target: protobuf::libprotobuf
+Compiler CMake target: protobuf::libprotoc
+Conan version: 2.31.2
+Verification Python: 3.12.9
+Native verification: macOS armv8, AppleClang 21, GNU C++17, Release
+Host package ID: ce885110e57b841fdb4e10edcee5e1fce22f02bc
+Build package ID: ce885110e57b841fdb4e10edcee5e1fce22f02bc
+Observed native package revision (PREV): f0200f4fe40385e4bced0ca24875b3db
+```
+
+The host and build package IDs are equal because the native host and build profiles were identical;
+they were resolved as distinct Conan graph contexts. The package ID and PREV are platform/options-
+specific verification evidence, not global package identity. The durable dependency identity is the
+logical reference plus the exact RREV pinned by the lockfile.
+
+Independent verification passed Conan Center availability, host/build resolution, isolated
+clean-cache installation, Conan-supplied `protoc` execution, runtime discovery, C++ runtime
+compile/link, disposable `.proto` generation, generated C++ compile/link, generator/runtime
+compatibility, lockfile creation, and offline lock/cache replay. The package has no mandatory gRPC
+dependency. Linux Conan availability was verified from remote metadata; native Linux execution was
+not performed and remains implementation/OD-CM4-006 scope.
+
+A newer `protobuf/7.35.0` recipe exists, but no evidence requires departing from the approved
+`protobuf/6.33.5` baseline.
+
+OD-CM4-001 is **CLOSED**. The selected Conan Protobuf runtime/compiler coordinates have been
+independently verified. This removes OD-CM4-001 as the dependency-coordinate blocker for C-M4-001
+implementation planning.
+
+Closing OD-CM4-001 does not itself start or approve C-M4-001 implementation. The next step is
+C-M4-001 Implementation Planning and its independent review/authorization gate.
 
 ## Implementation sequence
 
