@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transcript tests for adapter correctness
 - Adapter round-trip tests ensuring lossless Pydantic ↔ Proto conversion
 - Descriptor tests validating generated Protobuf descriptors
+- Proposed C-M4-001 design for a Contracts-owned versioned installable C++ Protobuf message
+  package; implementation has not started
 
 ### Changed
 

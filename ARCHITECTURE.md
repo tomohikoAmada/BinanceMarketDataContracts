@@ -62,6 +62,19 @@ A contract is promoted from PROPOSED to ACCEPTED when:
 - `docs/adr/ADR-0006-projection-logical-boundary.md` (ACCEPTED)
 - `docs/adr/ADR-0007-pydantic-domain-protobuf-wire-contracts.md` (ACCEPTED)
 - `docs/adr/ADR-0008-gateway-grpc-streaming-protocol.md` (ACCEPTED)
+- `docs/adr/ADR-0009-cpp-protobuf-package.md` (PROPOSED)
+
+## C-M4-001 C++ package design
+
+The proposed C-M4-001 design defines a Contracts-owned, versioned, installable C++ Protobuf
+message package for the future Projection M4 adapter. It does not change any `.proto` schema,
+contract status, field semantics, or generated Python artifact.
+
+- Design: **PROPOSED**
+- Implementation: **NOT STARTED**
+- Schema baseline: `01d76a41929f36d89573159f5f458f9f1e378ada`
+- Implementation blocker: **C-M4-001 OPEN / BLOCKING**
+- Design: [`docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md`](docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md)
 
 ## Open questions
 
