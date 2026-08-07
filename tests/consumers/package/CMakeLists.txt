@@ -12,7 +12,9 @@ if(NOT BinanceMarketDataContracts_SCHEMA_FINGERPRINT STREQUAL
    NOT BinanceMarketDataContracts_PROTOC_VERSION STREQUAL "libprotoc 33.5" OR
    NOT BinanceMarketDataContracts_PROTOBUF_RUNTIME_VERSION STREQUAL "6.33.5" OR
    NOT BinanceMarketDataContracts_PROTOBUF_RUNTIME_RREV STREQUAL
-       "ca5ff466767b31a1b496ec60247e105c")
+       "ca5ff466767b31a1b496ec60247e105c" OR
+   NOT BinanceMarketDataContracts_PROTOBUF_RUNTIME_FLAVOR STREQUAL "full" OR
+   NOT BinanceMarketDataContracts_PROTOBUF_RUNTIME_LINKAGE STREQUAL "static")
     message(FATAL_ERROR "installed CMake metadata does not match the reviewed candidate")
 endif()
 

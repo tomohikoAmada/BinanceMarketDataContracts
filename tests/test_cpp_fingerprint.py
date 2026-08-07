@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -13,6 +15,12 @@ from tools.schema_fingerprint import (
     fingerprint,
     load_descriptor,
     validate_runtime,
+)
+from tools.verify_protoc import verify_protoc
+
+ROOTS = (
+    "binance_market_data/market/v1/market_events.proto",
+    "binance_market_data/projection/v1/snapshots.proto",
 )
 
 
@@ -31,16 +39,50 @@ def _copy(value: descriptor_pb2.FileDescriptorSet) -> descriptor_pb2.FileDescrip
     return result
 
 
-def test_equivalent_inputs_from_independent_paths_have_one_digest(
-    descriptor_set: descriptor_pb2.FileDescriptorSet, tmp_path: Path
-) -> None:
-    first = tmp_path / "one" / "descriptor.pb"
-    second = tmp_path / "another-root" / "descriptor.pb"
-    first.parent.mkdir()
-    second.parent.mkdir()
-    first.write_bytes(descriptor_set.SerializeToString())
-    second.write_bytes(descriptor_set.SerializeToString())
-    assert fingerprint(load_descriptor(first))[0] == fingerprint(load_descriptor(second))[0]
+def _generate_descriptor(protoc: Path, proto_root: Path, output: Path, roots: tuple[str, ...]) -> None:
+    result = subprocess.run(
+        [
+            str(protoc),
+            f"--proto_path={proto_root}",
+            f"--descriptor_set_out={output}",
+            "--include_imports",
+            *roots,
+        ],
+        cwd=proto_root,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode:
+        raise AssertionError(f"independent descriptor generation failed: {result.stderr}")
+
+
+def test_independent_proto_source_trees_have_one_canonical_digest(tmp_path: Path) -> None:
+    source = os.environ.get("BMD_PROTO_ROOT")
+    executable = os.environ.get("BMD_PROTOC_EXECUTABLE")
+    if source is None or executable is None:
+        pytest.skip("locked C++ protoc and proto tree are provided by the CMake package build")
+
+    protoc = Path(executable)
+    expected_version = os.environ.get("BMD_PROTOC_VERSION", "libprotoc 33.5")
+    actual_version = subprocess.run(
+        [str(protoc), "--version"], check=True, capture_output=True, text=True
+    ).stdout.strip()
+    assert actual_version == expected_version
+
+    tree_a = tmp_path / "checkout-a" / "proto"
+    tree_b = tmp_path / "different" / "absolute-root" / "proto"
+    shutil.copytree(Path(source), tree_a)
+    shutil.copytree(Path(source), tree_b)
+    descriptor_a = tmp_path / "a.pb"
+    descriptor_b = tmp_path / "b.pb"
+    _generate_descriptor(protoc, tree_a, descriptor_a, ROOTS)
+    _generate_descriptor(protoc, tree_b, descriptor_b, tuple(reversed(ROOTS)))
+
+    digest_a, canonical_a = fingerprint(load_descriptor(descriptor_a))
+    digest_b, canonical_b = fingerprint(load_descriptor(descriptor_b))
+    assert canonical_a == canonical_b
+    assert digest_a == digest_b == "33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0"
 
 
 def test_file_traversal_order_is_normalized(descriptor_set: descriptor_pb2.FileDescriptorSet) -> None:
@@ -90,14 +132,15 @@ def test_wrong_runtime_metadata_fails_closed() -> None:
         validate_runtime("0.0.0-wrong")
 
 
-def test_generator_identity_change_is_not_schema_identity(
-    descriptor_set: descriptor_pb2.FileDescriptorSet,
-) -> None:
-    digest = fingerprint(descriptor_set)[0]
-    generator_metadata = {"protoc": "libprotoc 33.5", "options": "cpp_out"}
-    changed_metadata = {**generator_metadata, "protoc": "libprotoc 34.0"}
-    assert changed_metadata != generator_metadata
-    assert fingerprint(descriptor_set)[0] == digest
+def test_wrong_generator_identity_fails_production_validation() -> None:
+    executable = os.environ.get("BMD_PROTOC_EXECUTABLE")
+    provenance = os.environ.get("BMD_PROTOC_PROVENANCE")
+    if executable is None or provenance is None:
+        pytest.skip("production protoc identity inputs are provided by the CMake package build")
+    with pytest.raises(ValueError, match="protoc version mismatch"):
+        verify_protoc(Path(executable), "libprotoc 0.0-wrong", provenance, provenance)
+    with pytest.raises(ValueError, match="protoc provenance mismatch"):
+        verify_protoc(Path(executable), "libprotoc 33.5", "untrusted:protoc", provenance)
 
 
 def test_dependency_closure_mismatch_fails_closed(

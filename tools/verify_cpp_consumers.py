@@ -98,6 +98,37 @@ def assert_symbol_ownership(prefix: Path) -> None:
         raise RuntimeError(f"DepthUpdate::Clear symbol ownership is not singular: {definitions}")
 
 
+def defined_symbol_lines(path: Path, symbol: str) -> list[str]:
+    result = subprocess.run(["nm", "-C", str(path)], text=True, capture_output=True, check=True)
+    return [line for line in result.stdout.splitlines() if symbol in line and " U " not in f" {line} "]
+
+
+def assert_final_link_participation(build: Path) -> None:
+    executable = build / "contracts_isolated_consumer"
+    required_consumer_symbols = {
+        "serialize_depth()": build / "libconsumer_a.a",
+        "serialize_snapshot()": build / "libconsumer_b.a",
+    }
+    for symbol, archive in required_consumer_symbols.items():
+        archive_definitions = defined_symbol_lines(archive, symbol)
+        executable_definitions = defined_symbol_lines(executable, symbol)
+        if len(archive_definitions) != 1:
+            raise RuntimeError(f"{archive.name} does not define exactly one {symbol}: {archive_definitions}")
+        if len(executable_definitions) != 1:
+            raise RuntimeError(
+                f"{archive.name} did not participate in the final Release link for {symbol}: {executable_definitions}"
+            )
+
+    generated_symbols = (
+        "binance_market_data::market::v1::DepthUpdate::Clear()",
+        "binance_market_data::projection::v1::LocalOrderBookSnapshot::Clear()",
+    )
+    for symbol in generated_symbols:
+        definitions = defined_symbol_lines(executable, symbol)
+        if len(definitions) != 1:
+            raise RuntimeError(f"final executable generated-symbol ownership is not singular: {symbol}: {definitions}")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source-root", type=Path, required=True)
@@ -118,6 +149,7 @@ def main() -> int:
             [build_dir, *args.dependency_prefix],
         )
         assert_consumer_isolation(build_tree_consumer, output, source_root, allow_build_tree=True)
+        assert_final_link_participation(build_tree_consumer)
 
         install_prefix = root / "installed"
         run(["cmake", "--install", str(build_dir), "--prefix", str(install_prefix)], cwd=root)
@@ -141,6 +173,7 @@ def main() -> int:
             env=env,
         )
         assert_consumer_isolation(install_consumer, output, source_root, allow_build_tree=False)
+        assert_final_link_participation(install_consumer)
 
         core_build = root / "core-like"
         core_source = root / "core-source"
