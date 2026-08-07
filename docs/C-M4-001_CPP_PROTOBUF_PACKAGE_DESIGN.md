@@ -905,8 +905,14 @@ own implementation and external review gates.
 
 ## Review boundary
 
-This document records an approved Design-only architecture. The next step is:
+This document records an approved Design-only architecture.
+
+Design Merge Readiness Review Round 1 and Round 2 are historical review
+records. Round 1 findings MR1-1 and MR1-2 have been corrected. Round 2
+identified MR2-1, which is corrected by the current documentation update.
+
+The next step is:
 
 ```text
-Independent C-M4-001 Design Merge Readiness Review — Round 1
+Independent C-M4-001 Design Merge Readiness Review — Round 3
 ```
