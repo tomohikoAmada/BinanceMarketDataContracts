@@ -80,3 +80,4 @@ exclude = "^src/binance_market_data/"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+pythonpath = ["."]

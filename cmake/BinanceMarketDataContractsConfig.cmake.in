@@ -1,0 +1,36 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(Protobuf 6.33.5 EXACT CONFIG)
+
+set(BinanceMarketDataContracts_SCHEMA_BASELINE "@BinanceMarketDataContracts_SCHEMA_BASELINE@")
+set(BinanceMarketDataContracts_SCHEMA_FINGERPRINT "@BinanceMarketDataContracts_SCHEMA_FINGERPRINT@")
+set(BinanceMarketDataContracts_SCHEMA_FINGERPRINT_ALGORITHM_VERSION
+    "@BinanceMarketDataContracts_SCHEMA_FINGERPRINT_ALGORITHM_VERSION@")
+set(BinanceMarketDataContracts_PACKAGE_VERSION "@BinanceMarketDataContracts_PACKAGE_VERSION@")
+set(BinanceMarketDataContracts_PACKAGE_REVISION "@BinanceMarketDataContracts_PACKAGE_REVISION@")
+set(BinanceMarketDataContracts_PROTOC_VERSION "@BinanceMarketDataContracts_PROTOC_VERSION@")
+set(BinanceMarketDataContracts_CPP_GENERATOR_OPTIONS
+    "@BinanceMarketDataContracts_CPP_GENERATOR_OPTIONS@")
+set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_VERSION
+    "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_VERSION@")
+set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_RREV
+    "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_RREV@")
+set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_COMPATIBILITY
+    "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_COMPATIBILITY@")
+set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_FLAVOR
+    "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_FLAVOR@")
+set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_LINKAGE
+    "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_LINKAGE@")
+set(BinanceMarketDataContracts_CONTRACTS_SOURCE_REVISION
+    "@BinanceMarketDataContracts_CONTRACTS_SOURCE_REVISION@")
+
+set(BinanceMarketDataContracts_Protobuf_FOUND TRUE)
+if("Grpc" IN_LIST BinanceMarketDataContracts_FIND_COMPONENTS)
+    set(BinanceMarketDataContracts_Grpc_FOUND FALSE)
+    set(BinanceMarketDataContracts_NOT_FOUND_MESSAGE
+        "The Grpc component is not part of C-M4-001; request Protobuf only")
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/BinanceMarketDataContractsTargets.cmake")
+check_required_components(BinanceMarketDataContracts)

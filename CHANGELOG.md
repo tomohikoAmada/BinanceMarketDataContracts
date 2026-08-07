@@ -21,14 +21,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transcript tests for adapter correctness
 - Adapter round-trip tests ensuring lossless Pydantic ↔ Proto conversion
 - Descriptor tests validating generated Protobuf descriptors
-- Approved C-M4-001 architecture for a Contracts-owned versioned installable C++ Protobuf
-  message package; implementation has not started
+- C-M4-001 implementation candidate for a Contracts-owned versioned installable C++ Protobuf
+  message package, including CMake and Conan consumers, fingerprinting, and provenance metadata
 
 ### Changed
 
 - Version 0.1.0a1 → 0.2.0a1
 - Approved the C-M4-001 architecture for the Contracts-owned C++ Protobuf message package.
 - Accepted ADR-0009 after an independent architecture review with zero blocking findings.
+- Implemented the C-M4-001 candidate while retaining OPEN / pending independent review status.
+- Recorded the independent C-M4-001 implementation acceptance: initial review CHANGES REQUESTED,
+  re-review APPROVED at `4e5d3d846afba982ab5e48d2737bc40560e34a6c` (CI `31167981350`, 15/15 PASS),
+  IIR-1 through IIR-5 CLOSED, P0/P1/P2 = 0.
+- Formally approved the C-M4-001 M4 Schema Fingerprint (Algorithm Version 1):
+  `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`.
+- Confirmed proven static support (Ubuntu x86_64 GCC/Clang Release/Debug; macOS arm64 AppleClang
+  Release/Debug) and proven shared support (Ubuntu x86_64 GCC Release; macOS arm64 AppleClang
+  Release); acceptance remains PENDING MERGE of PR #6.
 - ADR-0002 superseded by ADR-0007 (Pydantic remains domain authority)
 - MarketStateSnapshot: added source_book_update_id and source_trade_id fields
 - TelemetryEnvelope: extended with stream and connection fields
@@ -49,9 +58,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All existing tests pass without modification
 - Wire contracts are additive; consumers not using Protobuf are unaffected
 
-### Not Implemented
+### Pending
 
-- C-M4-001 implementation; C-M4-001 remains OPEN / BLOCKING
+- C-M4-001 acceptance recorded; implementation merge into `main` and publication pending; Projection M4 remains blocked
+- Assignment of the Contracts package revision (gated on release)
+- Publication of `binance-market-data-contracts-cpp/0.1.0`
 - Gateway Runtime (gRPC server is not implemented in this repository)
 - Gateway implementation language is not selected (C++, Rust, Go, Python are all supported by the wire protocol)
 - Network performance benchmarking

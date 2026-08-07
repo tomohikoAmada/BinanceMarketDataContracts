@@ -8,6 +8,7 @@ __pycache__/
 .coverage
 htmlcov/
 build/
+CMakeUserPresets.json
 dist/
 *.egg-info/
 .DS_Store

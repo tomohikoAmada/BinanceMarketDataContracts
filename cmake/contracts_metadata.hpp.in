@@ -1,0 +1,34 @@
+#pragma once
+
+#include <string_view>
+
+namespace binance_market_data::contracts {
+
+inline constexpr std::string_view schema_baseline =
+    "@BinanceMarketDataContracts_SCHEMA_BASELINE@";
+inline constexpr std::string_view schema_fingerprint =
+    "@BinanceMarketDataContracts_SCHEMA_FINGERPRINT@";
+inline constexpr unsigned schema_fingerprint_algorithm_version =
+    @BinanceMarketDataContracts_SCHEMA_FINGERPRINT_ALGORITHM_VERSION@;
+inline constexpr std::string_view package_version =
+    "@BinanceMarketDataContracts_PACKAGE_VERSION@";
+inline constexpr std::string_view package_revision =
+    "@BinanceMarketDataContracts_PACKAGE_REVISION@";
+inline constexpr std::string_view protoc_version =
+    "@BinanceMarketDataContracts_PROTOC_VERSION@";
+inline constexpr std::string_view cpp_generator_options =
+    "@BinanceMarketDataContracts_CPP_GENERATOR_OPTIONS@";
+inline constexpr std::string_view protobuf_runtime_version =
+    "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_VERSION@";
+inline constexpr std::string_view protobuf_runtime_rrev =
+    "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_RREV@";
+inline constexpr std::string_view protobuf_runtime_compatibility =
+    "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_COMPATIBILITY@";
+inline constexpr std::string_view protobuf_runtime_flavor =
+    "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_FLAVOR@";
+inline constexpr std::string_view protobuf_runtime_linkage =
+    "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_LINKAGE@";
+inline constexpr std::string_view contracts_source_revision =
+    "@BinanceMarketDataContracts_CONTRACTS_SOURCE_REVISION@";
+
+}  // namespace binance_market_data::contracts
