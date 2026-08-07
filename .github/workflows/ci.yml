@@ -157,3 +157,146 @@ jobs:
       - name: Buf breaking (PR only)
         if: github.event_name == 'pull_request'
         run: bash scripts/check_buf_breaking.sh origin/main
+
+  cpp-static:
+    name: C++ static / ${{ matrix.os }} / ${{ matrix.compiler }} / ${{ matrix.build-type }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            compiler: gcc
+            cc: gcc
+            cxx: g++
+            build-type: Release
+          - os: ubuntu-latest
+            compiler: gcc
+            cc: gcc
+            cxx: g++
+            build-type: Debug
+          - os: ubuntu-latest
+            compiler: clang
+            cc: clang
+            cxx: clang++
+            build-type: Release
+          - os: ubuntu-latest
+            compiler: clang
+            cc: clang
+            cxx: clang++
+            build-type: Debug
+          - os: macos-15
+            compiler: appleclang
+            cc: clang
+            cxx: clang++
+            build-type: Release
+          - os: macos-15
+            compiler: appleclang
+            cc: clang
+            cxx: clang++
+            build-type: Debug
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assert macOS ARM64 runner
+        if: runner.os == 'macOS'
+        run: test "$RUNNER_ARCH" = ARM64
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated build tools
+        run: python -m pip install 'conan==2.31.2' 'protobuf==6.33.5' 'pytest>=8,<10'
+      - name: Detect Conan profile
+        run: conan profile detect --force
+      - name: Create and test candidate package
+        run: >-
+          conan create . --build=missing --lockfile=conan.lock
+          -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20
+          -s:h build_type=${{ matrix.build-type }}
+          -o:h '&:shared=False'
+
+  cpp-consumers:
+    name: C++ package consumers and isolation
+    runs-on: ubuntu-latest
+    env:
+      CC: gcc
+      CXX: g++
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated build tools
+        run: python -m pip install 'conan==2.31.2' 'protobuf==6.33.5' 'pytest>=8,<10'
+      - name: Detect Conan profile
+        run: conan profile detect --force
+      - name: Install locked dependencies
+        run: >-
+          conan install . --output-folder=build/conan --build=missing --lockfile=conan.lock
+          -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20
+      - name: Configure and build package
+        run: >-
+          conan build . --output-folder=build/conan
+          -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20
+      - name: Verify build/install/relocation consumers
+        run: >-
+          python tools/verify_cpp_consumers.py
+          --source-root "$PWD"
+          --build-dir "$PWD/build/conan/build/Release"
+          --dependency-prefix "$PWD/build/conan/build/Release/generators"
+
+  cpp-shared:
+    name: C++ shared Release / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-15]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assert macOS ARM64 runner
+        if: runner.os == 'macOS'
+        run: test "$RUNNER_ARCH" = ARM64
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated build tools
+        run: python -m pip install 'conan==2.31.2' 'protobuf==6.33.5' 'pytest>=8,<10'
+      - name: Detect Conan profile
+        run: conan profile detect --force
+      - name: Create and test shared candidate package
+        run: >-
+          conan create . --build=missing --lockfile=conan.lock
+          -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20
+          -o:h '&:shared=True'
+
+  conan-reproducibility:
+    name: Conan clean-cache lock and offline replay
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated build tools
+        run: python -m pip install 'conan==2.31.2' 'protobuf==6.33.5' 'pytest>=8,<10'
+      - name: Use clean Conan cache
+        run: |
+          echo "CONAN_HOME=${RUNNER_TEMP}/c-m4-001-conan" >> "$GITHUB_ENV"
+          export CONAN_HOME="${RUNNER_TEMP}/c-m4-001-conan"
+          conan profile detect --force
+      - name: Check lock drift
+        run: |
+          conan lock create . -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20 --lockfile-out="${RUNNER_TEMP}/candidate.lock"
+          python scripts/check_conan_lock.py conan.lock "${RUNNER_TEMP}/candidate.lock"
+      - name: Populate clean cache and create package
+        run: >-
+          conan create . --build=missing --lockfile=conan.lock
+          -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20
+      - name: Offline source-build replay
+        run: |
+          conan remove 'binance-market-data-contracts-cpp/*' -c
+          conan remote disable conancenter
+          conan create . --build=missing --lockfile=conan.lock -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20
