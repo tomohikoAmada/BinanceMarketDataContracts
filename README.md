@@ -12,17 +12,29 @@ This package provides two contract strata:
 All contracts are **PROPOSED** or **DRAFT**. DRAFT contracts are **not frozen** — fields, semantics, and
 structure may change. No contract has been formally ACCEPTED yet.
 
-## Target Languages
+The C-M4-001 architecture is **APPROVED** and ADR-0009 is **ACCEPTED** after an independent
+architecture review with zero blocking findings. Implementation is **NOT STARTED** and C-M4-001
+remains **OPEN / BLOCKING** for Projection M4. No C++ package, CMake target, Conan recipe, or
+generated C++ artifact is provided by this baseline.
 
-The wire protocol is language-neutral. Generated types are available for:
+## Wire Protocol Target Languages
 
-| Role | Language |
-|------|----------|
-| Gateway Runtime | Undecided (C++, Rust, Go, and Python are all supported by the wire protocol) |
-| Python Consumer | Python |
-| Go Consumer | Go |
-| Rust Consumer | Rust |
-| C++ Consumer | C++ |
+The wire protocol is language-neutral and can be consumed by implementations in the following
+target languages. Listing a language here does not mean that this repository currently publishes
+generated artifacts for that language.
+
+| Role | Language | Current artifact availability |
+|------|----------|-------------------------------|
+| Gateway Runtime | Undecided: C++, Rust, Go, or Python | Runtime not implemented |
+| Python Consumer | Python | Generated Protobuf/gRPC artifacts available |
+| Go Consumer | Go | Protocol-compatible target; artifacts not published here |
+| Rust Consumer | Rust | Protocol-compatible target; artifacts not published here |
+| C++ Consumer | C++ | Planned through C-M4-001; package not yet implemented |
+
+The currently tracked generated wire artifacts are Python artifacts.
+
+The C++ generated message package, exported CMake target, Conan package, and installable C++
+headers are not currently available. They require the future C-M4-001 implementation.
 
 The Gateway implementation language is **not selected by this repository**. The wire protocol supports all languages listed above. A final decision requires a separate ADR with benchmark evidence.
 
@@ -274,3 +286,5 @@ Breaking changes require:
 - `BinanceMarketData_Living_Architecture.md` — full architecture document
 - `docs/adr/` — architecture decision records
 - `docs/contracts/` — contract semantics and compatibility
+- `docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md` — approved Contracts-owned C++ package architecture
+- `docs/adr/ADR-0009-cpp-protobuf-package.md` — accepted C++ package ownership decision
