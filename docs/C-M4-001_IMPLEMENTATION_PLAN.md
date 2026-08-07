@@ -2,7 +2,7 @@
 
 ## Status and authorization
 
-- Implementation Planning: **CHANGES REQUESTED / CORRECTIONS PENDING RE-REVIEW**
+- Implementation Planning: **APPROVED**
 - C-M4-001 Design: **APPROVED / MERGED**
 - ADR-0009: **ACCEPTED**
 - OD-CM4-001: **CLOSED**
@@ -14,6 +14,11 @@
 - Schema Fingerprint: **NOT YET GENERATED / RECORDED / APPROVED**
 - Contracts Package Version: **NOT ASSIGNED TO AN ARTIFACT**
 - Contracts Package Revision: **NOT YET ASSIGNED**
+- Independent C-M4-001 Implementation Plan Re-Review: **APPROVED**
+- Reviewed Head: `1bbf9e89787230900423b444eacbda1d434b1acb`
+- New P0 Findings: **0**
+- New P1 Findings: **0**
+- New P2 Findings: **0**
 
 This is a planning document. It creates no CMake project, Conan recipe, lockfile, generated C++
 source, package binary, release artifact, or Projection change. Implementation starts only after an
@@ -470,30 +475,33 @@ implementation candidate.
 - [ ] Provenance manifest and artifact inspection pass.
 - [ ] Independent implementation review approves the package.
 
-## Implementation-plan review correction record
+## Implementation plan review record
 
-These are implementation-author corrections pending independent re-review; they are not an
-independent finding closure or approval of this plan.
+The implementation-author corrections were independently re-reviewed; all historical findings are
+closed and the plan is approved.
 
 | Finding | Status |
 |---|---|
-| IPR-1 | CORRECTED |
-| IPR-2 | CORRECTED |
-| IPR-3 | CORRECTED |
-| IPR-4 | CORRECTED |
-| IPR-5 | CORRECTED |
-| IPR-6 | CORRECTED |
-| IPR-7 | CORRECTED |
-| IPR-8 | CORRECTED |
-| IPR-9 | CORRECTED |
-| IPR-10 | CORRECTED |
+| IPR-1 | CLOSED |
+| IPR-2 | CLOSED |
+| IPR-3 | CLOSED |
+| IPR-4 | CLOSED |
+| IPR-5 | CLOSED |
+| IPR-6 | CLOSED |
+| IPR-7 | CLOSED |
+| IPR-8 | CLOSED |
+| IPR-9 | CLOSED |
+| IPR-10 | CLOSED |
 
-Implementation Planning remains **CHANGES REQUESTED / CORRECTIONS PENDING RE-REVIEW**.
-Implementation Authorization remains **NO**.
+Independent C-M4-001 Implementation Plan Re-Review: **APPROVED** at reviewed head
+`1bbf9e89787230900423b444eacbda1d434b1acb`; new P0 / P1 / P2 findings: **0 / 0 / 0**.
+
+Implementation Planning: **APPROVED**. C-M4-001 Implementation Authorization remains **NO** —
+pending merge of this approved planning PR.
 
 ## Authorization gate
 
-Before implementation starts, an independent planning review must approve:
+The independent planning review has approved the plan:
 
 ```text
 Implementation Planning: APPROVED
@@ -510,12 +518,13 @@ identity lifecycle: APPROVED
 CMake/Conan dependency graph: APPROVED
 ```
 
-Until that review records approval:
+The approval is recorded in this planning PR. Implementation authorization becomes effective only
+after the approved planning PR is merged into `main` and a final state guard confirms the merge:
 
 ```text
-C-M4-001 Implementation Authorization: NO
+C-M4-001 Implementation Authorization: NO — PENDING MERGE OF APPROVED IMPLEMENTATION PLAN
 C-M4-001 Implementation: NOT STARTED
 Projection M4 Implementation: NOT STARTED / BLOCKED
 ```
 
-Next task: `Independent C-M4-001 Implementation Plan Review`.
+Next task: `Final State Guard + Ready Transition + Squash Merge PR #5`.

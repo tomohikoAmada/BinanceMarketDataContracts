@@ -984,6 +984,21 @@ Planning outcomes are:
 These outcomes do not assign a Contracts Package Version or Revision, generate a Schema Fingerprint,
 authorize implementation, or change the status of any Domain or Wire Contract.
 
+## Implementation plan approval record
+
+The Independent C-M4-001 Implementation Plan Re-Review returned **APPROVED** at reviewed head
+`1bbf9e89787230900423b444eacbda1d434b1acb`.
+
+```text
+Implementation Plan: APPROVED
+Independent Implementation Plan Re-Review: APPROVED
+IPR-1 through IPR-10: CLOSED
+New P0 / P1 / P2 findings: 0 / 0 / 0
+C-M4-001 Implementation: NOT STARTED
+C-M4-001 Implementation Authorization: NO — PENDING MERGE OF APPROVED IMPLEMENTATION PLAN
+Projection M4 Implementation: NOT STARTED / BLOCKED
+```
+
 ## Implementation sequence
 
 The following steps belong to a future independent C-M4-001 Implementation PR and are not executed
