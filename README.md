@@ -17,17 +17,24 @@ architecture review with zero blocking findings. Implementation is **NOT STARTED
 remains **OPEN / BLOCKING** for Projection M4. No C++ package, CMake target, Conan recipe, or
 generated C++ artifact is provided by this baseline.
 
-## Target Languages
+## Wire Protocol Target Languages
 
-The wire protocol is language-neutral. Generated types are available for:
+The wire protocol is language-neutral and can be consumed by implementations in the following
+target languages. Listing a language here does not mean that this repository currently publishes
+generated artifacts for that language.
 
-| Role | Language |
-|------|----------|
-| Gateway Runtime | Undecided (C++, Rust, Go, and Python are all supported by the wire protocol) |
-| Python Consumer | Python |
-| Go Consumer | Go |
-| Rust Consumer | Rust |
-| C++ Consumer | C++ |
+| Role | Language | Current artifact availability |
+|------|----------|-------------------------------|
+| Gateway Runtime | Undecided: C++, Rust, Go, or Python | Runtime not implemented |
+| Python Consumer | Python | Generated Protobuf/gRPC artifacts available |
+| Go Consumer | Go | Protocol-compatible target; artifacts not published here |
+| Rust Consumer | Rust | Protocol-compatible target; artifacts not published here |
+| C++ Consumer | C++ | Planned through C-M4-001; package not yet implemented |
+
+The currently tracked generated wire artifacts are Python artifacts.
+
+The C++ generated message package, exported CMake target, Conan package, and installable C++
+headers are not currently available. They require the future C-M4-001 implementation.
 
 The Gateway implementation language is **not selected by this repository**. The wire protocol supports all languages listed above. A final decision requires a separate ADR with benchmark evidence.
 
