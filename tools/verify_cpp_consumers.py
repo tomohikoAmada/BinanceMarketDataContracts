@@ -103,7 +103,7 @@ def defined_symbol_lines(path: Path, symbol: str) -> list[str]:
     return [
         line
         for line in result.stdout.splitlines()
-        if symbol in line.replace("[abi:cxx11]", "") and " U " not in f" {line} "
+        if line.replace("[abi:cxx11]", "").rstrip().endswith(symbol) and " U " not in f" {line} "
     ]
 
 
