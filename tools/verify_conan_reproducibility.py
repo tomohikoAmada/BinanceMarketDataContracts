@@ -6,9 +6,8 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import shutil
+import re
 import subprocess
-import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -19,7 +18,7 @@ def run(command: list[str], *, cwd: Path, env: dict[str, str]) -> None:
     subprocess.run(command, cwd=cwd, env=env, check=True)
 
 
-def build_folder(conan: str, manifest: dict[str, Any], *, cwd: Path, env: dict[str, str]) -> str:
+def configured_build_directory(conan: str, manifest: dict[str, Any], *, cwd: Path, env: dict[str, str]) -> str:
     contracts = manifest["contracts"]
     reference = f"{contracts['conan_reference']}#{contracts['conan_recipe_revision']}:{contracts['conan_package_id']}"
     result = subprocess.run(
@@ -30,7 +29,15 @@ def build_folder(conan: str, manifest: dict[str, Any], *, cwd: Path, env: dict[s
         capture_output=True,
         text=True,
     )
-    return str(Path(result.stdout.strip()).resolve())
+    cache_file = Path(result.stdout.strip()) / "build" / "Release" / "CMakeCache.txt"
+    match = re.search(
+        r"^CMAKE_CACHEFILE_DIR:INTERNAL=(.+)$",
+        cache_file.read_text(encoding="utf-8"),
+        re.MULTILINE,
+    )
+    if match is None:
+        raise RuntimeError(f"CMake configure directory missing from {cache_file}")
+    return match.group(1)
 
 
 def snapshot(manifest: dict[str, Any]) -> dict[str, Any]:
@@ -92,9 +99,7 @@ def main() -> int:
         profile_build=args.profile_build,
     )
     build_a = snapshot(manifest_a)
-    original_build_a_folder = Path(build_folder(args.conan, manifest_a, cwd=source_root, env=env))
-    retained_root = Path(tempfile.mkdtemp(prefix="c-m4-001-build-a-", dir=conan_home))
-    build_a_folder = str(Path(shutil.move(str(original_build_a_folder), retained_root / "build")).resolve())
+    build_a_directory = configured_build_directory(args.conan, manifest_a, cwd=source_root, env=env)
 
     run(forced_build, cwd=source_root, env=env)
     manifest_b = generate_manifest(
@@ -104,7 +109,7 @@ def main() -> int:
         profile_build=args.profile_build,
     )
     build_b = snapshot(manifest_b)
-    build_b_folder = build_folder(args.conan, manifest_b, cwd=source_root, env=env)
+    build_b_directory = configured_build_directory(args.conan, manifest_b, cwd=source_root, env=env)
 
     comparisons = {
         "input_identity": build_a["input_identity"] == build_b["input_identity"],
@@ -115,7 +120,7 @@ def main() -> int:
         "archive_sha256": build_a["archive_sha256"] == build_b["archive_sha256"],
         "generated_object_sha256": build_a["generated_object_sha256"] == build_b["generated_object_sha256"],
         "package_files_sha256": build_a["package_files_sha256"] == build_b["package_files_sha256"],
-        "separate_build_directories": build_a_folder != build_b_folder,
+        "separate_build_directories": build_a_directory != build_b_directory,
     }
     if not all(comparisons.values()):
         raise RuntimeError(
@@ -125,8 +130,8 @@ def main() -> int:
 
     manifest_b["reproducibility"] = {
         "lockfile_sha256": sha256_file(source_root / "conan.lock"),
-        "build_a": {**build_a, "build_folder": build_a_folder},
-        "build_b": {**build_b, "build_folder": build_b_folder},
+        "build_a": {**build_a, "configured_build_directory": build_a_directory},
+        "build_b": {**build_b, "configured_build_directory": build_b_directory},
         "comparisons": comparisons,
         "match": "YES",
     }
