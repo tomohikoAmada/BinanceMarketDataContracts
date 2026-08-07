@@ -279,19 +279,25 @@ flowchart TB
 ### C-M4-001 C++ 包设计
 
 Contracts 当前拥有 `.proto` 源文件、Python 生成物和 Wire Contract 语义。面向 Projection
-M4 的 Contracts-owned、可安装、版本化 C++ Protobuf message package 架构已经批准，但尚未实现：
+M4 的 Contracts-owned、可安装、版本化 C++ Protobuf message package 架构已经批准，当前已形成
+待独立审查的实现候选：
 
 - C-M4-001 Design：**APPROVED**；
 - ADR-0009：**ACCEPTED**；
 - External Architecture Review：**APPROVED**；
 - Architecture blockers：**0**；
-- C-M4-001 Implementation：**NOT STARTED**；
-- C-M4-001：**OPEN / BLOCKING**；
+- C-M4-001 Implementation：**IMPLEMENTED CANDIDATE / PENDING INDEPENDENT REVIEW**；
+- Schema Fingerprint Candidate：`33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`；
+- Formal Fingerprint Approval：**PENDING INDEPENDENT IMPLEMENTATION REVIEW**；
+- Package Version Candidate：`0.1.0`；Package Revision：**NOT FORMALLY ASSIGNED**；
+- C-M4-001：**OPEN / PENDING INDEPENDENT IMPLEMENTATION REVIEW**；
 - 设计文档：`docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md`；
+- 实现证据：`docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md`；
 
-当前仍不存在 C++ package、generated message library、exported CMake target、Conan recipe、
-schema fingerprint digest 或 package revision。未来 message package 与 gRPC/Gateway runtime
-保持独立；Projection Core 不依赖 Protobuf。Projection M4 Implementation：**NOT STARTED / BLOCKED**。
+实现候选提供 `BinanceMarketDataContracts::Protobuf`、七个非 service message 的 build-time
+生成、可迁移 CMake install package、Conan 2 recipe/lockfile 及隔离 consumer 验证；它不包含
+gRPC 组件，也未发布。message package 与 gRPC/Gateway runtime 保持独立；Projection Core 不依赖
+Protobuf。Projection M4 Implementation：**NOT STARTED / BLOCKED**。
 
 ---
 
@@ -1266,7 +1272,7 @@ ADR 应记录：
 | O-008 | Health 的 SLO 阈值 | 尚未冻结 | 待实测 |
 | O-009 | Spot 首次 Depth 桥接边界 | 继续按官方与实测核验 | 开放风险 |
 | O-010 | Recorder / Gateway 分歧阈值 | 尚未冻结 | 待实测 |
-| O-011 | Contracts-owned C++ Protobuf package（C-M4-001） | 按 ADR-0009 和已批准设计建立独立 message package | 已决定（ADR-0009 ACCEPTED）；实现仍阻塞 Projection M4 |
+| O-011 | Contracts-owned C++ Protobuf package（C-M4-001） | 按 ADR-0009 和已批准设计建立独立 message package | 已决定（ADR-0009 ACCEPTED）；实现候选待独立审查，Projection M4 仍阻塞 |
 
 ---
 

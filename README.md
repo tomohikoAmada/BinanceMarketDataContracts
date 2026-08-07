@@ -13,9 +13,10 @@ All contracts are **PROPOSED** or **DRAFT**. DRAFT contracts are **not frozen** 
 structure may change. No contract has been formally ACCEPTED yet.
 
 The C-M4-001 architecture is **APPROVED** and ADR-0009 is **ACCEPTED** after an independent
-architecture review with zero blocking findings. Implementation is **NOT STARTED** and C-M4-001
-remains **OPEN / BLOCKING** for Projection M4. No C++ package, CMake target, Conan recipe, or
-generated C++ artifact is provided by this baseline.
+architecture review with zero blocking findings. The implementation is an **IMPLEMENTED
+CANDIDATE / PENDING INDEPENDENT REVIEW**. C-M4-001 remains **OPEN**, and Projection M4 remains
+**NOT STARTED / BLOCKED** until that review accepts the implementation. The candidate provides the
+Contracts-owned CMake and Conan C++ message package described below; it is not published.
 
 ## Wire Protocol Target Languages
 
@@ -29,12 +30,14 @@ generated artifacts for that language.
 | Python Consumer | Python | Generated Protobuf/gRPC artifacts available |
 | Go Consumer | Go | Protocol-compatible target; artifacts not published here |
 | Rust Consumer | Rust | Protocol-compatible target; artifacts not published here |
-| C++ Consumer | C++ | Planned through C-M4-001; package not yet implemented |
+| C++ Consumer | C++ | C-M4-001 candidate package implemented; review and publication pending |
 
 The currently tracked generated wire artifacts are Python artifacts.
 
-The C++ generated message package, exported CMake target, Conan package, and installable C++
-headers are not currently available. They require the future C-M4-001 implementation.
+The C++ candidate generates seven non-service message sources as build outputs and installs their
+headers with the exported target `BinanceMarketDataContracts::Protobuf`. Generated `.pb.cc` and
+`.pb.h` files are not committed as primary sources, and the package has no mandatory gRPC
+dependency.
 
 The Gateway implementation language is **not selected by this repository**. The wire protocol supports all languages listed above. A final decision requires a separate ADR with benchmark evidence.
 
@@ -52,6 +55,23 @@ python -m pip install -e ".[wire]"
 # Development environment (including code generation and wire runtime)
 python -m pip install -e ".[dev,wire]"
 ```
+
+### C++ candidate package
+
+The candidate Conan coordinate is `binance-market-data-contracts-cpp/0.1.0`. Its locked host and
+build dependency is `protobuf/6.33.5` at recipe revision
+`ca5ff466767b31a1b496ec60247e105c`; the generator reports `libprotoc 33.5`. A CMake consumer uses:
+
+```cmake
+find_package(BinanceMarketDataContracts CONFIG REQUIRED COMPONENTS Protobuf)
+target_link_libraries(my_target PRIVATE BinanceMarketDataContracts::Protobuf)
+```
+
+The Schema Fingerprint Algorithm Version 1 candidate is
+`33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`. It is pending independent
+implementation review and is not a formally approved fingerprint. Package revision is
+`NOT_FORMALLY_ASSIGNED` and release-mode configuration fails closed until a formal revision is
+provided.
 
 ## Quick start
 
@@ -287,4 +307,5 @@ Breaking changes require:
 - `docs/adr/` — architecture decision records
 - `docs/contracts/` — contract semantics and compatibility
 - `docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md` — approved Contracts-owned C++ package architecture
+- `docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md` — implementation candidate identity and validation evidence
 - `docs/adr/ADR-0009-cpp-protobuf-package.md` — accepted C++ package ownership decision

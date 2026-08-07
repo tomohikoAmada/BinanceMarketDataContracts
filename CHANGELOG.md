@@ -21,14 +21,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transcript tests for adapter correctness
 - Adapter round-trip tests ensuring lossless Pydantic ↔ Proto conversion
 - Descriptor tests validating generated Protobuf descriptors
-- Approved C-M4-001 architecture for a Contracts-owned versioned installable C++ Protobuf
-  message package; implementation has not started
+- C-M4-001 implementation candidate for a Contracts-owned versioned installable C++ Protobuf
+  message package, including CMake and Conan consumers, fingerprinting, and provenance metadata
 
 ### Changed
 
 - Version 0.1.0a1 → 0.2.0a1
 - Approved the C-M4-001 architecture for the Contracts-owned C++ Protobuf message package.
 - Accepted ADR-0009 after an independent architecture review with zero blocking findings.
+- Implemented the C-M4-001 candidate while retaining OPEN / pending independent review status.
 - ADR-0002 superseded by ADR-0007 (Pydantic remains domain authority)
 - MarketStateSnapshot: added source_book_update_id and source_trade_id fields
 - TelemetryEnvelope: extended with stream and connection fields
@@ -49,9 +50,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All existing tests pass without modification
 - Wire contracts are additive; consumers not using Protobuf are unaffected
 
-### Not Implemented
+### Pending
 
-- C-M4-001 implementation; C-M4-001 remains OPEN / BLOCKING
+- C-M4-001 independent implementation review and acceptance; Projection M4 remains blocked
+- Formal approval of the Schema Fingerprint candidate and assignment of the package revision
+- Publication of `binance-market-data-contracts-cpp/0.1.0`
 - Gateway Runtime (gRPC server is not implemented in this repository)
 - Gateway implementation language is not selected (C++, Rust, Go, Python are all supported by the wire protocol)
 - Network performance benchmarking

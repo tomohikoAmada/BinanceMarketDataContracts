@@ -74,11 +74,15 @@ contract status, field semantics, or generated Python artifact.
 - ADR-0009: **ACCEPTED**
 - External architecture review: **APPROVED**
 - Architecture blocking findings: **0**
-- Implementation: **NOT STARTED**
+- Implementation: **IMPLEMENTED CANDIDATE / PENDING INDEPENDENT REVIEW**
 - Schema baseline: `01d76a41929f36d89573159f5f458f9f1e378ada`
-- C-M4-001: **OPEN / BLOCKING**
+- Schema fingerprint candidate: `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`
+- Formal fingerprint approval: **PENDING INDEPENDENT IMPLEMENTATION REVIEW**
+- Package version candidate: `0.1.0`; package revision: **NOT FORMALLY ASSIGNED**
+- C-M4-001: **OPEN / PENDING INDEPENDENT IMPLEMENTATION REVIEW**
 - Projection M4 Implementation: **NOT STARTED / BLOCKED**
 - Design: [`docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md`](docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md)
+- Candidate evidence: [`docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md`](docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md)
 
 ## Open questions
 
