@@ -2,7 +2,7 @@
 
 ## Status
 
-PROPOSED
+ACCEPTED
 
 ## Date
 
@@ -52,7 +52,7 @@ in [`docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md`](../C-M4-001_CPP_PROTOBUF_PAC
 - Static/shared, Protobuf runtime, compiler, and platform support claims require implementation
   and consumer-test evidence before they are declared supported.
 - C-M4-001 remains **OPEN / BLOCKING** until the implementation acceptance gates pass.
-- C-M4-001 Design remains **PROPOSED** and C-M4-001 Implementation remains **NOT STARTED**.
+- C-M4-001 Design is **APPROVED** and C-M4-001 Implementation remains **NOT STARTED**.
 
 ## Rejected alternatives
 
@@ -63,8 +63,16 @@ in [`docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md`](../C-M4-001_CPP_PROTOBUF_PAC
 - A message target that links gRPC: rejected because M4 needs message types only and Gateway/gRPC
   runtime belongs to the later M6 boundary.
 
-## Review requirement
+## Acceptance record
 
-This ADR is **PROPOSED**, not ACCEPTED. It requires an independent C-M4-001 Architecture Review
-before implementation begins. Acceptance of this ADR must not be inferred from the existing
-accepted wire-contract or Gateway ADRs.
+Accepted: `2026-08-07`
+
+Acceptance basis: Independent C-M4-001 Architecture Review — Round 1
+
+Reviewed head: `c9c6f59dbb7f18cc2d630383f67619d9f0429d1b`
+
+Architecture blocking findings: **0**
+
+ADR acceptance records the architecture only. It does not imply that any Domain or Wire Contract
+is accepted, does not close C-M4-001, and does not authorize C-M4-001 or Projection M4
+implementation while the implementation-blocking Open Decisions remain open.

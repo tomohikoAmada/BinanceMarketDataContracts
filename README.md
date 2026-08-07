@@ -12,7 +12,8 @@ This package provides two contract strata:
 All contracts are **PROPOSED** or **DRAFT**. DRAFT contracts are **not frozen** — fields, semantics, and
 structure may change. No contract has been formally ACCEPTED yet.
 
-C-M4-001 C++ Protobuf package design is **PROPOSED**. Its implementation is **NOT STARTED** and
+The C-M4-001 architecture is **APPROVED** and ADR-0009 is **ACCEPTED** after an independent
+architecture review with zero blocking findings. Implementation is **NOT STARTED** and C-M4-001
 remains **OPEN / BLOCKING** for Projection M4. No C++ package, CMake target, Conan recipe, or
 generated C++ artifact is provided by this baseline.
 
@@ -278,5 +279,5 @@ Breaking changes require:
 - `BinanceMarketData_Living_Architecture.md` — full architecture document
 - `docs/adr/` — architecture decision records
 - `docs/contracts/` — contract semantics and compatibility
-- `docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md` — proposed Contracts-owned C++ package design
-- `docs/adr/ADR-0009-cpp-protobuf-package.md` — proposed C++ package ownership decision
+- `docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md` — approved Contracts-owned C++ package architecture
+- `docs/adr/ADR-0009-cpp-protobuf-package.md` — accepted C++ package ownership decision

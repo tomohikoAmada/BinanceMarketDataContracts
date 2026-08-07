@@ -2,15 +2,61 @@
 
 ## Status
 
-- C-M4-001 Design: **PROPOSED**
+- C-M4-001 Design: **APPROVED**
 - C-M4-001 Implementation: **NOT STARTED**
-- External Review: **REQUIRED**
+- External Architecture Review: **APPROVED**
 - Schema Baseline: `01d76a41929f36d89573159f5f458f9f1e378ada`
 - Schema Fingerprint: **NOT YET APPROVED**
 - Package Revision: **NOT YET ASSIGNED**
 - Package Version: **NOT ASSIGNED**
 - Projection M4 Implementation: **NOT STARTED / BLOCKED**
 - Date: 2026-08-07
+
+## External architecture review record
+
+### Round 1
+
+- Reviewed head: `c9c6f59dbb7f18cc2d630383f67619d9f0429d1b`
+- Base: `01d76a41929f36d89573159f5f458f9f1e378ada`
+- Result: **APPROVED**
+- Architecture blocking findings: **0**
+- P0 findings: **0**
+- P1 findings: **0**
+- P2 observations: **2**
+
+The review approved the C-M4-001 package architecture, including:
+
+- Contracts-owned generated C++ package ownership;
+- Contracts package-build-time code generation;
+- the `BinanceMarketDataContracts` CMake package;
+- the `BinanceMarketDataContracts::Protobuf` target;
+- message/gRPC component separation;
+- stable installed include paths;
+- canonical descriptor fingerprint Algorithm Version 1;
+- separation of Schema Identity and Package Identity;
+- static/shared/PIC validation boundaries;
+- Conan build/host-context separation;
+- offline consumption;
+- duplicate-symbol prevention; and
+- downstream acceptance gates.
+
+This approval authorizes recording the architecture and accepting ADR-0009.
+It does not close C-M4-001 and does not authorize either C-M4-001
+implementation or Projection M4 implementation.
+
+### Round 1 non-blocking observations
+
+P2-1:
+The installed include-layout examples should be made exhaustive during implementation, including
+generated headers outside the minimal M4 fingerprint closure when those files are part of the
+packaged generation set. The proto-relative include-layout rule itself is approved.
+
+P2-2:
+The implementation and release work must make the final mapping among `BUILD_SHARED_LIBS`, the
+Contracts library-type option, and the Conan `shared` option explicit. It must also define the
+independent C++ package version tag/manifest procedure before release.
+
+Status: **OPEN / NON-BLOCKING FOR DESIGN ACCEPTANCE**
 
 This document designs the Contracts-owned, versioned, installable C++ Protobuf message package
 required by Projection M4. It does not implement CMake, Conan, C++ generated files, a package, or a
@@ -270,7 +316,7 @@ The following identities remain distinct:
 |---|---|---|
 | Schema Baseline | Historical Contracts Git commit fixing the reviewed `.proto` source semantics | `01d76a41929f36d89573159f5f458f9f1e378ada` |
 | Schema Fingerprint | SHA-256 of the Version 1 canonical M4 descriptor closure | Not generated; not approved |
-| Canonicalization Algorithm Version | Version of the descriptor normalization/serialization procedure | Proposed `1`; not accepted |
+| Canonicalization Algorithm Version | Version of the descriptor normalization/serialization procedure | Version `1`; approved as architecture |
 | Package Revision | Actual Contracts commit/release revision containing the C++ package | Future implementation revision — not assigned |
 | Package Version | Distribution SemVer for the C++ package | Independent; not assigned |
 | Generator Identity | `protoc`, C++ generator options, and related build metadata | Proposed; implementation must record exact values |
@@ -774,8 +820,8 @@ No release or package publication occurs from this Design PR.
 
 ## Open decisions
 
-The architecture is proposed, not accepted. These decisions must be closed with evidence in the
-implementation planning/review cycle:
+The architecture is approved, while the following implementation and release decisions remain open
+and must be closed with evidence in the implementation planning/review cycle:
 
 | ID | Question | Recommended answer | Alternatives | Impact | Blocks implementation? | Evidence required | Owner |
 |---|---|---|---|---|---:|---|---|
@@ -788,6 +834,9 @@ implementation planning/review cycle:
 | OD-CM4-007 | Is a semantic manifest needed beside the descriptor fingerprint? | Keep Pydantic/adapter semantics separately tested; add a manifest only if package checks need it | Hash Python semantics into the descriptor digest | Prevents identity conflation | No for initial descriptor package | Projection/Contracts integration review | Contracts and Projection maintainers |
 
 An Open Decision is not a license to weaken the fixed `.proto` or Projection consumer requirements.
+
+OD-CM4-001 remains **OPEN / BLOCKING C-M4-001 IMPLEMENTATION**. Its final Conan Protobuf runtime
+and compiler/tool coordinates must be selected and verified before C-M4-001 implementation starts.
 
 ## Implementation sequence
 
@@ -832,7 +881,7 @@ following:
 Until then:
 
 ```text
-C-M4-001 Design: PROPOSED
+C-M4-001 Design: APPROVED
 C-M4-001 Implementation: NOT STARTED
 Projection M4 Implementation: NOT STARTED / BLOCKED
 ```
@@ -856,8 +905,8 @@ own implementation and external review gates.
 
 ## Review boundary
 
-This document is a Design-only proposal. The next step is:
+This document records an approved Design-only architecture. The next step is:
 
 ```text
-Independent C-M4-001 Architecture Review — Round 1
+Independent C-M4-001 Design Merge Readiness Review — Round 1
 ```

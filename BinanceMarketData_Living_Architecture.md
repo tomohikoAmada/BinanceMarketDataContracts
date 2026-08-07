@@ -279,17 +279,19 @@ flowchart TB
 ### C-M4-001 C++ 包设计
 
 Contracts 当前拥有 `.proto` 源文件、Python 生成物和 Wire Contract 语义。面向 Projection
-M4 的 Contracts-owned、可安装、版本化 C++ Protobuf message package 目前只有设计提案：
+M4 的 Contracts-owned、可安装、版本化 C++ Protobuf message package 架构已经批准，但尚未实现：
 
-- C-M4-001 Design：**PROPOSED**；
+- C-M4-001 Design：**APPROVED**；
+- ADR-0009：**ACCEPTED**；
+- External Architecture Review：**APPROVED**；
+- Architecture blockers：**0**；
 - C-M4-001 Implementation：**NOT STARTED**；
 - C-M4-001：**OPEN / BLOCKING**；
 - 设计文档：`docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md`；
-- ADR-0009：**PROPOSED**。
 
-该设计不改变 `.proto`、Pydantic 语义或当前合同状态，也不表示 C++ package、CMake target、
-Conan recipe 或生成的 C++ 文件已经存在。未来 message package 与 gRPC/Gateway runtime
-保持独立；Projection Core 不依赖 Protobuf。
+当前仍不存在 C++ package、generated message library、exported CMake target、Conan recipe、
+schema fingerprint digest 或 package revision。未来 message package 与 gRPC/Gateway runtime
+保持独立；Projection Core 不依赖 Protobuf。Projection M4 Implementation：**NOT STARTED / BLOCKED**。
 
 ---
 
@@ -1264,7 +1266,7 @@ ADR 应记录：
 | O-008 | Health 的 SLO 阈值 | 尚未冻结 | 待实测 |
 | O-009 | Spot 首次 Depth 桥接边界 | 继续按官方与实测核验 | 开放风险 |
 | O-010 | Recorder / Gateway 分歧阈值 | 尚未冻结 | 待实测 |
-| O-011 | Contracts-owned C++ Protobuf package（C-M4-001） | 按 ADR-0009 和设计文档建立独立 message package | PROPOSED / BLOCKING Projection M4 |
+| O-011 | Contracts-owned C++ Protobuf package（C-M4-001） | 按 ADR-0009 和已批准设计建立独立 message package | 已决定（ADR-0009 ACCEPTED）；实现仍阻塞 Projection M4 |
 
 ---
 

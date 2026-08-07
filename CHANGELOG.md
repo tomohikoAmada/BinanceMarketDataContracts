@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Version 0.1.0a1 → 0.2.0a1
+- Approved the C-M4-001 architecture for the Contracts-owned C++ Protobuf message package.
+- Accepted ADR-0009 after an independent architecture review with zero blocking findings.
 - ADR-0002 superseded by ADR-0007 (Pydantic remains domain authority)
 - MarketStateSnapshot: added source_book_update_id and source_trade_id fields
 - TelemetryEnvelope: extended with stream and connection fields
@@ -49,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Not Implemented
 
+- C-M4-001 implementation; C-M4-001 remains OPEN / BLOCKING
 - Gateway Runtime (gRPC server is not implemented in this repository)
 - Gateway implementation language is not selected (C++, Rust, Go, Python are all supported by the wire protocol)
 - Network performance benchmarking
