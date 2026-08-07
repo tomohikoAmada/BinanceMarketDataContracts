@@ -909,12 +909,29 @@ own implementation and external review gates.
 This document records an approved Design-only architecture.
 
 Design Merge Readiness Reviews Round 1, Round 2, and Round 3 are historical
-review records. Round 1 findings MR1-1 and MR1-2 have been corrected. Round 2
-identified MR2-1, which has been corrected. Round 3 identified MR3-1, which is
-corrected by the current documentation update.
+CHANGES REQUESTED review records. MR1-1 and MR1-2 were corrected in Round 1;
+MR2-1 was corrected in Round 2; and MR3-1 was corrected in Round 3.
+
+Independent C-M4-001 Design Merge Readiness Review Round 4 reviewed head
+`a03dd0daef7c6916400e559bf76a36c35b15920d` and returned **APPROVED**.
+
+- Round 4 P0 findings: **0**
+- Round 4 P1 findings: **0**
+- Round 4 P2 findings: **0**
+- Round 4 blocking findings: **0**
+- MR1-1: **CLOSED**
+- MR1-2: **CLOSED**
+- MR2-1: **CLOSED**
+- MR3-1: **CLOSED**
+
+Design Merge Readiness: **APPROVED**.
+
+This approval authorizes controlled finalization and merge of the C-M4-001
+design-only documentation change. It does not authorize C-M4-001
+implementation or Projection M4 implementation.
 
 The next step is:
 
 ```text
-Independent C-M4-001 Design Merge Readiness Review — Round 4
+Final CI Gate and Final Pre-Merge Verification for PR #3
 ```
