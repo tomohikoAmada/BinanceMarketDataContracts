@@ -18,6 +18,8 @@ set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_RREV
     "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_RREV@")
 set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_COMPATIBILITY
     "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_COMPATIBILITY@")
+set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_FLAVOR
+    "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_FLAVOR@")
 set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_LINKAGE
     "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_LINKAGE@")
 set(BinanceMarketDataContracts_CONTRACTS_SOURCE_REVISION

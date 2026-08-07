@@ -300,3 +300,33 @@ jobs:
           conan remove 'binance-market-data-contracts-cpp/*' -c
           conan remote disable conancenter
           conan create . --build=missing --lockfile=conan.lock -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20
+
+  cpp-macos-reproducibility:
+    name: C++ macOS ARM64 deterministic static package
+    runs-on: macos-15
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assert macOS ARM64 runner
+        run: test "$RUNNER_ARCH" = ARM64
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated build tools
+        run: python -m pip install 'conan==2.31.2' 'protobuf==6.33.5' 'pytest>=8,<10'
+      - name: Build identical static package twice and generate provenance
+        run: >-
+          python -m tools.verify_conan_reproducibility
+          --source-root "$PWD"
+          --conan-home "$RUNNER_TEMP/c-m4-001-double-build"
+          --profile-host "$PWD/profiles/conan/cpp20"
+          --profile-build "$PWD/profiles/conan/cpp20"
+          --output "$RUNNER_TEMP/c-m4-001-artifact-provenance.json"
+      - name: Retain concrete binary provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: c-m4-001-macos-arm64-static-provenance
+          path: ${{ runner.temp }}/c-m4-001-artifact-provenance.json
+          if-no-files-found: error

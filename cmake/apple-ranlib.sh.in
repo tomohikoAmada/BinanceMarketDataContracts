@@ -1,0 +1,2 @@
+#!/bin/sh
+exec env ZERO_AR_DATE=1 "@_apple_native_ranlib@" -D "$@"

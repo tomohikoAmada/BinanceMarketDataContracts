@@ -13,14 +13,13 @@
   "protobuf_runtime_version": "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_VERSION@",
   "protobuf_runtime_rrev": "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_RREV@",
   "protobuf_runtime_compatibility": "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_COMPATIBILITY@",
+  "protobuf_runtime_flavor": "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_FLAVOR@",
   "protobuf_runtime_linkage": "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_LINKAGE@",
   "cxx_standard": "20",
   "library_type": "@_contracts_library_type@",
   "position_independent_code": "@BMD_CONTRACTS_POSITION_INDEPENDENT_CODE@",
   "protobuf_export_definition": "BMD_CONTRACTS_PROTOBUF_API",
   "conan_coordinate_candidate": "binance-market-data-contracts-cpp/0.1.0",
-  "conan_recipe_revision": "BUILD_SPECIFIC",
-  "conan_package_id": "BUILD_SPECIFIC",
-  "conan_package_revision": "BUILD_SPECIFIC",
+  "binary_artifact_identity": "external:c-m4-001-artifact-provenance.json",
   "published": false
 }

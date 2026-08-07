@@ -12,4 +12,4 @@ set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_RREV
     "ca5ff466767b31a1b496ec60247e105c")
 set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_COMPATIBILITY
     "exactly 6.33.5 for this implementation candidate")
-set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_LINKAGE "full libprotobuf")
+set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_FLAVOR "full")

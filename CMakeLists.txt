@@ -16,6 +16,9 @@ set(BMD_CONTRACTS_PROTOC_EXECUTABLE "" CACHE FILEPATH "Locked build-context prot
 set(BMD_CONTRACTS_PROTOC_PROVENANCE "" CACHE STRING "protoc provenance assertion")
 set(BMD_CONTRACTS_PROTOBUF_RREV
     "${BinanceMarketDataContracts_PROTOBUF_RUNTIME_RREV}" CACHE STRING "Locked Protobuf recipe revision")
+set(BMD_CONTRACTS_PROTOBUF_RUNTIME_LINKAGE "" CACHE STRING
+    "Protobuf runtime linkage used by this build: STATIC or SHARED")
+set_property(CACHE BMD_CONTRACTS_PROTOBUF_RUNTIME_LINKAGE PROPERTY STRINGS STATIC SHARED)
 set(BinanceMarketDataContracts_PACKAGE_REVISION "NOT_FORMALLY_ASSIGNED" CACHE STRING
     "Candidate or formal package revision")
 set(BinanceMarketDataContracts_CONTRACTS_SOURCE_REVISION "" CACHE STRING
@@ -73,6 +76,14 @@ endif()
 find_package(Protobuf 6.33.5 EXACT CONFIG REQUIRED)
 find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
 
+if(NOT BMD_CONTRACTS_PROTOBUF_RUNTIME_LINKAGE STREQUAL "STATIC" AND
+   NOT BMD_CONTRACTS_PROTOBUF_RUNTIME_LINKAGE STREQUAL "SHARED")
+    message(FATAL_ERROR
+        "BMD_CONTRACTS_PROTOBUF_RUNTIME_LINKAGE must explicitly identify STATIC or SHARED")
+endif()
+string(TOLOWER "${BMD_CONTRACTS_PROTOBUF_RUNTIME_LINKAGE}"
+    BinanceMarketDataContracts_PROTOBUF_RUNTIME_LINKAGE)
+
 set(_required_protoc_provenance
     "conan:protobuf/6.33.5#ca5ff466767b31a1b496ec60247e105c")
 if(NOT BMD_CONTRACTS_PROTOC_PROVENANCE STREQUAL "${_required_protoc_provenance}")
@@ -101,13 +112,16 @@ if(_protoc_executable MATCHES "\\$<")
     message(FATAL_ERROR "Unable to resolve protobuf::protoc location for identity verification")
 endif()
 execute_process(
-    COMMAND "${_protoc_executable}" --version
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tools/verify_protoc.py"
+            "--protoc=${_protoc_executable}"
+            "--expected-version=${BinanceMarketDataContracts_PROTOC_VERSION}"
+            "--actual-provenance=${BMD_CONTRACTS_PROTOC_PROVENANCE}"
+            "--expected-provenance=${_required_protoc_provenance}"
     RESULT_VARIABLE _protoc_result
     OUTPUT_VARIABLE _protoc_version
     OUTPUT_STRIP_TRAILING_WHITESPACE
     ERROR_VARIABLE _protoc_error)
-if(NOT _protoc_result EQUAL 0 OR
-   NOT _protoc_version STREQUAL BinanceMarketDataContracts_PROTOC_VERSION)
+if(NOT _protoc_result EQUAL 0)
     message(FATAL_ERROR
         "protoc identity mismatch: expected '${BinanceMarketDataContracts_PROTOC_VERSION}', "
         "got '${_protoc_version}' (${_protoc_error})")
@@ -192,6 +206,22 @@ configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/provenance.json.in"
     "${CMAKE_CURRENT_BINARY_DIR}/metadata/provenance.json" @ONLY)
 
+if(APPLE AND _contracts_library_type STREQUAL "STATIC")
+    # Apple ar records current timestamps by default. ZERO_AR_DATE and ranlib -D are the
+    # native Apple-toolchain reproducible modes. CMake invokes ranlib again during install,
+    # so use the deterministic wrapper for both archive finishing and package installation.
+    set(_apple_native_ranlib "${CMAKE_RANLIB}")
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/apple-ranlib.sh.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/apple-ranlib" @ONLY)
+    file(CHMOD "${CMAKE_CURRENT_BINARY_DIR}/apple-ranlib"
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    set(CMAKE_RANLIB "${CMAKE_CURRENT_BINARY_DIR}/apple-ranlib")
+    set(CMAKE_CXX_ARCHIVE_CREATE
+        "\"${CMAKE_COMMAND}\" -E env ZERO_AR_DATE=1 \"<CMAKE_AR>\" qc \"<TARGET>\" <LINK_FLAGS> <OBJECTS>")
+    set(CMAKE_CXX_ARCHIVE_FINISH "\"<CMAKE_RANLIB>\" \"<TARGET>\"")
+endif()
+
 add_library(binance_market_data_contracts_protobuf ${_contracts_library_type}
     ${_generated_sources} ${_generated_headers})
 add_library(BinanceMarketDataContracts::Protobuf ALIAS
@@ -270,7 +300,8 @@ if(BUILD_TESTING)
         COMMAND "${Python3_EXECUTABLE}" -m pytest -q
                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_cpp_fingerprint.py")
     set_tests_properties(fingerprint_algorithm PROPERTIES
-        ENVIRONMENT "BMD_DESCRIPTOR_SET=${_descriptor_set};PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}")
+        ENVIRONMENT
+            "BMD_DESCRIPTOR_SET=${_descriptor_set};PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR};BMD_PROTO_ROOT=${_proto_root};BMD_PROTOC_EXECUTABLE=${_protoc_executable};BMD_PROTOC_VERSION=${BinanceMarketDataContracts_PROTOC_VERSION};BMD_PROTOC_PROVENANCE=${BMD_CONTRACTS_PROTOC_PROVENANCE}")
 endif()
 
 message(STATUS "Contracts library type: ${_contracts_library_type}")

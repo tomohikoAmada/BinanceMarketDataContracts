@@ -28,6 +28,7 @@ class BinanceMarketDataContractsConan(ConanFile):
         "cmake/*",
         "tools/__init__.py",
         "tools/schema_fingerprint.py",
+        "tools/verify_protoc.py",
         "tests/cpp/*",
         "tests/test_cpp_fingerprint.py",
         "src/binance_market_data_contracts/proto/*",
@@ -68,6 +69,10 @@ class BinanceMarketDataContractsConan(ConanFile):
         save(self, Path(self.export_folder) / "contracts_source_revision.txt", revision + "\n")
 
     def generate(self):
+        protobuf = self.dependencies["protobuf"]
+        runtime_linkage = "SHARED" if bool(protobuf.options.get_safe("shared")) else "STATIC"
+        if bool(protobuf.options.get_safe("lite")):
+            raise ValueError("C-M4-001 requires the full Protobuf runtime, not lite")
         CMakeDeps(self).generate()
         VirtualBuildEnv(self).generate()
         toolchain = CMakeToolchain(self)
@@ -79,6 +84,7 @@ class BinanceMarketDataContractsConan(ConanFile):
             "conan:protobuf/6.33.5#ca5ff466767b31a1b496ec60247e105c"
         )
         toolchain.cache_variables["BMD_CONTRACTS_PROTOBUF_RREV"] = "ca5ff466767b31a1b496ec60247e105c"
+        toolchain.cache_variables["BMD_CONTRACTS_PROTOBUF_RUNTIME_LINKAGE"] = runtime_linkage
         revision_file = Path(self.recipe_folder) / "contracts_source_revision.txt"
         if revision_file.is_file():
             revision = revision_file.read_text(encoding="utf-8").strip()
