@@ -100,7 +100,11 @@ def assert_symbol_ownership(prefix: Path) -> None:
 
 def defined_symbol_lines(path: Path, symbol: str) -> list[str]:
     result = subprocess.run(["nm", "-C", str(path)], text=True, capture_output=True, check=True)
-    return [line for line in result.stdout.splitlines() if symbol in line and " U " not in f" {line} "]
+    return [
+        line
+        for line in result.stdout.splitlines()
+        if symbol in line.replace("[abi:cxx11]", "") and " U " not in f" {line} "
+    ]
 
 
 def assert_final_link_participation(build: Path) -> None:
