@@ -2,7 +2,7 @@
   "schema_baseline": "@BinanceMarketDataContracts_SCHEMA_BASELINE@",
   "schema_fingerprint_candidate": "@BinanceMarketDataContracts_SCHEMA_FINGERPRINT@",
   "schema_fingerprint_algorithm_version": @BinanceMarketDataContracts_SCHEMA_FINGERPRINT_ALGORITHM_VERSION@,
-  "formal_fingerprint_approval": "PENDING_INDEPENDENT_IMPLEMENTATION_REVIEW",
+  "formal_fingerprint_approval": "PENDING_INDEPENDENT_IMPLEMENTATION_RE_REVIEW",
   "package_version_candidate": "@BinanceMarketDataContracts_PACKAGE_VERSION@",
   "package_revision": "@BinanceMarketDataContracts_PACKAGE_REVISION@",
   "package_revision_formal_state": "NOT_FORMALLY_ASSIGNED",
