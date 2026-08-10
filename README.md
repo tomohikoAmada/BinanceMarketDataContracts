@@ -13,11 +13,13 @@ All contracts are **PROPOSED** or **DRAFT**. DRAFT contracts are **not frozen** 
 structure may change. No contract has been formally ACCEPTED yet.
 
 The C-M4-001 architecture is **APPROVED** and ADR-0009 is **ACCEPTED** after an independent
-architecture review with zero blocking findings. The implementation passed its independent
-implementation re-review and is **APPROVED / PENDING MERGE** (IIR-1 through IIR-5 CLOSED;
-reviewed CI `31167981350` — 15/15 PASS). C-M4-001 remains **OPEN / PENDING MERGE**, and Projection
-M4 remains **NOT STARTED / BLOCKED** until that merge. The candidate provides the Contracts-owned
-CMake and Conan C++ message package described below; it is not published.
+architecture review with zero blocking findings. The implementation is **COMPLETE / MERGED** on
+the current `main` (`67ee1bf69fad980d114cfa278c3a6ffe310a4d7a`); its independent implementation
+re-review was approved (IIR-1 through IIR-5 CLOSED; reviewed CI `31167981350` — 15/15 PASS).
+The Contracts-owned CMake and Conan C++ message package exists at
+`binance-market-data-contracts-cpp/0.1.0` and is not published. The formal package revision
+remains **NOT FORMALLY ASSIGNED** (release gate). Projection M4 is **COMPLETE** in the separate
+`BinanceMarketDataProjection` repository; Gateway Runtime remains unimplemented.
 
 ## Wire Protocol Target Languages
 
@@ -31,7 +33,7 @@ generated artifacts for that language.
 | Python Consumer | Python | Generated Protobuf/gRPC artifacts available |
 | Go Consumer | Go | Protocol-compatible target; artifacts not published here |
 | Rust Consumer | Rust | Protocol-compatible target; artifacts not published here |
-| C++ Consumer | C++ | C-M4-001 candidate package implemented; independent review APPROVED, merge and publication pending |
+| C++ Consumer | C++ | C-M4-001 package implemented and merged; publication pending |
 
 The currently tracked generated wire artifacts are Python artifacts.
 
@@ -307,6 +309,7 @@ Breaking changes require:
 
 ## Related
 
+- `docs/CURRENT_STATE.md` — current repository orientation for humans and AI reviewers
 - `BinanceMarketData_Living_Architecture.md` — full architecture document
 - `docs/adr/` — architecture decision records
 - `docs/contracts/` — contract semantics and compatibility

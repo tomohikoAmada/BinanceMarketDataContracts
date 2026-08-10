@@ -1,5 +1,10 @@
 # C-M4-001 C++ Protobuf Package Implementation Plan
 
+> **HISTORICAL PLANNING SNAPSHOT** — This document records the planning state before the C-M4-001
+> implementation. C-M4-001 was later implemented and merged. For current status, see
+> [`docs/CURRENT_STATE.md`](CURRENT_STATE.md). The planning narrative below remains historically
+> truthful and is not a current implementation checklist.
+
 ## Status and authorization
 
 - Implementation Planning: **APPROVED**

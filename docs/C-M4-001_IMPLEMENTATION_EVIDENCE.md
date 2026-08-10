@@ -2,13 +2,17 @@
 
 ## Status
 
-- Implementation: **APPROVED / PENDING MERGE**
+- Implementation: **COMPLETE / MERGED** to Contracts `main`
 - Independent implementation review: **CHANGES REQUESTED** (historical), resolved
 - Independent implementation re-review: **APPROVED**
-- Implementation acceptance: **APPROVED / PENDING MERGE**
-- C-M4-001: **OPEN / PENDING MERGE**
-- Projection M4: **NOT STARTED / BLOCKED**
+- Implementation acceptance: **APPROVED / ACCEPTED / MERGED**
+- C-M4-001: **IMPLEMENTED / ACCEPTED / MERGED**
+- Projection M4: **COMPLETE** in the separate Projection repository
 - Published: **NO**
+
+> Current implementation status is recorded above. The review tables below preserve the historical
+> candidate/re-review evidence and must not be read as a current pending-merge state. See
+> `docs/CURRENT_STATE.md` for the current orientation index.
 
 This document records author-implementation evidence and the recorded independent
 implementation acceptance. It is not itself a substitute for the independent review, which
@@ -222,8 +226,8 @@ into package content.
 
 ## Deferred lifecycle gates
 
-- The acceptance-recorded head has not been merged into `main`; C-M4-001 remains OPEN / PENDING
-  MERGE and Projection M4 remains NOT STARTED / BLOCKED until the merge.
+- The acceptance-recorded head is merged into `main`; C-M4-001 is IMPLEMENTED / ACCEPTED / MERGED
+  and Projection M4 is COMPLETE in the separate Projection repository.
 - The formal Contracts package revision is not assigned; assignment is gated on RELEASE, and
   release mode fails closed without it.
-- No Conan package, Git tag, GitHub release, or other public artifact has been published.
+- No published Conan package, Git tag, GitHub release, or other public artifact exists.
