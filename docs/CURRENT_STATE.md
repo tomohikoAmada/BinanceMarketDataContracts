@@ -23,15 +23,22 @@ For implemented facts, use checked-out code, tests, build configuration, Git his
 GitHub state. Accepted ADRs and accepted semantic designs govern deliberate semantics. This file is
 orientation only.
 
-## Current Main
+## Synchronization Baseline
 
-- `origin/main`: `67ee1bf69fad980d114cfa278c3a6ffe310a4d7a`
-- Current main CI: run `31173390048`, completed `success`.
+- This synchronization was prepared against Contracts main commit
+  `67ee1bf69fad980d114cfa278c3a6ffe310a4d7a`.
+- The corresponding baseline main CI run `31173390048` completed
+  successfully.
+- Repository tip, open PR, and active branch state are dynamic; verify live
+  Git/GitHub when freshness matters.
 
 ## Active Candidate / Pull Request
 
-- No open Contracts pull requests.
-- The former C-M4-001 implementation candidate is merged; there is no active candidate branch.
+- The C-M4-001 implementation candidate is merged; no remaining C-M4-001
+  implementation candidate exists.
+- Repository-wide open pull requests and active branches are dynamic GitHub
+  state and must be checked live. This orientation file itself may be read
+  from a later documentation synchronization candidate.
 
 ## Deployed State
 
@@ -85,11 +92,12 @@ promote any PROPOSED/DRAFT contract or redefine another repository's semantics.
   Projection M3 sequence semantics.
 - Projection M4 is complete in `BinanceMarketDataProjection`; Gateway runtime is not implemented.
 
-## Current Validation / CI Evidence
+## Validation / CI Evidence
 
-The current main CI run `31173390048` completed successfully for the current main SHA. The accepted
-C-M4-001 implementation re-review recorded CI `31167981350` as 15/15 PASS; that is historical
-review evidence, not a current PR state.
+The baseline main CI run `31173390048` completed successfully for the
+synchronization baseline commit `67ee1bf69fad980d114cfa278c3a6ffe310a4d7a`.
+The accepted C-M4-001 implementation re-review recorded CI `31167981350` as
+15/15 PASS; that is historical review evidence, not a current PR state.
 
 ## Next Authorized Step
 

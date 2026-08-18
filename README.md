@@ -13,9 +13,10 @@ All contracts are **PROPOSED** or **DRAFT**. DRAFT contracts are **not frozen** 
 structure may change. No contract has been formally ACCEPTED yet.
 
 The C-M4-001 architecture is **APPROVED** and ADR-0009 is **ACCEPTED** after an independent
-architecture review with zero blocking findings. The implementation is **COMPLETE / MERGED** on
-the current `main` (`67ee1bf69fad980d114cfa278c3a6ffe310a4d7a`); its independent implementation
-re-review was approved (IIR-1 through IIR-5 CLOSED; reviewed CI `31167981350` — 15/15 PASS).
+architecture review with zero blocking findings. The implementation is **COMPLETE / MERGED**;
+C-M4-001 was merged into Contracts main by commit
+`67ee1bf69fad980d114cfa278c3a6ffe310a4d7a`. Its independent implementation re-review was approved
+(IIR-1 through IIR-5 CLOSED; reviewed CI `31167981350` — 15/15 PASS).
 The Contracts-owned CMake and Conan C++ message package exists at
 `binance-market-data-contracts-cpp/0.1.0` and is not published. The formal package revision
 remains **NOT FORMALLY ASSIGNED** (release gate). Projection M4 is **COMPLETE** in the separate
