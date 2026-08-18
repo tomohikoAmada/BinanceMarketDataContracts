@@ -67,14 +67,14 @@ A contract is promoted from PROPOSED to ACCEPTED when:
 ## C-M4-001 C++ package design
 
 The approved C-M4-001 architecture defines a Contracts-owned, versioned, installable C++ Protobuf
-message package for the future Projection M4 adapter. It does not change any `.proto` schema,
+message package for the Projection M4 adapter. It does not change any `.proto` schema,
 contract status, field semantics, or generated Python artifact.
 
 - Design: **APPROVED**
 - ADR-0009: **ACCEPTED**
 - External architecture review: **APPROVED**
 - Architecture blocking findings: **0**
-- Implementation: **APPROVED / PENDING MERGE**
+- Implementation: **COMPLETE / MERGED** into Contracts main by commit `67ee1bf69fad980d114cfa278c3a6ffe310a4d7a`
 - Independent implementation re-review: **APPROVED** (IIR-1 through IIR-5 CLOSED; P0/P1/P2 = 0)
 - Reviewed corrected head: `4e5d3d846afba982ab5e48d2737bc40560e34a6c`
 - Reviewed CI: `31167981350` — 15/15 PASS
@@ -82,8 +82,9 @@ contract status, field semantics, or generated Python artifact.
 - Schema fingerprint: `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`
 - Formal fingerprint approval: **APPROVED** (Algorithm Version 1)
 - Package version candidate: `0.1.0`; package revision: **NOT FORMALLY ASSIGNED — RELEASE GATE**
-- C-M4-001: **OPEN / PENDING MERGE**
-- Projection M4 Implementation: **NOT STARTED / BLOCKED**
+- C-M4-001: **IMPLEMENTED / ACCEPTED / MERGED**
+- Published: **NO**
+- Projection M4 Implementation: **COMPLETE** in the separate Projection repository
 - Design: [`docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md`](docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md)
 - Candidate evidence: [`docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md`](docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md)
 
@@ -107,3 +108,9 @@ See `docs/architecture/module_boundaries.md` and `docs/architecture/dependency_r
 
 See `docs/contracts/` for detailed documentation on time semantics, quality semantics,
 decimal string rules, and compatibility policy.
+
+## AI and independent-reviewer reading order
+
+Start with [`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md), then read this file, the full living
+architecture, the relevant accepted ADRs, and the actual code/tests. Verify current GitHub main and
+PR/CI state independently; the orientation file is not semantic authority.

@@ -4,10 +4,16 @@ Guidance for AI coding agents (OpenCode, Codex, etc.) working on this repository
 
 ## Architecture documents
 
+- `docs/CURRENT_STATE.md` — current orientation index; verify GitHub/code independently
 - `ARCHITECTURE.md` — entry point for architectural context
 - `BinanceMarketData_Living_Architecture.md` — full living architecture document
 - `docs/adr/` — architecture decision records
 - `docs/contracts/` — contract inventory, semantics, compatibility policy
+
+Recommended AI/reviewer reading order: `docs/CURRENT_STATE.md`, `AGENTS.md`, `README.md`,
+`ARCHITECTURE.md`, the relevant milestone/design document, accepted ADRs, actual code/tests, and
+the active PR body plus exact-head CI. `docs/CURRENT_STATE.md` is a current-state summary only;
+accepted ADRs and semantic designs remain authoritative.
 
 ## Responsibilities
 

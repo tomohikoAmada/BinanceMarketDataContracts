@@ -1,5 +1,10 @@
 # C-M4-001: Contracts-Owned C++ Protobuf Package Design
 
+> **HISTORICAL DESIGN SNAPSHOT** — This document records the approved design and its status at the
+> time of design review, before implementation. C-M4-001 was later implemented and merged. For
+> current status, see [`docs/CURRENT_STATE.md`](CURRENT_STATE.md). Accepted design decisions remain
+> semantic authority; this banner does not rewrite the historical record below.
+
 ## Status
 
 - C-M4-001 Design: **APPROVED**

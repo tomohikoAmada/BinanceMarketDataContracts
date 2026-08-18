@@ -4,7 +4,7 @@
 > **模块**：BinanceMarketData  
 > **状态**：Draft / 待审核  
 > **版本**：0.2.0
-> **最后更新**：2026-08-05
+> **最后更新**：2026-08-10
 > **主要读者**：软件架构师、开发者、测试人员、运维人员、量化研究人员、AI 编码代理  
 > **事实来源**：当前架构讨论、Binance 官方接口语义、各子模块实际代码与 ADR  
 > **维护原则**：文档与代码同库、随架构变更更新；重要决策另写 ADR，不在本文中抹去历史
@@ -129,7 +129,7 @@ flowchart LR
 6. **故障隔离**：Recorder、Gateway、Health、View 等互不无理由拖垮；
 7. **可演进性**：合同、数据格式和实现可以版本化升级；
 8. **可观测性**：能够解释数据是否可用、延迟在哪里、错误发生在哪里；
-9. **可移植性**：先支持 macOS，后续支持 Ubuntu；
+9. **可移植性**：避免将合同绑定到单一操作系统；具体平台支持、部署与验证 profile 由各实现仓库记录；
 10. **安全性**：市场数据模块不持有交易权限和账户密钥。
 
 ## 2.2 明确的取舍
@@ -278,29 +278,30 @@ flowchart TB
 
 ### C-M4-001 C++ 包设计
 
-Contracts 当前拥有 `.proto` 源文件、Python 生成物和 Wire Contract 语义。面向 Projection
-M4 的 Contracts-owned、可安装、版本化 C++ Protobuf message package 架构已经批准，当前已形成
-待独立审查的实现候选：
+Contracts 当前拥有 `.proto` 源文件、Python 生成物、Wire Contract 语义，以及已合并的
+Contracts-owned、可安装、版本化 C++ Protobuf message package 实现。面向 Projection M4 的
+包实现状态如下：
 
 - C-M4-001 Design：**APPROVED**；
 - ADR-0009：**ACCEPTED**；
 - External Architecture Review：**APPROVED**；
 - Architecture blockers：**0**；
-- C-M4-001 Implementation：**APPROVED / PENDING MERGE**；
+- C-M4-001 Implementation：**COMPLETE / MERGED**；
 - Independent Implementation Re-Review：**APPROVED**（IIR-1 至 IIR-5 全部 CLOSED；P0/P1/P2 = 0）；
 - Reviewed Corrected Head：`4e5d3d846afba982ab5e48d2737bc40560e34a6c`；Reviewed CI：`31167981350` — 15/15 PASS；
 - Schema Fingerprint：`33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`；
 - Formal Fingerprint Approval：**APPROVED**（Algorithm Version 1）；
 - Package Version Candidate：`0.1.0`；Package Revision：**NOT FORMALLY ASSIGNED — RELEASE GATE**；
-- C-M4-001：**OPEN / PENDING MERGE**；
+- C-M4-001：**IMPLEMENTED / ACCEPTED / MERGED**；
 - 设计文档：`docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md`；
 - 实现证据：`docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md`；
 
-实现候选提供 `BinanceMarketDataContracts::Protobuf`、七个非 service message 的 build-time
+实现提供 `BinanceMarketDataContracts::Protobuf`、七个非 service message 的 build-time
 生成、可迁移 CMake install package、Conan 2 recipe/lockfile 及隔离 consumer 验证；它不包含
-gRPC 组件，也未发布。独立实现复审已 APPROVED，静态与共享支持矩阵已确认，验收记录待合并进
-main；合并前 C-M4-001 保持 OPEN / PENDING MERGE。message package 与 gRPC/Gateway runtime 保持
-独立；Projection Core 不依赖 Protobuf。Projection M4 Implementation：**NOT STARTED / BLOCKED**。
+gRPC 组件，也未发布。独立实现复审已 APPROVED，静态与共享支持矩阵已确认，包版本为
+`0.1.0`，正式 Package Revision 仍为 **NOT FORMALLY ASSIGNED — RELEASE GATE**。message
+package 与 gRPC/Gateway runtime 保持独立；Projection Core 不依赖 Protobuf。Projection M4
+Implementation：**COMPLETE**（在独立 Projection 仓库中）。
 
 ---
 
@@ -1275,7 +1276,7 @@ ADR 应记录：
 | O-008 | Health 的 SLO 阈值 | 尚未冻结 | 待实测 |
 | O-009 | Spot 首次 Depth 桥接边界 | 继续按官方与实测核验 | 开放风险 |
 | O-010 | Recorder / Gateway 分歧阈值 | 尚未冻结 | 待实测 |
-| O-011 | Contracts-owned C++ Protobuf package（C-M4-001） | 按 ADR-0009 和已批准设计建立独立 message package | 已决定（ADR-0009 ACCEPTED）；实现复审 APPROVED / PENDING MERGE，Projection M4 仍阻塞 |
+| O-011 | Contracts-owned C++ Protobuf package（C-M4-001） | 按 ADR-0009 和已批准设计建立独立 message package | 已决定（ADR-0009 ACCEPTED）；实现已合并，发布与正式 Package Revision 仍待 release；Projection M4 已完成 |
 
 ---
 
