@@ -30,7 +30,7 @@ generated artifacts for that language.
 
 | Role | Language | Current artifact availability |
 |------|----------|-------------------------------|
-| Gateway Runtime | Undecided: C++, Rust, Go, or Python | Runtime not implemented |
+| Gateway Runtime | C++ | Selected by accepted cross-repository M6 authority; runtime not implemented |
 | Python Consumer | Python | Generated Protobuf/gRPC artifacts available |
 | Go Consumer | Go | Protocol-compatible target; artifacts not published here |
 | Rust Consumer | Rust | Protocol-compatible target; artifacts not published here |
