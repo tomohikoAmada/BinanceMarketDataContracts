@@ -579,10 +579,10 @@
       "path": "invalid/event-subscription-request.v1.whitespace-schema-version.json", "contract_name": "event-subscription-request.v1", "schema_version": "event-subscription-request.v1", "python_type": "EventSubscriptionRequest", "valid": false, "scenario": "Whitespace supported schema version", "validation_scope": "PYDANTIC_ONLY", "expected_error_code": "value_error", "expected_error_path": "$"
     },
     {
-      "path": "invalid/gateway-event-envelope.v1.generation-zero.json", "contract_name": "gateway-event-envelope.v1", "schema_version": "gateway-event-envelope.v1", "python_type": "GatewayEventEnvelope", "valid": false, "scenario": "Connection generation zero", "validation_scope": "BOTH", "expected_error_code": "greater_than_equal", "expected_error_path": "envelope_metadata.connection_generation"
+      "path": "invalid/gateway-event-envelope.v1.generation-zero.json", "contract_name": "gateway-event-envelope.v1", "schema_version": "gateway-event-envelope.v1", "python_type": "GatewayEventEnvelope", "valid": false, "scenario": "Connection generation zero", "validation_scope": "BOTH", "expected_error_code": "greater_than_equal", "expected_error_path": "delivery_metadata.connection_generation"
     },
     {
-      "path": "invalid/gateway-event-envelope.v1.session-sequence-zero.json", "contract_name": "gateway-event-envelope.v1", "schema_version": "gateway-event-envelope.v1", "python_type": "GatewayEventEnvelope", "valid": false, "scenario": "Session sequence zero", "validation_scope": "BOTH", "expected_error_code": "greater_than_equal", "expected_error_path": "envelope_metadata.session_sequence"
+      "path": "invalid/gateway-event-envelope.v1.session-sequence-zero.json", "contract_name": "gateway-event-envelope.v1", "schema_version": "gateway-event-envelope.v1", "python_type": "GatewayEventEnvelope", "valid": false, "scenario": "Session sequence zero", "validation_scope": "BOTH", "expected_error_code": "greater_than_equal", "expected_error_path": "delivery_metadata.session_sequence"
     },
     {
       "path": "invalid/gateway-event-envelope.v1.multiple-payloads.json", "contract_name": "gateway-event-envelope.v1", "schema_version": "gateway-event-envelope.v1", "python_type": "GatewayEventEnvelope", "valid": false, "scenario": "Multiple envelope payloads", "validation_scope": "PYDANTIC_ONLY", "expected_error_code": "value_error", "expected_error_path": "$"

@@ -680,14 +680,22 @@
       "title": "DepthUpdateMetadata",
       "type": "object"
     },
-    "EnvelopeMetadata": {
+    "GatewayEnvelopeMetadata": {
       "additionalProperties": false,
-      "description": "Gateway delivery metadata for each stream item.",
+      "description": "Canonical M6 Gateway delivery metadata.",
       "properties": {
         "connection_generation": {
-          "minimum": 1,
-          "title": "Connection Generation",
-          "type": "integer"
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Connection Generation"
         },
         "gateway_instance_id": {
           "maxLength": 128,
@@ -736,11 +744,10 @@
         "protocol_version",
         "gateway_instance_id",
         "subscription_id",
-        "connection_generation",
         "session_sequence",
         "publish_time_utc_ns"
       ],
-      "title": "EnvelopeMetadata",
+      "title": "GatewayEnvelopeMetadata",
       "type": "object"
     },
     "Market": {
@@ -1016,6 +1023,9 @@
       ],
       "default": null
     },
+    "delivery_metadata": {
+      "$ref": "#/$defs/GatewayEnvelopeMetadata"
+    },
     "depth_update": {
       "anyOf": [
         {
@@ -1026,9 +1036,6 @@
         }
       ],
       "default": null
-    },
-    "envelope_metadata": {
-      "$ref": "#/$defs/EnvelopeMetadata"
     },
     "stream_status": {
       "anyOf": [
@@ -1054,7 +1061,7 @@
     }
   },
   "required": [
-    "envelope_metadata"
+    "delivery_metadata"
   ],
   "type": "object"
 }

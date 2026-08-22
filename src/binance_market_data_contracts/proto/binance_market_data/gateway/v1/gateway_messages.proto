@@ -92,9 +92,27 @@ message StreamStatus {
 // Envelope and Stream Items
 // ---------------------------------------------------------------------------
 
+// GatewayEnvelopeMetadata is the canonical M6 Gateway delivery metadata.
+// connection_generation is absent when no unique applicable upstream source
+// generation exists (N/A); when present it is >= 1 and zero is never a sentinel.
+// session_sequence starts at 1 for the first actually emitted item in an
+// accepted subscription and increments by exactly 1 for every later item.
+message GatewayEnvelopeMetadata {
+  string protocol_version = 1;
+  string gateway_instance_id = 2;
+  string subscription_id = 3;
+  optional uint64 connection_generation = 4;
+  uint64 session_sequence = 5;
+  uint64 publish_time_utc_ns = 6;
+  optional uint64 publish_monotonic_ns = 7;
+}
+
 // GatewayEventEnvelope wraps a single event for the contiguous event stream.
 message GatewayEventEnvelope {
+  // Legacy DRAFT metadata. Producers MUST leave this field absent; readers
+  // reject legacy-only and dual metadata representations.
   binance_market_data.common.v1.EnvelopeMetadata envelope_metadata = 1;
+  GatewayEnvelopeMetadata delivery_metadata = 2;
 
   oneof payload {
     SubscriptionAccepted subscription_accepted = 10;
@@ -108,7 +126,10 @@ message GatewayEventEnvelope {
 
 // OrderBookStreamItem wraps a single item for the order book stream.
 message OrderBookStreamItem {
+  // Legacy DRAFT metadata. Producers MUST leave this field absent; readers
+  // reject legacy-only and dual metadata representations.
   binance_market_data.common.v1.EnvelopeMetadata envelope_metadata = 1;
+  GatewayEnvelopeMetadata delivery_metadata = 2;
 
   oneof payload {
     SubscriptionAccepted subscription_accepted = 10;
@@ -121,7 +142,10 @@ message OrderBookStreamItem {
 
 // MarketStateStreamItem wraps a single item for the market state stream.
 message MarketStateStreamItem {
+  // Legacy DRAFT metadata. Producers MUST leave this field absent; readers
+  // reject legacy-only and dual metadata representations.
   binance_market_data.common.v1.EnvelopeMetadata envelope_metadata = 1;
+  GatewayEnvelopeMetadata delivery_metadata = 2;
 
   oneof payload {
     SubscriptionAccepted subscription_accepted = 10;

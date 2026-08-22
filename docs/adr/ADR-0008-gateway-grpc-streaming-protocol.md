@@ -4,6 +4,20 @@
 
 ACCEPTED
 
+The DRAFT Gateway wire semantics were corrected for the accepted M6
+cross-repository integration contract without changing the `gateway-stream.v1`
+field numbers or protocol version. Gateway-owned `delivery_metadata` is the
+canonical M6 delivery surface; legacy common `envelope_metadata` remains a
+retained field but is not written by canonical Gateway producers. Exact
+emitted-item session sequencing, generation/gap separation, and the
+consumer-facing Projection publication cut below are authoritative for the
+current DRAFT contract. The new metadata field is additive and its optional
+generation presence is binary-wire compatible; `gateway-stream.v1` remains v1.
+
+Governance rule: a proto file already included in an accepted fingerprint
+authority must not become the ownership location for mutable unrelated DRAFT-only
+definitions.
+
 ## Date
 
 2026-08-05
@@ -64,20 +78,29 @@ These consumers may run on different machines (macOS, Ubuntu). The Gateway must 
 
 ### Snapshot + Stream handoff
 
-- Gateway accepts subscription → caches incoming DepthUpdates behind a logical barrier
-  → obtains/generates synchronized LocalOrderBookSnapshot(L) → sends
-  SubscriptionAccepted → sends Snapshot(L) → sends cached DepthUpdates bridgeable to L
-  → enters LIVE → continues with live DepthUpdates.
-- Consumers: Snapshot(L) → first bridgeable DepthUpdate → contiguous stream.
+- This is a consumer-facing Projection/publication cut, not Binance REST
+  bootstrap: Projection accepts through update `C`, Gateway captures
+  `LocalOrderBookSnapshot(last_update_id=C)`, establishes the subscription
+  publication cut in the same serialized Projection/publication ordering domain,
+  emits the snapshot, and emits only subsequently applicable accepted
+  `DepthUpdate`s after it.
+- The Gateway's bootstrap buffering and REST snapshot acquisition remain Gateway
+  orchestration concerns; they do not define this consumer publication cut.
 - If handoff fails: Gateway sends `ConsumerGapNotice` with `REQUEST_NEW_SNAPSHOT` or
   `RESUBSCRIBE`, does NOT silently deliver unreliable order books.
 
 ### Gap and recovery
 
 - Every gap is explicit (`ConsumerGapNotice` or `StreamStatus`).
-- `session_sequence` is per-subscription delivery sequence, NOT Binance update ID.
+- `session_sequence` is per accepted subscription and covers every actually
+  emitted item: first emitted item `1`, each subsequent item previous `+1`.
+  It is not Binance `U/u/pu`, `connection_generation`, or Projection
+  `last_update_id`. Latest-state items coalesced before emission consume no
+  visible sequence value.
 - Gateway restart → new `gateway_instance_id`.
 - Upstream connection rebuild → incremented `connection_generation`.
+- A connection-generation transition is a provenance/runtime lifecycle fact,
+  not automatic proof of a source or consumer-delivery gap.
 - Gap without notice → protocol violation.
 
 ### Browser consumers

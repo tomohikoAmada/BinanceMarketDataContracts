@@ -2,6 +2,7 @@
 
 import pytest
 
+from binance_market_data.gateway.v1 import gateway_messages_pb2 as pb_gw
 from binance_market_data_contracts.common import PositiveQuantityString, PriceString, QuantityString
 from binance_market_data_contracts.enums import (
     DeliveryMode,
@@ -12,8 +13,8 @@ from binance_market_data_contracts.enums import (
     Venue,
 )
 from binance_market_data_contracts.gateway import (
-    EnvelopeMetadata,
     EventSubscriptionRequest,
+    GatewayEnvelopeMetadata,
     GatewayEventEnvelope,
     StreamSelector,
     StreamStatus,
@@ -43,7 +44,9 @@ from binance_market_data_contracts.snapshots import (
     MarketStateSnapshot,
 )
 from binance_market_data_contracts.wire.adapters import (
+    MissingWireFieldError,
     UnspecifiedEnumError,
+    WireError,
     agg_trade_from_pb,
     agg_trade_to_pb,
     book_ticker_from_pb,
@@ -60,6 +63,8 @@ from binance_market_data_contracts.wire.adapters import (
     local_order_book_snapshot_to_pb,
     market_state_snapshot_from_pb,
     market_state_snapshot_to_pb,
+    market_state_stream_item_from_pb,
+    order_book_stream_item_from_pb,
     stream_status_from_pb,
     stream_status_to_pb,
     subscription_accepted_from_pb,
@@ -348,7 +353,7 @@ class TestGatewayRoundtrip:
             first_update_id=1,
             final_update_id=1,
         )
-        em = EnvelopeMetadata(
+        em = GatewayEnvelopeMetadata(
             gateway_instance_id=GatewayInstanceId("gw-1"),
             subscription_id=SubscriptionId("sub-1"),
             connection_generation=1,
@@ -356,13 +361,37 @@ class TestGatewayRoundtrip:
             publish_time_utc_ns=1_690_000_000,
             protocol_version="gateway-stream.v1",
         )
-        env = GatewayEventEnvelope(envelope_metadata=em, depth_update=du)
+        env = GatewayEventEnvelope(delivery_metadata=em, depth_update=du)
 
         pb = gateway_event_envelope_to_pb(env)
+        assert pb.HasField("delivery_metadata")
+        assert not pb.HasField("envelope_metadata")
         env2 = gateway_event_envelope_from_pb(pb)
         assert env2.depth_update is not None
         assert env2.depth_update.first_update_id == 1
-        assert env2.envelope_metadata.session_sequence == 1
+        assert env2.delivery_metadata.session_sequence == 1
+
+    def test_gateway_metadata_connection_generation_absence_roundtrip(self):
+        em = GatewayEnvelopeMetadata(
+            gateway_instance_id=GatewayInstanceId("gw-1"),
+            subscription_id=SubscriptionId("sub-1"),
+            connection_generation=None,
+            session_sequence=1,
+            publish_time_utc_ns=1_690_000_000,
+            protocol_version="gateway-stream.v1",
+        )
+        status = StreamStatus(
+            schema_version="stream-status.v1",
+            subscription_id=SubscriptionId("sub-1"),
+            state=StreamLifecycleState.LIVE,
+            observed_time_utc_ns=1_690_000_000,
+        )
+        env = GatewayEventEnvelope(delivery_metadata=em, stream_status=status)
+
+        pb = gateway_event_envelope_to_pb(env)
+        assert not pb.delivery_metadata.HasField("connection_generation")
+        env2 = gateway_event_envelope_from_pb(pb)
+        assert env2.delivery_metadata.connection_generation is None
 
     def test_stream_status(self):
         ss = StreamStatus(
@@ -378,6 +407,29 @@ class TestGatewayRoundtrip:
 
 
 class TestNegativeAdapters:
+    @pytest.mark.parametrize(
+        ("message_type", "adapter"),
+        [
+            (pb_gw.GatewayEventEnvelope, gateway_event_envelope_from_pb),
+            (pb_gw.OrderBookStreamItem, order_book_stream_item_from_pb),
+            (pb_gw.MarketStateStreamItem, market_state_stream_item_from_pb),
+        ],
+    )
+    def test_gateway_metadata_presence_policy(self, message_type, adapter):
+        with pytest.raises(MissingWireFieldError, match="delivery_metadata"):
+            adapter(message_type())
+
+        legacy_only = message_type()
+        legacy_only.envelope_metadata.protocol_version = "gateway-stream.v1"
+        with pytest.raises(WireError, match="legacy envelope_metadata"):
+            adapter(legacy_only)
+
+        both = message_type()
+        both.envelope_metadata.protocol_version = "gateway-stream.v1"
+        both.delivery_metadata.protocol_version = "gateway-stream.v1"
+        with pytest.raises(WireError, match="both"):
+            adapter(both)
+
     def test_unspecified_venue_rejected(self):
         from binance_market_data.common.v1 import enums_pb2 as pb_enums
         from binance_market_data_contracts.wire.adapters import _venue_from_pb

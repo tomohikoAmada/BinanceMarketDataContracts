@@ -12,8 +12,8 @@ from binance_market_data_contracts.enums import (
 )
 from binance_market_data_contracts.gateway import (
     ConsumerGapNotice,
-    EnvelopeMetadata,
     EventSubscriptionRequest,
+    GatewayEnvelopeMetadata,
     GatewayEventEnvelope,
     GatewayStatusSnapshot,
     MarketStateStreamItem,
@@ -107,6 +107,9 @@ def _bt_meta(**kw):
 
 def _pb_roundtrip(py_to_pb_fn, pb_to_py_fn, py_obj, compare_attrs=None):
     pb = py_to_pb_fn(py_obj)
+    if hasattr(pb, "delivery_metadata"):
+        assert pb.HasField("delivery_metadata")
+        assert not pb.HasField("envelope_metadata")
     serialized = pb.SerializeToString()
     assert len(serialized) > 0, f"Serialized empty for {type(py_obj).__name__}"
 
@@ -204,7 +207,7 @@ class TestWireRoundtrips:
 
     def test_envelope_to_wire_and_back(self):
         du = DepthUpdate(metadata=_meta(), first_update_id=100, final_update_id=100)
-        em = EnvelopeMetadata(
+        em = GatewayEnvelopeMetadata(
             gateway_instance_id=GatewayInstanceId("gw-x"),
             subscription_id=SubscriptionId("s-1"),
             connection_generation=1,
@@ -212,11 +215,11 @@ class TestWireRoundtrips:
             publish_time_utc_ns=1_690_000_000,
             protocol_version="gateway-stream.v1",
         )
-        env = GatewayEventEnvelope(envelope_metadata=em, depth_update=du)
+        env = GatewayEventEnvelope(delivery_metadata=em, depth_update=du)
         env2 = _pb_roundtrip(gateway_event_envelope_to_pb, gateway_event_envelope_from_pb, env, [])
         assert env2.depth_update is not None
         assert env2.depth_update.first_update_id == 100
-        assert env2.envelope_metadata.session_sequence == 5
+        assert env2.delivery_metadata.session_sequence == 5
 
     def test_order_book_stream_item(self):
         ls = LocalOrderBookSnapshot(
@@ -231,7 +234,7 @@ class TestWireRoundtrips:
             generated_time_utc_ns=1_690_000_000_000_000_000,
             synchronized=True,
         )
-        em = EnvelopeMetadata(
+        em = GatewayEnvelopeMetadata(
             gateway_instance_id=GatewayInstanceId("gw-x"),
             subscription_id=SubscriptionId("s-1"),
             connection_generation=1,
@@ -239,11 +242,11 @@ class TestWireRoundtrips:
             publish_time_utc_ns=1_690_000_000,
             protocol_version="gateway-stream.v1",
         )
-        item = OrderBookStreamItem(envelope_metadata=em, snapshot=ls)
+        item = OrderBookStreamItem(delivery_metadata=em, snapshot=ls)
         item2 = _pb_roundtrip(order_book_stream_item_to_pb, order_book_stream_item_from_pb, item, [])
         assert item2.snapshot is not None
         assert item2.snapshot.last_update_id == 5000
-        assert item2.envelope_metadata.session_sequence == 2
+        assert item2.delivery_metadata.session_sequence == 2
 
     def test_market_state_stream_item(self):
         ms = MarketStateSnapshot(
@@ -255,7 +258,7 @@ class TestWireRoundtrips:
             producer_version="1.0",
             generated_time_utc_ns=1_690_000_000_000_000_000,
         )
-        em = EnvelopeMetadata(
+        em = GatewayEnvelopeMetadata(
             gateway_instance_id=GatewayInstanceId("gw-x"),
             subscription_id=SubscriptionId("s-1"),
             connection_generation=1,
@@ -263,10 +266,10 @@ class TestWireRoundtrips:
             publish_time_utc_ns=1_690_000_000,
             protocol_version="gateway-stream.v1",
         )
-        item = MarketStateStreamItem(envelope_metadata=em, market_state=ms)
+        item = MarketStateStreamItem(delivery_metadata=em, market_state=ms)
         item2 = _pb_roundtrip(market_state_stream_item_to_pb, market_state_stream_item_from_pb, item, [])
         assert item2.market_state is not None
-        assert item2.envelope_metadata.session_sequence == 3
+        assert item2.delivery_metadata.session_sequence == 3
 
     def test_consumer_gap_notice(self):
         cgn = ConsumerGapNotice(
