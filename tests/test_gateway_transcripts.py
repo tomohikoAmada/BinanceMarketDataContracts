@@ -25,29 +25,19 @@ def validate_transcript(transcript: dict[str, Any]) -> None:
         raise TranscriptError("first payload must be SubscriptionAccepted")
 
     previous_sequence = 0
-    previous_generation = 0
+    previous_generation: int | None = None
     snapshot_seen = False
     gap_index: int | None = None
     for index, item in enumerate(items):
         sequence = item["session_sequence"]
-        generation = item["connection_generation"]
+        generation = item.get("connection_generation")
         payload = item["payload"]
-        if sequence <= previous_sequence:
-            raise TranscriptError("session_sequence must be strictly increasing")
-        if (
-            transcript["delivery_mode"] == "CONTIGUOUS_EVENTS"
-            and previous_sequence
-            and sequence != previous_sequence + 1
-        ):
-            raise TranscriptError("event stream has a silent session_sequence gap")
-        if generation < previous_generation:
+        if sequence != previous_sequence + 1:
+            raise TranscriptError("session_sequence must start at 1 and increment exactly by 1")
+        if generation is not None and generation < 1:
+            raise TranscriptError("connection_generation must be absent or >= 1")
+        if previous_generation is not None and generation is not None and generation < previous_generation:
             raise TranscriptError("connection_generation must not decrease")
-        if (
-            previous_generation
-            and generation != previous_generation
-            and payload not in {"STREAM_STATUS", "CONSUMER_GAP"}
-        ):
-            raise TranscriptError("generation change requires explicit status or gap")
 
         if transcript["stream_type"] == "ORDER_BOOK":
             if payload == "DEPTH_UPDATE" and not snapshot_seen:
@@ -87,6 +77,7 @@ def validate_transcript(transcript: dict[str, Any]) -> None:
         "valid-order-book-resync.json",
         "valid-latest-state-skips-intermediate.json",
         "valid-event-stream-contiguous.json",
+        "valid-generation-transition-without-gap.json",
     ],
 )
 def test_valid_transcript_files(name: str) -> None:
@@ -98,12 +89,46 @@ def test_valid_transcript_files(name: str) -> None:
     [
         "invalid-depth-before-snapshot.json",
         "invalid-sequence-gap-without-notice.json",
-        "invalid-generation-change-without-status.json",
     ],
 )
 def test_invalid_transcript_files(name: str) -> None:
     with pytest.raises(TranscriptError):
         validate_transcript(_load(name))
+
+
+@pytest.mark.parametrize(
+    ("delivery_mode", "sequences", "valid"),
+    [
+        ("CONTIGUOUS_EVENTS", [1, 2, 3], True),
+        ("LATEST_STATE", [1, 2, 3], True),
+        ("CONTIGUOUS_EVENTS", [1, 2, 4], False),
+        ("LATEST_STATE", [1, 2, 4], False),
+        ("LATEST_STATE", [2, 3, 4], False),
+        ("LATEST_STATE", [1, 1, 2], False),
+        ("LATEST_STATE", [1, 3, 2], False),
+    ],
+)
+def test_session_sequence_is_exactly_contiguous_for_every_delivery_mode(
+    delivery_mode: str, sequences: list[int], valid: bool
+) -> None:
+    payload = "DEPTH_UPDATE" if delivery_mode == "CONTIGUOUS_EVENTS" else "MARKET_STATE"
+    transcript = {
+        "stream_type": "EVENT" if delivery_mode == "CONTIGUOUS_EVENTS" else "MARKET_STATE",
+        "delivery_mode": delivery_mode,
+        "items": [
+            {
+                "session_sequence": sequence,
+                "connection_generation": 1,
+                "payload": "SUBSCRIPTION_ACCEPTED" if index == 0 else payload,
+            }
+            for index, sequence in enumerate(sequences)
+        ],
+    }
+    if valid:
+        validate_transcript(transcript)
+    else:
+        with pytest.raises(TranscriptError):
+            validate_transcript(transcript)
 
 
 def test_expected_transcript_inventory_is_complete() -> None:

@@ -364,6 +364,28 @@ class TestGatewayRoundtrip:
         assert env2.depth_update.first_update_id == 1
         assert env2.envelope_metadata.session_sequence == 1
 
+    def test_envelope_connection_generation_absence_roundtrip(self):
+        em = EnvelopeMetadata(
+            gateway_instance_id=GatewayInstanceId("gw-1"),
+            subscription_id=SubscriptionId("sub-1"),
+            connection_generation=None,
+            session_sequence=1,
+            publish_time_utc_ns=1_690_000_000,
+            protocol_version="gateway-stream.v1",
+        )
+        status = StreamStatus(
+            schema_version="stream-status.v1",
+            subscription_id=SubscriptionId("sub-1"),
+            state=StreamLifecycleState.LIVE,
+            observed_time_utc_ns=1_690_000_000,
+        )
+        env = GatewayEventEnvelope(envelope_metadata=em, stream_status=status)
+
+        pb = gateway_event_envelope_to_pb(env)
+        assert not pb.envelope_metadata.HasField("connection_generation")
+        env2 = gateway_event_envelope_from_pb(pb)
+        assert env2.envelope_metadata.connection_generation is None
+
     def test_stream_status(self):
         ss = StreamStatus(
             schema_version="stream-status.v1",

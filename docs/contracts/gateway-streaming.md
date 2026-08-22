@@ -10,7 +10,10 @@ handoff, gap detection, recovery, slow consumer behavior, and delivery modes.
 Used by `SubscribeEvents` for DepthUpdate, AggTrade, BookTicker.
 
 - Every event must be delivered. Silent message dropping is forbidden.
-- `session_sequence` is per-subscription, monotonic, starts at 1.
+- `session_sequence` is scoped to one accepted subscription. The first emitted
+  item is 1 and every subsequently emitted item increments the previous value
+  by exactly 1. This applies to every emitted item, including control and
+  status items.
 - A consumer gap must be explicitly signaled via `ConsumerGapNotice`.
 - A slow consumer whose queue overflows receives a `ConsumerGapNotice` and the
   stream is closed. It must not block other consumers.
@@ -23,7 +26,11 @@ Used by `SubscribeMarketState` for MarketStateSnapshot.
 - Overwritten states are NOT consumer gaps.
 - Each snapshot is self-describing (contains `source_book_update_id`,
   `source_trade_id`, `book_synchronized`).
-- `session_sequence` only reflects actual delivery order, not Binance update IDs.
+- `session_sequence` only reflects actual emitted delivery order, not Binance
+  `U/u/pu`, `connection_generation`, or Projection `last_update_id`.
+- Intermediate states may be coalesced before emission; an un-emitted state
+  does not consume a session sequence value. Emitted latest-state items still
+  use `1, 2, 3, ...` without visible gaps.
 - Source book version must be read from snapshot fields, not inferred from
   `session_sequence`.
 
@@ -31,35 +38,38 @@ Used by `SubscribeMarketState` for MarketStateSnapshot.
 
 ### 2.1 Normal Flow
 
-Let the snapshot's `last_update_id = L`.
+The consumer-facing handoff is a serialized Projection/publication cut, not the
+Binance REST bootstrap procedure:
 
-1. Gateway accepts subscription.
-2. Gateway establishes a logical barrier behind which incoming DepthUpdates
-   are cached.
-3. Gateway obtains or generates a synchronized `LocalOrderBookSnapshot(L)`.
-4. Gateway sends `SubscriptionAccepted` (seq=1).
-5. Gateway may send `StreamStatus(SNAPSHOT_PENDING)` (seq=2, optional).
-6. Gateway sends `OrderBookStreamItem` with `snapshot(L)` (seq=3).
-7. Gateway sends cached DepthUpdates that can bridge to L.
-8. Gateway enters `StreamStatus(LIVE)` (seq=N).
-9. Subsequent live DepthUpdates are delivered contiguously.
+1. Projection has deterministically accepted through update `C`.
+2. Gateway captures `LocalOrderBookSnapshot(last_update_id=C)`.
+3. Gateway establishes the subscription publication cut inside the same
+   serialized Projection/publication ordering domain.
+4. Gateway emits the snapshot.
+5. Only subsequently applicable accepted `DepthUpdate`s appear after it.
+
+The Gateway may emit `SubscriptionAccepted` and lifecycle status items as part
+of the subscription stream. Every actually emitted item receives the next exact
+`session_sequence` value; a coalesced or otherwise un-emitted item consumes no
+visible sequence value.
 
 **Consumer view**:
 
 ```
 SubscriptionAccepted(seq=1)
-Snapshot(L, seq=2)
-DepthUpdate(bridgeable to L, seq=3)
+Snapshot(last_update_id=C, seq=2)
+subsequently applicable DepthUpdate(seq=3)
 DepthUpdate(seq=4)
 ...
 LIVE status
 ```
 
-No invisible window between Snapshot and first bridgeable DepthUpdate.
+No invisible window exists after the publication cut: subsequent applicable
+accepted DepthUpdates are ordered after the emitted Snapshot.
 
 ### 2.2 Gap / Failure Flow
 
-If snapshot fails, bootstrap buffer overflows, bridge point cannot be found,
+If snapshot fails, bootstrap buffer overflows, the publication cut cannot be established,
 upstream sequence gap is detected, Gateway restarts, or resume data is evicted:
 
 1. Gateway sends `ConsumerGapNotice` or `StreamStatus(DEGRADED)` with
@@ -73,11 +83,11 @@ upstream sequence gap is detected, Gateway restarts, or resume data is evicted:
 
 ### 3.1 Gap Detection
 
-A gap is detected when:
-- `session_sequence` is non-contiguous on the consumer side.
-- Gateway explicitly sends `ConsumerGapNotice`.
-- `connection_generation` changes without an accompanying status notice.
-- Gateway restarts (new `gateway_instance_id`).
+A continuity gap is detected when the Gateway has evidence of required source or
+consumer-delivery loss, or when it explicitly sends `ConsumerGapNotice`.
+`connection_generation` is a provenance/runtime lifecycle fact: a transition
+may accompany a gap, but a generation change alone is not a data gap.
+Gateway restart (new `gateway_instance_id`) is a separate lifecycle boundary.
 
 ### 3.2 Gap Types and Recovery
 
@@ -87,7 +97,7 @@ A gap is detected when:
 | RESUME_NOT_AVAILABLE | REQUEST_NEW_SNAPSHOT |
 | UPSTREAM_SEQUENCE_GAP | REQUEST_NEW_SNAPSHOT |
 | GATEWAY_RESTART | RESUBSCRIBE |
-| CONNECTION_GENERATION_CHANGED | RESUBSCRIBE |
+| CONNECTION_GENERATION_CHANGED | RESUBSCRIBE when the transition is associated with an actual required continuity loss or recovery condition |
 | SUBSCRIPTION_RECONFIGURED | RESUBSCRIBE |
 
 ### 3.3 Invalid Sequences
@@ -96,9 +106,11 @@ The following sequences MUST NOT occur in a valid transcript:
 
 - DepthUpdate before initial Snapshot in an order book stream.
 - Snapshot after DepthUpdate without a gap notice in between.
-- Connection generation change without explicit status transition.
+- `connection_generation` regression between present values.
 - Gap without explicit `ConsumerGapNotice` or `StreamStatus`.
-- `session_sequence` regression or zero.
+- `session_sequence` zero, regression, or any non-contiguous emitted value.
+
+A generation transition alone is permitted and does not require a gap notice.
 
 ## 4. Slow Consumer Protocol
 
@@ -124,12 +136,16 @@ The following sequences MUST NOT occur in a valid transcript:
 | Field | Meaning | Starts At | Note |
 |-------|---------|-----------|------|
 | `gateway_instance_id` | Opaque Gateway identifier | New on restart | Changes after restart |
-| `connection_generation` | Upstream connection cycle | 1 | Incremented on reconnect |
-| `session_sequence` | Per-subscription delivery order | 1 | NOT Binance update ID |
+| `connection_generation` | Upstream connection cycle when uniquely applicable | 1 when present | Incremented on reconnect |
+| `session_sequence` | Per accepted-subscription emitted-item order | 1 | Every emitted item increments exactly +1; not Binance `U/u/pu` |
 | `publish_time_utc_ns` | Gateway wall-clock at publish | N/A | Monotonic within session |
 
-- `connection_generation` does NOT reset on session reconnect; it increments.
-- `session_sequence` is per-subscription, per-lifecycle.
+- For a uniquely applicable upstream source, `connection_generation` does not
+  reset on source reconnect; it increments. It is absent when no unique source
+  generation applies.
+- `session_sequence` is per accepted subscription and covers every emitted item,
+  regardless of delivery mode. It is not reset or skipped for an emitted control,
+  status, snapshot, or state item.
 - A new `gateway_instance_id` implies previous sequences are invalid.
 
 ## 6. Browser Consumers
@@ -143,8 +159,10 @@ Test-only rules (not Gateway runtime):
 
 1. `accepted` before first payload.
 2. Snapshot before first live DepthUpdate.
-3. No `session_sequence` regression.
-4. No `connection_generation` regression without status notice.
+3. The first emitted item has `session_sequence=1`; each subsequent emitted item
+   has the previous value plus exactly 1.
+4. `connection_generation` may be absent; present values are >= 1 and must not
+   decrease when compared with another present value.
 5. Gap always accompanied by explicit notice.
 6. After gap with REQUEST_NEW_SNAPSHOT, no DepthUpdates until new snapshot.
 7. Latest State may skip intermediate source revisions but must not claim false

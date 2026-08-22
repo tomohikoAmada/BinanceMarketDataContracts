@@ -305,12 +305,20 @@
     },
     "EnvelopeMetadata": {
       "additionalProperties": false,
-      "description": "Gateway delivery metadata for each stream item.",
+      "description": "Gateway delivery metadata for each stream item.\n\n``connection_generation`` is absent when no unique applicable upstream\nsource generation exists. ``session_sequence`` counts every emitted item\nfor the accepted subscription, beginning at one and incrementing exactly\nby one for each subsequent emitted item.",
       "properties": {
         "connection_generation": {
-          "minimum": 1,
-          "title": "Connection Generation",
-          "type": "integer"
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Connection Generation"
         },
         "gateway_instance_id": {
           "maxLength": 128,
@@ -359,7 +367,6 @@
         "protocol_version",
         "gateway_instance_id",
         "subscription_id",
-        "connection_generation",
         "session_sequence",
         "publish_time_utc_ns"
       ],

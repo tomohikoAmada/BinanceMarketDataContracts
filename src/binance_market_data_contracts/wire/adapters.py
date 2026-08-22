@@ -1027,7 +1027,9 @@ def envelope_metadata_from_pb(em: pb_meta.EnvelopeMetadata) -> EnvelopeMetadata:
         protocol_version="gateway-stream.v1",
         gateway_instance_id=GatewayInstanceId(em.gateway_instance_id),
         subscription_id=SubscriptionId(em.subscription_id),
-        connection_generation=em.connection_generation,
+        connection_generation=_optional_uint64(em.connection_generation)
+        if em.HasField("connection_generation")
+        else None,
         session_sequence=em.session_sequence,
         publish_time_utc_ns=em.publish_time_utc_ns,
         publish_monotonic_ns=_optional_uint64(em.publish_monotonic_ns) if em.HasField("publish_monotonic_ns") else None,
@@ -1039,7 +1041,8 @@ def envelope_metadata_to_pb(em: EnvelopeMetadata) -> pb_meta.EnvelopeMetadata:
     pb.protocol_version = em.protocol_version
     pb.gateway_instance_id = em.gateway_instance_id
     pb.subscription_id = em.subscription_id
-    pb.connection_generation = em.connection_generation
+    if em.connection_generation is not None:
+        pb.connection_generation = em.connection_generation
     pb.session_sequence = em.session_sequence
     pb.publish_time_utc_ns = em.publish_time_utc_ns
     if em.publish_monotonic_ns is not None:

@@ -209,12 +209,18 @@ class StreamStatus(ContractModel):
 
 
 class EnvelopeMetadata(ContractModel):
-    """Gateway delivery metadata for each stream item."""
+    """Gateway delivery metadata for each stream item.
+
+    ``connection_generation`` is absent when no unique applicable upstream
+    source generation exists. ``session_sequence`` counts every emitted item
+    for the accepted subscription, beginning at one and incrementing exactly
+    by one for each subsequent emitted item.
+    """
 
     protocol_version: Literal["gateway-stream.v1"]
     gateway_instance_id: GatewayInstanceId
     subscription_id: SubscriptionId
-    connection_generation: int = Field(..., ge=1)
+    connection_generation: int | None = Field(default=None, ge=1)
     session_sequence: int = Field(..., ge=1)
     publish_time_utc_ns: int = Field(..., ge=0)
     publish_monotonic_ns: int | None = Field(default=None, ge=0)

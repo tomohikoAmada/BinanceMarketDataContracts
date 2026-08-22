@@ -128,6 +128,9 @@ enum ConsumerGapReason {
   CONSUMER_GAP_REASON_RESUME_NOT_AVAILABLE = 2;
   CONSUMER_GAP_REASON_UPSTREAM_SEQUENCE_GAP = 3;
   CONSUMER_GAP_REASON_GATEWAY_RESTART = 4;
+  // Use only when a generation transition is associated with an actual
+  // required continuity loss or recovery condition; a transition alone is not
+  // a consumer or source gap.
   CONSUMER_GAP_REASON_CONNECTION_GENERATION_CHANGED = 5;
   CONSUMER_GAP_REASON_SUBSCRIPTION_RECONFIGURED = 6;
 }
