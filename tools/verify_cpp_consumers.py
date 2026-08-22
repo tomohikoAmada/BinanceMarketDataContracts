@@ -69,6 +69,8 @@ def assert_installed_artifact(prefix: Path, source_root: Path) -> None:
         "common/v1/identifiers.pb.h",
         "common/v1/metadata.pb.h",
         "gateway/v1/gateway_messages.pb.h",
+        "gateway/v1/gateway_service.pb.h",
+        "gateway/v1/gateway_service.grpc.pb.h",
         "market/v1/market_events.pb.h",
         "projection/v1/snapshots.pb.h",
         "telemetry/v1/telemetry.pb.h",
@@ -96,6 +98,9 @@ def assert_symbol_ownership(prefix: Path) -> None:
     ]
     if len(definitions) != 1:
         raise RuntimeError(f"DepthUpdate::Clear symbol ownership is not singular: {definitions}")
+    grpc_libraries = list((prefix / "lib").glob("*binance_market_data_contracts_grpc*"))
+    if len(grpc_libraries) != 1:
+        raise RuntimeError(f"expected one Contracts gRPC library, got {grpc_libraries}")
 
 
 def defined_symbol_lines(path: Path, symbol: str) -> list[str]:

@@ -297,8 +297,9 @@ Contracts-owned、可安装、版本化 C++ Protobuf message package 实现。�
 - 实现证据：`docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md`；
 
 实现提供 `BinanceMarketDataContracts::Protobuf`、七个非 service message 的 build-time
-生成、可迁移 CMake install package、Conan 2 recipe/lockfile 及隔离 consumer 验证；它不包含
-gRPC 组件，也未发布。独立实现复审已 APPROVED，静态与共享支持矩阵已确认，包版本为
+生成、可迁移 CMake install package、Conan 2 recipe/lockfile 及隔离 consumer 验证；M6
+后续实现另提供可选的 `BinanceMarketDataContracts::Grpc` service/stub 组件，仍未发布。
+`Protobuf` 不引入强制 gRPC link 依赖。独立实现复审已 APPROVED，静态与共享支持矩阵已确认，包版本为
 `0.1.0`，正式 Package Revision 仍为 **NOT FORMALLY ASSIGNED — RELEASE GATE**。message
 package 与 gRPC/Gateway runtime 保持独立；Projection Core 不依赖 Protobuf。Projection M4
 Implementation：**COMPLETE**（在独立 Projection 仓库中）。

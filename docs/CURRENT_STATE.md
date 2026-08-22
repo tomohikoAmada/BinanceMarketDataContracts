@@ -52,6 +52,9 @@ build/package workflow only.
 - Installed target: `BinanceMarketDataContracts::Protobuf`.
 - Seven non-service Protobuf message sources are generated at build time; generated C++ files are
   build outputs, not primary committed sources.
+- The M6 Contracts prerequisite adds the optional `BinanceMarketDataContracts::Grpc` component;
+  Gateway service and gRPC stub sources remain build outputs and the Protobuf component remains
+  message-only.
 - Formal Schema Fingerprint Algorithm Version 1 digest:
   `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`.
 
@@ -60,7 +63,8 @@ build/package workflow only.
 - Formal Contracts Package Revision assignment; it remains `NOT_FORMALLY_ASSIGNED` and is gated on
   release.
 - Package publication/release.
-- Gateway runtime or gRPC server.
+- Gateway runtime or gRPC server; this repository only provides the Contracts-owned optional gRPC
+  service/stub package surface.
 - Formal acceptance of the Domain and Wire Contracts; they remain PROPOSED or DRAFT unless a
   separate contract authority says otherwise.
 

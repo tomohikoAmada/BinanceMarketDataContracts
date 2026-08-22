@@ -39,9 +39,10 @@ generated artifacts for that language.
 The currently tracked generated wire artifacts are Python artifacts.
 
 The C++ candidate generates seven non-service message sources as build outputs and installs their
-headers with the exported target `BinanceMarketDataContracts::Protobuf`. Generated `.pb.cc` and
-`.pb.h` files are not committed as primary sources, and the package has no mandatory gRPC
-dependency.
+headers with the exported target `BinanceMarketDataContracts::Protobuf`. The separately optional
+`BinanceMarketDataContracts::Grpc` component generates the Gateway service and gRPC stubs at build
+time and links the gRPC C++ runtime. Generated `.pb.cc` and `.pb.h` files are not committed as
+primary sources; a Protobuf-only consumer does not acquire a mandatory gRPC link dependency.
 
 The Gateway implementation language is **not selected by this repository**. The wire protocol supports all languages listed above. A final decision requires a separate ADR with benchmark evidence.
 

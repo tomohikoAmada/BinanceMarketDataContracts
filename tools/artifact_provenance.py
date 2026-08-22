@@ -16,6 +16,8 @@ from typing import Any
 CONTRACTS_REFERENCE = "binance-market-data-contracts-cpp/0.1.0"
 PROTOBUF_REFERENCE = "protobuf/6.33.5"
 PROTOBUF_RREV = "ca5ff466767b31a1b496ec60247e105c"
+GRPC_REFERENCE = "grpc/1.83.0"
+GRPC_RREV = "67e377a995d4a1279bffe2b941ac2f55"
 
 
 def run(command: list[str], *, env: dict[str, str], cwd: Path | None = None) -> str:
@@ -178,6 +180,8 @@ def verify_surfaces(package_folder: Path, installed: dict[str, Any]) -> None:
             "PROTOBUF_RUNTIME_COMPATIBILITY",
         ),
         "protobuf_runtime_flavor": ("protobuf_runtime_flavor", "PROTOBUF_RUNTIME_FLAVOR"),
+        "grpc_version": ("grpc_version", "GRPC_VERSION"),
+        "grpc_rrev": ("grpc_rrev", "GRPC_RREV"),
         "protobuf_runtime_linkage": ("protobuf_runtime_linkage", "PROTOBUF_RUNTIME_LINKAGE"),
         "contracts_source_revision": ("contracts_source_revision", "CONTRACTS_SOURCE_REVISION"),
     }
@@ -218,15 +222,22 @@ def generate_manifest(
     )
     contracts = find_node(nodes, CONTRACTS_REFERENCE, "host")
     protobuf = find_node(nodes, PROTOBUF_REFERENCE, "host")
+    grpc = find_node(nodes, GRPC_REFERENCE, "host")
     if contracts["package_id"] != identity["package_id"] or contracts["prev"] != identity["prev"]:
         raise RuntimeError("Conan graph and cache identity disagree for Contracts")
     protobuf_rrev = str(protobuf["ref"]).split("#", maxsplit=1)[1]
     if protobuf_rrev != PROTOBUF_RREV:
         raise RuntimeError(f"Protobuf RREV drift: {protobuf_rrev}")
+    grpc_rrev = str(grpc["ref"]).split("#", maxsplit=1)[1]
+    if grpc_rrev != GRPC_RREV:
+        raise RuntimeError(f"gRPC RREV drift: {grpc_rrev}")
 
     package_folder = cache_path(conan, env, full_reference(contracts))
     provenance_path = package_folder / "share/BinanceMarketDataContracts/provenance.json"
     installed = json.loads(provenance_path.read_text(encoding="utf-8"))
+    expected_plugin_provenance = f"conan:{GRPC_REFERENCE}#{GRPC_RREV}"
+    if installed.get("grpc_cpp_plugin_provenance") != expected_plugin_provenance:
+        raise RuntimeError("grpc_cpp_plugin provenance drift")
     verify_surfaces(package_folder, installed)
 
     runtime_flavor = "lite" if str(protobuf["options"].get("lite")) == "True" else "full"
@@ -266,6 +277,13 @@ def generate_manifest(
             "generator_options": installed["cpp_generator_options"],
             "runtime_flavor": runtime_flavor,
             "runtime_linkage": runtime_linkage,
+        },
+        "grpc": {
+            "reference": GRPC_REFERENCE,
+            "recipe_revision": grpc_rrev,
+            "host_package_id": grpc["package_id"],
+            "host_package_revision": grpc["prev"],
+            "cpp_plugin_provenance": installed["grpc_cpp_plugin_provenance"],
         },
         "build": {
             "compiler": settings.get("compiler"),
