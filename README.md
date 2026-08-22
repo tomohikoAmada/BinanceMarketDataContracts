@@ -44,7 +44,9 @@ headers with the exported target `BinanceMarketDataContracts::Protobuf`. The sep
 time and links the gRPC C++ runtime. Generated `.pb.cc` and `.pb.h` files are not committed as
 primary sources; a Protobuf-only consumer does not acquire a mandatory gRPC link dependency.
 
-The Gateway implementation language is **not selected by this repository**. The wire protocol supports all languages listed above. A final decision requires a separate ADR with benchmark evidence.
+Contracts remains wire-language-neutral and does not own the Gateway implementation-language
+decision. The accepted cross-repository M6 authority currently selects C++ for
+`BinanceMarketDataGateway`; the wire protocol continues to support all languages listed above.
 
 The Gateway Runtime is **not implemented** in this repository. This package provides only the contract types.
 
