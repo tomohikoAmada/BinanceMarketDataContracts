@@ -26,8 +26,11 @@ def configure_and_build(
     prefixes: list[Path],
     *,
     env: dict[str, str] | None = None,
+    executable_name: str = "contracts_isolated_consumer",
+    cmake_args: list[str] | None = None,
 ) -> str:
     prefix_path = ";".join(str(path) for path in prefixes)
+    extra_args = cmake_args or []
     output = run(
         [
             "cmake",
@@ -39,14 +42,40 @@ def configure_and_build(
             "Ninja",
             f"-DCMAKE_PREFIX_PATH={prefix_path}",
             "-DCMAKE_BUILD_TYPE=Release",
+            *extra_args,
         ],
         cwd=build.parent,
         env=env,
     )
     output += run(["cmake", "--build", str(build), "--verbose"], cwd=build.parent, env=env)
-    executable = build / "contracts_isolated_consumer"
+    executable = build / executable_name
     output += run([str(executable)], cwd=build, env=env)
     return output
+
+
+def create_protobuf_only_dependency_prefix(source: Path, destination: Path) -> None:
+    shutil.copytree(source, destination)
+    for path in sorted(destination.rglob("*"), reverse=True):
+        if path.is_file() and "grpc" in path.name.lower():
+            path.unlink()
+    remaining_grpc_paths = [path for path in destination.rglob("*") if "grpc" in path.name.lower()]
+    if remaining_grpc_paths:
+        raise RuntimeError(f"gRPC CMake paths remain in the Protobuf-only prefix: {remaining_grpc_paths}")
+
+
+def hermetic_cmake_find_args() -> list[str]:
+    ninja = shutil.which("ninja")
+    cxx = shutil.which("c++")
+    if ninja is None or cxx is None:
+        raise RuntimeError("hermetic consumer validation requires ninja and c++ on PATH")
+    return [
+        f"-DCMAKE_MAKE_PROGRAM={ninja}",
+        f"-DCMAKE_CXX_COMPILER={cxx}",
+        "-DCMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH=FALSE",
+        "-DCMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH=FALSE",
+        "-DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=FALSE",
+        "-DCMAKE_DISABLE_FIND_PACKAGE_gRPC=TRUE",
+    ]
 
 
 def assert_consumer_isolation(build: Path, output: str, source_root: Path, *, allow_build_tree: bool) -> None:
@@ -69,6 +98,8 @@ def assert_installed_artifact(prefix: Path, source_root: Path) -> None:
         "common/v1/identifiers.pb.h",
         "common/v1/metadata.pb.h",
         "gateway/v1/gateway_messages.pb.h",
+        "gateway/v1/gateway_service.pb.h",
+        "gateway/v1/gateway_service.grpc.pb.h",
         "market/v1/market_events.pb.h",
         "projection/v1/snapshots.pb.h",
         "telemetry/v1/telemetry.pb.h",
@@ -96,6 +127,9 @@ def assert_symbol_ownership(prefix: Path) -> None:
     ]
     if len(definitions) != 1:
         raise RuntimeError(f"DepthUpdate::Clear symbol ownership is not singular: {definitions}")
+    grpc_libraries = list((prefix / "lib").glob("*binance_market_data_contracts_grpc*"))
+    if len(grpc_libraries) != 1:
+        raise RuntimeError(f"expected one Contracts gRPC library, got {grpc_libraries}")
 
 
 def defined_symbol_lines(path: Path, symbol: str) -> list[str]:
@@ -139,6 +173,8 @@ def main() -> int:
     parser.add_argument("--build-dir", type=Path, required=True)
     parser.add_argument("--dependency-prefix", type=Path, action="append", default=[])
     args = parser.parse_args()
+    if len(args.dependency_prefix) != 1:
+        raise RuntimeError("exactly one Conan dependency prefix is required for consumer isolation")
     source_root = args.source_root.resolve()
     build_dir = args.build_dir.resolve()
 
@@ -162,6 +198,18 @@ def main() -> int:
 
         relocated = root / "relocated-prefix"
         shutil.copytree(install_prefix, relocated)
+        protobuf_only_dependency_prefix = root / "protobuf-only-dependencies"
+        create_protobuf_only_dependency_prefix(args.dependency_prefix[0], protobuf_only_dependency_prefix)
+        protobuf_only_consumer = root / "protobuf-only-installed-consumer"
+        output = configure_and_build(
+            consumer_source,
+            protobuf_only_consumer,
+            [relocated, protobuf_only_dependency_prefix],
+            cmake_args=hermetic_cmake_find_args(),
+        )
+        assert_consumer_isolation(protobuf_only_consumer, output, source_root, allow_build_tree=False)
+        assert_final_link_participation(protobuf_only_consumer)
+
         trap = root / "trap"
         trap.mkdir()
         protoc = trap / "protoc"
@@ -178,6 +226,16 @@ def main() -> int:
         )
         assert_consumer_isolation(install_consumer, output, source_root, allow_build_tree=False)
         assert_final_link_participation(install_consumer)
+
+        grpc_source = root / "grpc-installed-source"
+        shutil.copytree(source_root / "tests/consumers/installed_grpc", grpc_source)
+        grpc_build = root / "grpc-installed-consumer"
+        output = configure_and_build(
+            grpc_source,
+            grpc_build,
+            [relocated, *args.dependency_prefix],
+            executable_name="raw_installed_grpc_consumer",
+        )
 
         core_build = root / "core-like"
         core_source = root / "core-source"
@@ -197,7 +255,10 @@ def main() -> int:
             cwd=root,
         )
         run(["cmake", "--build", str(core_build)], cwd=root)
-    print("build-tree, install-tree, relocation, isolation, symbols, and Projection-like probes passed")
+    print(
+        "build-tree, install-tree, relocation, Protobuf-only-without-gRPC, raw-installed Grpc, "
+        "isolation, symbols, and Projection-like probes passed"
+    )
     return 0
 
 

@@ -1,0 +1,9 @@
+cmake_minimum_required(VERSION 3.24)
+project(raw_installed_grpc_consumer LANGUAGES CXX)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+find_package(BinanceMarketDataContracts CONFIG REQUIRED COMPONENTS Grpc)
+
+add_executable(raw_installed_grpc_consumer main.cpp)
+target_compile_features(raw_installed_grpc_consumer PRIVATE cxx_std_20)
+target_link_libraries(raw_installed_grpc_consumer PRIVATE BinanceMarketDataContracts::Grpc)

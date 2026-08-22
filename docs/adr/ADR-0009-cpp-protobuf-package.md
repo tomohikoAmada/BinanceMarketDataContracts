@@ -76,3 +76,12 @@ Architecture blocking findings: **0**
 ADR acceptance records the architecture only. It does not imply that any Domain or Wire Contract
 is accepted, does not close C-M4-001, and does not authorize C-M4-001 or Projection M4
 implementation while the implementation-blocking Open Decisions remain open.
+
+## M6 follow-on implementation note
+
+The separately authorized M6 Contracts prerequisite implements the optional
+`BinanceMarketDataContracts::Grpc` component without changing the accepted `Protobuf` component.
+It generates the Gateway service and gRPC stubs at build time, links the gRPC C++ runtime only
+through `Grpc`, and keeps the existing M4 fingerprint and message-only dependency direction
+unchanged. This note records follow-on implementation status; it does not rewrite the historical
+C-M4-001 design or claim that the Gateway runtime exists.
