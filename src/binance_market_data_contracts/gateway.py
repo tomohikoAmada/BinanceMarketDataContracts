@@ -209,13 +209,19 @@ class StreamStatus(ContractModel):
 
 
 class EnvelopeMetadata(ContractModel):
-    """Gateway delivery metadata for each stream item.
+    """Gateway delivery metadata for each stream item."""
 
-    ``connection_generation`` is absent when no unique applicable upstream
-    source generation exists. ``session_sequence`` counts every emitted item
-    for the accepted subscription, beginning at one and incrementing exactly
-    by one for each subsequent emitted item.
-    """
+    protocol_version: Literal["gateway-stream.v1"]
+    gateway_instance_id: GatewayInstanceId
+    subscription_id: SubscriptionId
+    connection_generation: int = Field(..., ge=1)
+    session_sequence: int = Field(..., ge=1)
+    publish_time_utc_ns: int = Field(..., ge=0)
+    publish_monotonic_ns: int | None = Field(default=None, ge=0)
+
+
+class GatewayEnvelopeMetadata(ContractModel):
+    """Canonical M6 Gateway delivery metadata."""
 
     protocol_version: Literal["gateway-stream.v1"]
     gateway_instance_id: GatewayInstanceId
@@ -228,26 +234,26 @@ class EnvelopeMetadata(ContractModel):
 
 def _validate_stream_item_identity(
     *,
-    envelope_metadata: EnvelopeMetadata,
+    delivery_metadata: GatewayEnvelopeMetadata,
     subscription_accepted: SubscriptionAccepted | None,
     consumer_gap: ConsumerGapNotice | None,
     stream_status: StreamStatus | None,
 ) -> None:
     """Validate lifecycle payload identity consistently across all stream envelopes."""
     lifecycle_payload = subscription_accepted or consumer_gap or stream_status
-    if lifecycle_payload is not None and lifecycle_payload.subscription_id != envelope_metadata.subscription_id:
+    if lifecycle_payload is not None and lifecycle_payload.subscription_id != delivery_metadata.subscription_id:
         raise ValueError(
             f"Identity conflict: payload subscription_id ({lifecycle_payload.subscription_id}) "
-            f"!= envelope_metadata.subscription_id ({envelope_metadata.subscription_id})"
+            f"!= delivery_metadata.subscription_id ({delivery_metadata.subscription_id})"
         )
     if (
         subscription_accepted is not None
-        and subscription_accepted.gateway_instance_id != envelope_metadata.gateway_instance_id
+        and subscription_accepted.gateway_instance_id != delivery_metadata.gateway_instance_id
     ):
         raise ValueError(
             f"Identity conflict: SubscriptionAccepted gateway_instance_id "
-            f"({subscription_accepted.gateway_instance_id}) != envelope_metadata.gateway_instance_id "
-            f"({envelope_metadata.gateway_instance_id})"
+            f"({subscription_accepted.gateway_instance_id}) != delivery_metadata.gateway_instance_id "
+            f"({delivery_metadata.gateway_instance_id})"
         )
 
 
@@ -257,7 +263,7 @@ class GatewayEventEnvelope(ContractModel):
     Exactly one payload field must be set.
     """
 
-    envelope_metadata: EnvelopeMetadata
+    delivery_metadata: GatewayEnvelopeMetadata
 
     subscription_accepted: SubscriptionAccepted | None = None
     depth_update: DepthUpdate | None = None
@@ -286,7 +292,7 @@ class GatewayEventEnvelope(ContractModel):
     @model_validator(mode="after")
     def _validate_identity_consistency(self) -> GatewayEventEnvelope:
         _validate_stream_item_identity(
-            envelope_metadata=self.envelope_metadata,
+            delivery_metadata=self.delivery_metadata,
             subscription_accepted=self.subscription_accepted,
             consumer_gap=self.consumer_gap,
             stream_status=self.stream_status,
@@ -300,7 +306,7 @@ class OrderBookStreamItem(ContractModel):
     Exactly one payload field must be set.
     """
 
-    envelope_metadata: EnvelopeMetadata
+    delivery_metadata: GatewayEnvelopeMetadata
 
     subscription_accepted: SubscriptionAccepted | None = None
     snapshot: LocalOrderBookSnapshot | None = None
@@ -327,7 +333,7 @@ class OrderBookStreamItem(ContractModel):
     @model_validator(mode="after")
     def _validate_identity_consistency(self) -> OrderBookStreamItem:
         _validate_stream_item_identity(
-            envelope_metadata=self.envelope_metadata,
+            delivery_metadata=self.delivery_metadata,
             subscription_accepted=self.subscription_accepted,
             consumer_gap=self.consumer_gap,
             stream_status=self.stream_status,
@@ -341,7 +347,7 @@ class MarketStateStreamItem(ContractModel):
     Exactly one payload field must be set.
     """
 
-    envelope_metadata: EnvelopeMetadata
+    delivery_metadata: GatewayEnvelopeMetadata
 
     subscription_accepted: SubscriptionAccepted | None = None
     market_state: MarketStateSnapshot | None = None
@@ -366,7 +372,7 @@ class MarketStateStreamItem(ContractModel):
     @model_validator(mode="after")
     def _validate_identity_consistency(self) -> MarketStateStreamItem:
         _validate_stream_item_identity(
-            envelope_metadata=self.envelope_metadata,
+            delivery_metadata=self.delivery_metadata,
             subscription_accepted=self.subscription_accepted,
             consumer_gap=self.consumer_gap,
             stream_status=self.stream_status,

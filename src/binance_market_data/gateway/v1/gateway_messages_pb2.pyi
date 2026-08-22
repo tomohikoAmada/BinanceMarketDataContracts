@@ -125,9 +125,28 @@ class StreamStatus(_message.Message):
     message: str
     def __init__(self, schema_version: _Optional[str] = ..., subscription_id: _Optional[str] = ..., state: _Optional[_Union[_enums_pb2.StreamLifecycleState, str]] = ..., observed_time_utc_ns: _Optional[int] = ..., reason_code: _Optional[_Union[_enums_pb2.ReasonCode, str]] = ..., message: _Optional[str] = ...) -> None: ...
 
+class GatewayEnvelopeMetadata(_message.Message):
+    __slots__ = ("protocol_version", "gateway_instance_id", "subscription_id", "connection_generation", "session_sequence", "publish_time_utc_ns", "publish_monotonic_ns")
+    PROTOCOL_VERSION_FIELD_NUMBER: _ClassVar[int]
+    GATEWAY_INSTANCE_ID_FIELD_NUMBER: _ClassVar[int]
+    SUBSCRIPTION_ID_FIELD_NUMBER: _ClassVar[int]
+    CONNECTION_GENERATION_FIELD_NUMBER: _ClassVar[int]
+    SESSION_SEQUENCE_FIELD_NUMBER: _ClassVar[int]
+    PUBLISH_TIME_UTC_NS_FIELD_NUMBER: _ClassVar[int]
+    PUBLISH_MONOTONIC_NS_FIELD_NUMBER: _ClassVar[int]
+    protocol_version: str
+    gateway_instance_id: str
+    subscription_id: str
+    connection_generation: int
+    session_sequence: int
+    publish_time_utc_ns: int
+    publish_monotonic_ns: int
+    def __init__(self, protocol_version: _Optional[str] = ..., gateway_instance_id: _Optional[str] = ..., subscription_id: _Optional[str] = ..., connection_generation: _Optional[int] = ..., session_sequence: _Optional[int] = ..., publish_time_utc_ns: _Optional[int] = ..., publish_monotonic_ns: _Optional[int] = ...) -> None: ...
+
 class GatewayEventEnvelope(_message.Message):
-    __slots__ = ("envelope_metadata", "subscription_accepted", "depth_update", "agg_trade", "book_ticker", "consumer_gap", "stream_status")
+    __slots__ = ("envelope_metadata", "delivery_metadata", "subscription_accepted", "depth_update", "agg_trade", "book_ticker", "consumer_gap", "stream_status")
     ENVELOPE_METADATA_FIELD_NUMBER: _ClassVar[int]
+    DELIVERY_METADATA_FIELD_NUMBER: _ClassVar[int]
     SUBSCRIPTION_ACCEPTED_FIELD_NUMBER: _ClassVar[int]
     DEPTH_UPDATE_FIELD_NUMBER: _ClassVar[int]
     AGG_TRADE_FIELD_NUMBER: _ClassVar[int]
@@ -135,43 +154,48 @@ class GatewayEventEnvelope(_message.Message):
     CONSUMER_GAP_FIELD_NUMBER: _ClassVar[int]
     STREAM_STATUS_FIELD_NUMBER: _ClassVar[int]
     envelope_metadata: _metadata_pb2.EnvelopeMetadata
+    delivery_metadata: GatewayEnvelopeMetadata
     subscription_accepted: SubscriptionAccepted
     depth_update: _market_events_pb2.DepthUpdate
     agg_trade: _market_events_pb2.AggTrade
     book_ticker: _market_events_pb2.BookTicker
     consumer_gap: ConsumerGapNotice
     stream_status: StreamStatus
-    def __init__(self, envelope_metadata: _Optional[_Union[_metadata_pb2.EnvelopeMetadata, _Mapping]] = ..., subscription_accepted: _Optional[_Union[SubscriptionAccepted, _Mapping]] = ..., depth_update: _Optional[_Union[_market_events_pb2.DepthUpdate, _Mapping]] = ..., agg_trade: _Optional[_Union[_market_events_pb2.AggTrade, _Mapping]] = ..., book_ticker: _Optional[_Union[_market_events_pb2.BookTicker, _Mapping]] = ..., consumer_gap: _Optional[_Union[ConsumerGapNotice, _Mapping]] = ..., stream_status: _Optional[_Union[StreamStatus, _Mapping]] = ...) -> None: ...
+    def __init__(self, envelope_metadata: _Optional[_Union[_metadata_pb2.EnvelopeMetadata, _Mapping]] = ..., delivery_metadata: _Optional[_Union[GatewayEnvelopeMetadata, _Mapping]] = ..., subscription_accepted: _Optional[_Union[SubscriptionAccepted, _Mapping]] = ..., depth_update: _Optional[_Union[_market_events_pb2.DepthUpdate, _Mapping]] = ..., agg_trade: _Optional[_Union[_market_events_pb2.AggTrade, _Mapping]] = ..., book_ticker: _Optional[_Union[_market_events_pb2.BookTicker, _Mapping]] = ..., consumer_gap: _Optional[_Union[ConsumerGapNotice, _Mapping]] = ..., stream_status: _Optional[_Union[StreamStatus, _Mapping]] = ...) -> None: ...
 
 class OrderBookStreamItem(_message.Message):
-    __slots__ = ("envelope_metadata", "subscription_accepted", "snapshot", "depth_update", "consumer_gap", "stream_status")
+    __slots__ = ("envelope_metadata", "delivery_metadata", "subscription_accepted", "snapshot", "depth_update", "consumer_gap", "stream_status")
     ENVELOPE_METADATA_FIELD_NUMBER: _ClassVar[int]
+    DELIVERY_METADATA_FIELD_NUMBER: _ClassVar[int]
     SUBSCRIPTION_ACCEPTED_FIELD_NUMBER: _ClassVar[int]
     SNAPSHOT_FIELD_NUMBER: _ClassVar[int]
     DEPTH_UPDATE_FIELD_NUMBER: _ClassVar[int]
     CONSUMER_GAP_FIELD_NUMBER: _ClassVar[int]
     STREAM_STATUS_FIELD_NUMBER: _ClassVar[int]
     envelope_metadata: _metadata_pb2.EnvelopeMetadata
+    delivery_metadata: GatewayEnvelopeMetadata
     subscription_accepted: SubscriptionAccepted
     snapshot: _snapshots_pb2.LocalOrderBookSnapshot
     depth_update: _market_events_pb2.DepthUpdate
     consumer_gap: ConsumerGapNotice
     stream_status: StreamStatus
-    def __init__(self, envelope_metadata: _Optional[_Union[_metadata_pb2.EnvelopeMetadata, _Mapping]] = ..., subscription_accepted: _Optional[_Union[SubscriptionAccepted, _Mapping]] = ..., snapshot: _Optional[_Union[_snapshots_pb2.LocalOrderBookSnapshot, _Mapping]] = ..., depth_update: _Optional[_Union[_market_events_pb2.DepthUpdate, _Mapping]] = ..., consumer_gap: _Optional[_Union[ConsumerGapNotice, _Mapping]] = ..., stream_status: _Optional[_Union[StreamStatus, _Mapping]] = ...) -> None: ...
+    def __init__(self, envelope_metadata: _Optional[_Union[_metadata_pb2.EnvelopeMetadata, _Mapping]] = ..., delivery_metadata: _Optional[_Union[GatewayEnvelopeMetadata, _Mapping]] = ..., subscription_accepted: _Optional[_Union[SubscriptionAccepted, _Mapping]] = ..., snapshot: _Optional[_Union[_snapshots_pb2.LocalOrderBookSnapshot, _Mapping]] = ..., depth_update: _Optional[_Union[_market_events_pb2.DepthUpdate, _Mapping]] = ..., consumer_gap: _Optional[_Union[ConsumerGapNotice, _Mapping]] = ..., stream_status: _Optional[_Union[StreamStatus, _Mapping]] = ...) -> None: ...
 
 class MarketStateStreamItem(_message.Message):
-    __slots__ = ("envelope_metadata", "subscription_accepted", "market_state", "consumer_gap", "stream_status")
+    __slots__ = ("envelope_metadata", "delivery_metadata", "subscription_accepted", "market_state", "consumer_gap", "stream_status")
     ENVELOPE_METADATA_FIELD_NUMBER: _ClassVar[int]
+    DELIVERY_METADATA_FIELD_NUMBER: _ClassVar[int]
     SUBSCRIPTION_ACCEPTED_FIELD_NUMBER: _ClassVar[int]
     MARKET_STATE_FIELD_NUMBER: _ClassVar[int]
     CONSUMER_GAP_FIELD_NUMBER: _ClassVar[int]
     STREAM_STATUS_FIELD_NUMBER: _ClassVar[int]
     envelope_metadata: _metadata_pb2.EnvelopeMetadata
+    delivery_metadata: GatewayEnvelopeMetadata
     subscription_accepted: SubscriptionAccepted
     market_state: _snapshots_pb2.MarketStateSnapshot
     consumer_gap: ConsumerGapNotice
     stream_status: StreamStatus
-    def __init__(self, envelope_metadata: _Optional[_Union[_metadata_pb2.EnvelopeMetadata, _Mapping]] = ..., subscription_accepted: _Optional[_Union[SubscriptionAccepted, _Mapping]] = ..., market_state: _Optional[_Union[_snapshots_pb2.MarketStateSnapshot, _Mapping]] = ..., consumer_gap: _Optional[_Union[ConsumerGapNotice, _Mapping]] = ..., stream_status: _Optional[_Union[StreamStatus, _Mapping]] = ...) -> None: ...
+    def __init__(self, envelope_metadata: _Optional[_Union[_metadata_pb2.EnvelopeMetadata, _Mapping]] = ..., delivery_metadata: _Optional[_Union[GatewayEnvelopeMetadata, _Mapping]] = ..., subscription_accepted: _Optional[_Union[SubscriptionAccepted, _Mapping]] = ..., market_state: _Optional[_Union[_snapshots_pb2.MarketStateSnapshot, _Mapping]] = ..., consumer_gap: _Optional[_Union[ConsumerGapNotice, _Mapping]] = ..., stream_status: _Optional[_Union[StreamStatus, _Mapping]] = ...) -> None: ...
 
 class GatewayStatusRequest(_message.Message):
     __slots__ = ("request_id", "schema_version")

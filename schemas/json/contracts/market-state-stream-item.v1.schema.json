@@ -113,9 +113,9 @@
       "title": "ConsumerGapReason",
       "type": "string"
     },
-    "EnvelopeMetadata": {
+    "GatewayEnvelopeMetadata": {
       "additionalProperties": false,
-      "description": "Gateway delivery metadata for each stream item.\n\n``connection_generation`` is absent when no unique applicable upstream\nsource generation exists. ``session_sequence`` counts every emitted item\nfor the accepted subscription, beginning at one and incrementing exactly\nby one for each subsequent emitted item.",
+      "description": "Canonical M6 Gateway delivery metadata.",
       "properties": {
         "connection_generation": {
           "anyOf": [
@@ -180,7 +180,7 @@
         "session_sequence",
         "publish_time_utc_ns"
       ],
-      "title": "EnvelopeMetadata",
+      "title": "GatewayEnvelopeMetadata",
       "type": "object"
     },
     "Market": {
@@ -701,8 +701,8 @@
       ],
       "default": null
     },
-    "envelope_metadata": {
-      "$ref": "#/$defs/EnvelopeMetadata"
+    "delivery_metadata": {
+      "$ref": "#/$defs/GatewayEnvelopeMetadata"
     },
     "market_state": {
       "anyOf": [
@@ -739,7 +739,7 @@
     }
   },
   "required": [
-    "envelope_metadata"
+    "delivery_metadata"
   ],
   "type": "object"
 }

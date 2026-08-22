@@ -1,4 +1,4 @@
 {
-  "envelope_metadata": {"protocol_version": "gateway-stream.v1", "gateway_instance_id": "gw-1", "subscription_id": "sub-1", "connection_generation": 1, "session_sequence": 0, "publish_time_utc_ns": 1},
+  "delivery_metadata": {"protocol_version": "gateway-stream.v1", "gateway_instance_id": "gw-1", "subscription_id": "sub-1", "connection_generation": 1, "session_sequence": 0, "publish_time_utc_ns": 1},
   "stream_status": {"schema_version": "stream-status.v1", "subscription_id": "sub-1", "state": "LIVE", "observed_time_utc_ns": 1}
 }

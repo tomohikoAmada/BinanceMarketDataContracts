@@ -148,12 +148,20 @@ A generation transition alone is permitted and does not require a gap notice.
   status, snapshot, or state item.
 - A new `gateway_instance_id` implies previous sequences are invalid.
 
-## 6. Browser Consumers
+## 6. Metadata Authority
+
+Each Gateway stream item retains field 1, `envelope_metadata`, as a legacy DRAFT
+common-schema representation. Canonical Gateway writers leave field 1 absent and
+populate field 2, `delivery_metadata`, with `GatewayEnvelopeMetadata`. Readers
+reject legacy-only, dual, or missing metadata; they do not merge or prioritize
+the two fields.
+
+## 7. Browser Consumers
 
 Browsers do not connect directly to gRPC. A future `ViewBackend` / BFF bridges
 gRPC streams to WebSocket / JSON for browser UIs. This is not part of V1.
 
-## 7. Transcript Validation Rules
+## 8. Transcript Validation Rules
 
 Test-only rules (not Gateway runtime):
 

@@ -303,76 +303,6 @@
       "title": "DepthUpdateMetadata",
       "type": "object"
     },
-    "EnvelopeMetadata": {
-      "additionalProperties": false,
-      "description": "Gateway delivery metadata for each stream item.\n\n``connection_generation`` is absent when no unique applicable upstream\nsource generation exists. ``session_sequence`` counts every emitted item\nfor the accepted subscription, beginning at one and incrementing exactly\nby one for each subsequent emitted item.",
-      "properties": {
-        "connection_generation": {
-          "anyOf": [
-            {
-              "minimum": 1,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Connection Generation"
-        },
-        "gateway_instance_id": {
-          "maxLength": 128,
-          "minLength": 1,
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
-          "title": "Gateway Instance Id",
-          "type": "string"
-        },
-        "protocol_version": {
-          "const": "gateway-stream.v1",
-          "title": "Protocol Version",
-          "type": "string"
-        },
-        "publish_monotonic_ns": {
-          "anyOf": [
-            {
-              "minimum": 0,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Publish Monotonic Ns"
-        },
-        "publish_time_utc_ns": {
-          "minimum": 0,
-          "title": "Publish Time Utc Ns",
-          "type": "integer"
-        },
-        "session_sequence": {
-          "minimum": 1,
-          "title": "Session Sequence",
-          "type": "integer"
-        },
-        "subscription_id": {
-          "maxLength": 128,
-          "minLength": 1,
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
-          "title": "Subscription Id",
-          "type": "string"
-        }
-      },
-      "required": [
-        "protocol_version",
-        "gateway_instance_id",
-        "subscription_id",
-        "session_sequence",
-        "publish_time_utc_ns"
-      ],
-      "title": "EnvelopeMetadata",
-      "type": "object"
-    },
     "GapDescriptor": {
       "additionalProperties": false,
       "description": "Structured description of a sequence gap.",
@@ -439,6 +369,76 @@
         "detected_at_utc_ns"
       ],
       "title": "GapDescriptor",
+      "type": "object"
+    },
+    "GatewayEnvelopeMetadata": {
+      "additionalProperties": false,
+      "description": "Canonical M6 Gateway delivery metadata.",
+      "properties": {
+        "connection_generation": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Connection Generation"
+        },
+        "gateway_instance_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "title": "Gateway Instance Id",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "gateway-stream.v1",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "publish_monotonic_ns": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Publish Monotonic Ns"
+        },
+        "publish_time_utc_ns": {
+          "minimum": 0,
+          "title": "Publish Time Utc Ns",
+          "type": "integer"
+        },
+        "session_sequence": {
+          "minimum": 1,
+          "title": "Session Sequence",
+          "type": "integer"
+        },
+        "subscription_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "title": "Subscription Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "gateway_instance_id",
+        "subscription_id",
+        "session_sequence",
+        "publish_time_utc_ns"
+      ],
+      "title": "GatewayEnvelopeMetadata",
       "type": "object"
     },
     "LocalOrderBookSnapshot": {
@@ -842,6 +842,9 @@
       ],
       "default": null
     },
+    "delivery_metadata": {
+      "$ref": "#/$defs/GatewayEnvelopeMetadata"
+    },
     "depth_update": {
       "anyOf": [
         {
@@ -852,9 +855,6 @@
         }
       ],
       "default": null
-    },
-    "envelope_metadata": {
-      "$ref": "#/$defs/EnvelopeMetadata"
     },
     "snapshot": {
       "anyOf": [
@@ -891,7 +891,7 @@
     }
   },
   "required": [
-    "envelope_metadata"
+    "delivery_metadata"
   ],
   "type": "object"
 }

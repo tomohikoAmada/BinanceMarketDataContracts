@@ -49,13 +49,9 @@ message EnvelopeMetadata {
   string gateway_instance_id = 2;
   // Subscription identifier assigned by Gateway on accept.
   string subscription_id = 3;
-  // Upstream source generation when exactly one applicable source exists.
-  // Absence means no unique applicable source generation (N/A). If present,
-  // the value starts at 1; zero is never an absence sentinel.
-  optional uint64 connection_generation = 4;
-  // Per accepted-subscription delivery sequence. The first emitted item is 1;
-  // each subsequently emitted item increments the previous value by exactly 1.
-  // This is not a Binance U/u/pu or Projection last_update_id.
+  // Monotonically increasing on each upstream connection rebuild. Starts at 1.
+  uint64 connection_generation = 4;
+  // Per-subscription delivery sequence number. Starts at 1.
   uint64 session_sequence = 5;
   // Gateway publish wall-clock time in nanoseconds since epoch.
   uint64 publish_time_utc_ns = 6;

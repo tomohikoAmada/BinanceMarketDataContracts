@@ -133,3 +133,22 @@ def test_envelope_has_oneof():
 
     ob = _get_message_descriptor("binance_market_data.gateway.v1.OrderBookStreamItem")
     assert len(ob.oneofs) >= 1, "OrderBookStreamItem should have oneof payload"
+
+
+def test_gateway_delivery_metadata_is_additive_and_canonical():
+    common = _get_message_descriptor("binance_market_data.common.v1.EnvelopeMetadata")
+    common_generation = common.fields_by_name["connection_generation"]
+    assert not common_generation.has_presence
+
+    delivery = _get_message_descriptor("binance_market_data.gateway.v1.GatewayEnvelopeMetadata")
+    delivery_generation = delivery.fields_by_name["connection_generation"]
+    assert delivery_generation.has_presence
+
+    for message_name in ("GatewayEventEnvelope", "OrderBookStreamItem", "MarketStateStreamItem"):
+        message = _get_message_descriptor(f"binance_market_data.gateway.v1.{message_name}")
+        legacy = message.fields_by_name["envelope_metadata"]
+        canonical = message.fields_by_name["delivery_metadata"]
+        assert legacy.number == 1
+        assert canonical.number == 2
+        assert legacy.message_type.full_name == "binance_market_data.common.v1.EnvelopeMetadata"
+        assert canonical.message_type.full_name == "binance_market_data.gateway.v1.GatewayEnvelopeMetadata"

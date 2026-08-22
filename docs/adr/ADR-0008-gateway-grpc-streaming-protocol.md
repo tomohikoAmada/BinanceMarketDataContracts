@@ -6,12 +6,17 @@ ACCEPTED
 
 The DRAFT Gateway wire semantics were corrected for the accepted M6
 cross-repository integration contract without changing the `gateway-stream.v1`
-field numbers or protocol version. Generic envelope generation presence,
-exact emitted-item session sequencing, generation/gap separation, and the
+field numbers or protocol version. Gateway-owned `delivery_metadata` is the
+canonical M6 delivery surface; legacy common `envelope_metadata` remains a
+retained field but is not written by canonical Gateway producers. Exact
+emitted-item session sequencing, generation/gap separation, and the
 consumer-facing Projection publication cut below are authoritative for the
-current DRAFT contract. The presence correction is binary-wire compatible on
-the existing field number and uint64 wire type, while changing source/JSON
-presence semantics; `gateway-stream.v1` remains v1.
+current DRAFT contract. The new metadata field is additive and its optional
+generation presence is binary-wire compatible; `gateway-stream.v1` remains v1.
+
+Governance rule: a proto file already included in an accepted fingerprint
+authority must not become the ownership location for mutable unrelated DRAFT-only
+definitions.
 
 ## Date
 

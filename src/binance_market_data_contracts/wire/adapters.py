@@ -41,6 +41,7 @@ from binance_market_data_contracts.gateway import (
     ConsumerGapNotice,
     EnvelopeMetadata,
     EventSubscriptionRequest,
+    GatewayEnvelopeMetadata,
     GatewayEventEnvelope,
     GatewayStatusSnapshot,
     MarketRuntimeStatus,
@@ -1027,9 +1028,7 @@ def envelope_metadata_from_pb(em: pb_meta.EnvelopeMetadata) -> EnvelopeMetadata:
         protocol_version="gateway-stream.v1",
         gateway_instance_id=GatewayInstanceId(em.gateway_instance_id),
         subscription_id=SubscriptionId(em.subscription_id),
-        connection_generation=_optional_uint64(em.connection_generation)
-        if em.HasField("connection_generation")
-        else None,
+        connection_generation=em.connection_generation,
         session_sequence=em.session_sequence,
         publish_time_utc_ns=em.publish_time_utc_ns,
         publish_monotonic_ns=_optional_uint64(em.publish_monotonic_ns) if em.HasField("publish_monotonic_ns") else None,
@@ -1041,6 +1040,39 @@ def envelope_metadata_to_pb(em: EnvelopeMetadata) -> pb_meta.EnvelopeMetadata:
     pb.protocol_version = em.protocol_version
     pb.gateway_instance_id = em.gateway_instance_id
     pb.subscription_id = em.subscription_id
+    pb.connection_generation = em.connection_generation
+    pb.session_sequence = em.session_sequence
+    pb.publish_time_utc_ns = em.publish_time_utc_ns
+    if em.publish_monotonic_ns is not None:
+        pb.publish_monotonic_ns = em.publish_monotonic_ns
+    return pb
+
+
+def gateway_envelope_metadata_from_pb(em: pb_gw.GatewayEnvelopeMetadata) -> GatewayEnvelopeMetadata:
+    _require_exact_string(
+        contract="GatewayEnvelopeMetadata",
+        field="protocol_version",
+        actual=em.protocol_version,
+        expected="gateway-stream.v1",
+    )
+    return GatewayEnvelopeMetadata(
+        protocol_version="gateway-stream.v1",
+        gateway_instance_id=GatewayInstanceId(em.gateway_instance_id),
+        subscription_id=SubscriptionId(em.subscription_id),
+        connection_generation=_optional_uint64(em.connection_generation)
+        if em.HasField("connection_generation")
+        else None,
+        session_sequence=em.session_sequence,
+        publish_time_utc_ns=em.publish_time_utc_ns,
+        publish_monotonic_ns=_optional_uint64(em.publish_monotonic_ns) if em.HasField("publish_monotonic_ns") else None,
+    )
+
+
+def gateway_envelope_metadata_to_pb(em: GatewayEnvelopeMetadata) -> pb_gw.GatewayEnvelopeMetadata:
+    pb = pb_gw.GatewayEnvelopeMetadata()
+    pb.protocol_version = em.protocol_version
+    pb.gateway_instance_id = em.gateway_instance_id
+    pb.subscription_id = em.subscription_id
     if em.connection_generation is not None:
         pb.connection_generation = em.connection_generation
     pb.session_sequence = em.session_sequence
@@ -1048,6 +1080,18 @@ def envelope_metadata_to_pb(em: EnvelopeMetadata) -> pb_meta.EnvelopeMetadata:
     if em.publish_monotonic_ns is not None:
         pb.publish_monotonic_ns = em.publish_monotonic_ns
     return pb
+
+
+def _gateway_delivery_metadata_from_pb(item: Any, contract: str) -> GatewayEnvelopeMetadata:
+    has_legacy = item.HasField("envelope_metadata")
+    has_delivery = item.HasField("delivery_metadata")
+    if has_legacy and has_delivery:
+        raise WireError(f"{contract}: legacy envelope_metadata and delivery_metadata are both present")
+    if has_legacy:
+        raise WireError(f"{contract}: legacy envelope_metadata is not accepted")
+    if not has_delivery:
+        raise MissingWireFieldError(contract, "delivery_metadata")
+    return gateway_envelope_metadata_from_pb(item.delivery_metadata)
 
 
 # ---------------------------------------------------------------------------
@@ -1265,10 +1309,8 @@ def stream_status_to_pb(ss: StreamStatus) -> pb_gw.StreamStatus:
 
 
 def gateway_event_envelope_from_pb(env: pb_gw.GatewayEventEnvelope) -> GatewayEventEnvelope:
-    if not env.HasField("envelope_metadata"):
-        raise MissingWireFieldError("GatewayEventEnvelope", "envelope_metadata")
     kwargs: dict[str, Any] = {
-        "envelope_metadata": envelope_metadata_from_pb(env.envelope_metadata),
+        "delivery_metadata": _gateway_delivery_metadata_from_pb(env, "GatewayEventEnvelope"),
     }
     which = env.WhichOneof("payload")
     if which == "subscription_accepted":
@@ -1290,7 +1332,7 @@ def gateway_event_envelope_from_pb(env: pb_gw.GatewayEventEnvelope) -> GatewayEv
 
 def gateway_event_envelope_to_pb(env: GatewayEventEnvelope) -> pb_gw.GatewayEventEnvelope:
     pb = pb_gw.GatewayEventEnvelope()
-    pb.envelope_metadata.CopyFrom(envelope_metadata_to_pb(env.envelope_metadata))
+    pb.delivery_metadata.CopyFrom(gateway_envelope_metadata_to_pb(env.delivery_metadata))
     if env.subscription_accepted is not None:
         pb.subscription_accepted.CopyFrom(subscription_accepted_to_pb(env.subscription_accepted))
     elif env.depth_update is not None:
@@ -1312,10 +1354,8 @@ def gateway_event_envelope_to_pb(env: GatewayEventEnvelope) -> pb_gw.GatewayEven
 
 
 def order_book_stream_item_from_pb(item: pb_gw.OrderBookStreamItem) -> OrderBookStreamItem:
-    if not item.HasField("envelope_metadata"):
-        raise MissingWireFieldError("OrderBookStreamItem", "envelope_metadata")
     kwargs: dict[str, Any] = {
-        "envelope_metadata": envelope_metadata_from_pb(item.envelope_metadata),
+        "delivery_metadata": _gateway_delivery_metadata_from_pb(item, "OrderBookStreamItem"),
     }
     which = item.WhichOneof("payload")
     if which == "subscription_accepted":
@@ -1335,7 +1375,7 @@ def order_book_stream_item_from_pb(item: pb_gw.OrderBookStreamItem) -> OrderBook
 
 def order_book_stream_item_to_pb(item: OrderBookStreamItem) -> pb_gw.OrderBookStreamItem:
     pb = pb_gw.OrderBookStreamItem()
-    pb.envelope_metadata.CopyFrom(envelope_metadata_to_pb(item.envelope_metadata))
+    pb.delivery_metadata.CopyFrom(gateway_envelope_metadata_to_pb(item.delivery_metadata))
     if item.subscription_accepted is not None:
         pb.subscription_accepted.CopyFrom(subscription_accepted_to_pb(item.subscription_accepted))
     elif item.snapshot is not None:
@@ -1355,10 +1395,8 @@ def order_book_stream_item_to_pb(item: OrderBookStreamItem) -> pb_gw.OrderBookSt
 
 
 def market_state_stream_item_from_pb(item: pb_gw.MarketStateStreamItem) -> MarketStateStreamItem:
-    if not item.HasField("envelope_metadata"):
-        raise MissingWireFieldError("MarketStateStreamItem", "envelope_metadata")
     kwargs: dict[str, Any] = {
-        "envelope_metadata": envelope_metadata_from_pb(item.envelope_metadata),
+        "delivery_metadata": _gateway_delivery_metadata_from_pb(item, "MarketStateStreamItem"),
     }
     which = item.WhichOneof("payload")
     if which == "subscription_accepted":
@@ -1376,7 +1414,7 @@ def market_state_stream_item_from_pb(item: pb_gw.MarketStateStreamItem) -> Marke
 
 def market_state_stream_item_to_pb(item: MarketStateStreamItem) -> pb_gw.MarketStateStreamItem:
     pb = pb_gw.MarketStateStreamItem()
-    pb.envelope_metadata.CopyFrom(envelope_metadata_to_pb(item.envelope_metadata))
+    pb.delivery_metadata.CopyFrom(gateway_envelope_metadata_to_pb(item.delivery_metadata))
     if item.subscription_accepted is not None:
         pb.subscription_accepted.CopyFrom(subscription_accepted_to_pb(item.subscription_accepted))
     elif item.market_state is not None:

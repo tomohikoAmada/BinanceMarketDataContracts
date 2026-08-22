@@ -1,5 +1,5 @@
 {
-  "envelope_metadata": {
+  "delivery_metadata": {
     "protocol_version": "gateway-stream.v1",
     "gateway_instance_id": "gw-instance-01",
     "subscription_id": "sub-ms-btcusdt-001",
