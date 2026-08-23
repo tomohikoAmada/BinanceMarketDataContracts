@@ -43,6 +43,7 @@ from binance_market_data_contracts.gateway import (
     EventSubscriptionRequest,
     GatewayEnvelopeMetadata,
     GatewayEventEnvelope,
+    GatewayStatusRequest,
     GatewayStatusSnapshot,
     MarketRuntimeStatus,
     MarketStateStreamItem,
@@ -1450,7 +1451,7 @@ def gateway_status_snapshot_from_pb(gs: pb_gw.GatewayStatusSnapshot) -> GatewayS
                 symbol=Symbol(m.symbol),
                 state=_stream_lifecycle_state_from_pb(m.state, "GatewayStatusSnapshot.markets.state"),
                 last_event_utc_ns=m.last_event_utc_ns if m.HasField("last_event_utc_ns") else None,
-                connection_generation=m.connection_generation,
+                connection_generation=m.connection_generation if m.HasField("connection_generation") else None,
                 active_subscription_count=m.active_subscription_count,
             )
             for m in gs.markets
@@ -1473,7 +1474,8 @@ def gateway_status_snapshot_to_pb(gs: GatewayStatusSnapshot) -> pb_gw.GatewaySta
         mr.state = _stream_lifecycle_state_to_pb(m.state)
         if m.last_event_utc_ns is not None:
             mr.last_event_utc_ns = m.last_event_utc_ns
-        mr.connection_generation = m.connection_generation
+        if m.connection_generation is not None:
+            mr.connection_generation = m.connection_generation
         mr.active_subscription_count = m.active_subscription_count
     pb.total_active_subscriptions = gs.total_active_subscriptions
     return pb
@@ -1651,6 +1653,26 @@ def market_state_subscription_request_to_pb(
     if req.minimum_publish_interval_ms is not None:
         pb.minimum_publish_interval_ms = req.minimum_publish_interval_ms
     pb.supported_schema_versions.extend(req.supported_schema_versions)
+    return pb
+
+
+def gateway_status_request_from_pb(req: pb_gw.GatewayStatusRequest) -> GatewayStatusRequest:
+    _require_exact_string(
+        contract="GatewayStatusRequest",
+        field="schema_version",
+        actual=req.schema_version,
+        expected="gateway-status-request.v1",
+    )
+    return GatewayStatusRequest(
+        request_id=RequestId(req.request_id),
+        schema_version="gateway-status-request.v1",
+    )
+
+
+def gateway_status_request_to_pb(req: GatewayStatusRequest) -> pb_gw.GatewayStatusRequest:
+    pb = pb_gw.GatewayStatusRequest()
+    pb.request_id = req.request_id
+    pb.schema_version = req.schema_version
     return pb
 
 

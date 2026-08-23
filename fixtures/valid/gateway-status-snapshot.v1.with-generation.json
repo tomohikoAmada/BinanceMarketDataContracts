@@ -10,7 +10,8 @@
       "symbol": "BTCUSDT",
       "state": "LIVE",
       "last_event_utc_ns": null,
-        "active_subscription_count": 3
+      "connection_generation": 1,
+      "active_subscription_count": 3
     }
   ],
   "total_active_subscriptions": 3

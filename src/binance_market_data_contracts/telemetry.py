@@ -109,7 +109,7 @@ class TelemetryEnvelope(ContractModel):
     observed_time_utc_ns: int = Field(..., ge=0)
     market: Market | None = None
     symbol: Symbol | None = None
-    metrics: MetricsPayload | None = None
+    metrics: MetricsPayload
     quality_flags: tuple[QualityFlag, ...] = ()
     stream: Stream | None = None
     connection_id: ConnectionId | None = None
@@ -118,11 +118,10 @@ class TelemetryEnvelope(ContractModel):
 
     @model_validator(mode="after")
     def _validate_metric_type(self) -> TelemetryEnvelope:
-        if self.metrics is not None:
-            expected = _TELEMETRY_METRIC_TYPES[self.telemetry_type]
-            if self.metrics.type != expected:
-                raise ValueError(
-                    f"metrics.type '{self.metrics.type}' must match "
-                    f"telemetry_type '{self.telemetry_type.value}' (expected '{expected}')"
-                )
+        expected = _TELEMETRY_METRIC_TYPES[self.telemetry_type]
+        if self.metrics.type != expected:
+            raise ValueError(
+                f"metrics.type '{self.metrics.type}' must match "
+                f"telemetry_type '{self.telemetry_type.value}' (expected '{expected}')"
+            )
         return self

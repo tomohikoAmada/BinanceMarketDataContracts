@@ -135,6 +135,7 @@ from binance_market_data_contracts.gateway import (  # noqa: E402
     ConsumerGapNotice,
     EventSubscriptionRequest,
     GatewayEventEnvelope,
+    GatewayStatusRequest,
     GatewayStatusSnapshot,
     MarketStateStreamItem,
     MarketStateSubscriptionRequest,
@@ -172,6 +173,13 @@ _register(
     "market-state-subscription-request.v1",
     ContractStatus.DRAFT,
     MarketStateSubscriptionRequest,
+    producers=("gateway-consumer",),
+    consumers=("gateway",),
+)
+_register(
+    "gateway-status-request.v1",
+    ContractStatus.DRAFT,
+    GatewayStatusRequest,
     producers=("gateway-consumer",),
     consumers=("gateway",),
 )
@@ -320,6 +328,14 @@ WIRE_CONTRACT_REGISTRY: dict[str, WireContractEntry] = {
         schema_version="market-state-subscription-request.v1",
         pydantic_type=MarketStateSubscriptionRequest,
         proto_full_name="binance_market_data.gateway.v1.MarketStateSubscriptionRequest",
+        status=ContractStatus.DRAFT,
+        producers=("gateway-consumer",),
+        consumers=("gateway",),
+    ),
+    "gateway-status-request.v1": WireContractEntry(
+        schema_version="gateway-status-request.v1",
+        pydantic_type=GatewayStatusRequest,
+        proto_full_name="binance_market_data.gateway.v1.GatewayStatusRequest",
         status=ContractStatus.DRAFT,
         producers=("gateway-consumer",),
         consumers=("gateway",),
