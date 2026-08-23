@@ -14,8 +14,3 @@ lint:
 breaking:
   use:
     - FILE
-  # Temporary DRAFT correction for PR #13; remove immediately after merge per
-  # https://github.com/tomohikoAmada/BinanceMarketDataContracts/issues/15.
-  ignore_only:
-    FIELD_SAME_CARDINALITY:
-      - src/binance_market_data_contracts/proto/binance_market_data/gateway/v1/gateway_messages.proto
