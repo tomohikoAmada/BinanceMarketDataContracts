@@ -270,9 +270,8 @@
       "default": null
     },
     "symbol": {
-      "maxLength": 20,
-      "minLength": 2,
-      "pattern": "^[A-Z0-9]+$",
+      "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\u0000-\\u0020\\u007F])[\\s\\S]+$",
       "type": "string"
     },
     "top_asks": {

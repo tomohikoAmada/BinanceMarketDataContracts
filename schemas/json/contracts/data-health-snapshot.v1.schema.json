@@ -376,9 +376,8 @@
       "description": "Stream scope (None = market-level aggregate Health)"
     },
     "symbol": {
-      "maxLength": 20,
-      "minLength": 2,
-      "pattern": "^[A-Z0-9]+$",
+      "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\u0000-\\u0020\\u007F])[\\s\\S]+$",
       "type": "string"
     },
     "venue": {

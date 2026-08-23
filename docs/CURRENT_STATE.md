@@ -55,6 +55,8 @@ build/package workflow only.
 - The M6 Contracts prerequisite adds the optional `BinanceMarketDataContracts::Grpc` component;
   Gateway service and gRPC stub sources remain build outputs and the Protobuf component remains
   message-only.
+- `Symbol` is an opaque, non-empty Unicode-scalar identity. It preserves code points and case,
+  rejects U+0000..U+0020 and U+007F, and has no contract-level maximum length (ADR-0011).
 - Formal Schema Fingerprint Algorithm Version 1 digest:
   `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`.
 
@@ -77,8 +79,9 @@ build/package workflow only.
 ## Accepted Semantic Authorities
 
 Accepted ADRs and accepted semantic designs remain authoritative, especially ADR-0007 for the
-contract strata and ADR-0009 for Contracts-owned C++ Protobuf package ownership. This file does not
-promote any PROPOSED/DRAFT contract or redefine another repository's semantics.
+contract strata, ADR-0009 for Contracts-owned C++ Protobuf package ownership, and ADR-0011 for
+opaque UTF-8 symbol identity. This file does not promote any PROPOSED/DRAFT contract or redefine
+another repository's semantics.
 
 ## Known Semantic Conflicts
 

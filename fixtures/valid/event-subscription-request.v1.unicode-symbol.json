@@ -1,0 +1,14 @@
+{
+  "request_id": "req-es-unicode-001",
+  "schema_version": "event-subscription-request.v1",
+  "selectors": [
+    {
+      "venue": "BINANCE",
+      "market": "SPOT",
+      "symbol": "这是测试币456",
+      "stream": "DIFF_DEPTH"
+    }
+  ],
+  "delivery_mode": "CONTIGUOUS_EVENTS",
+  "supported_payload_schema_versions": ["depth-update.v1"]
+}

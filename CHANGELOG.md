@@ -43,6 +43,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MarketStateSnapshot: added source_book_update_id and source_trade_id fields
 - TelemetryEnvelope: extended with stream and connection fields
 - QueueMetrics: extended with capacity and utilization fields
+- Relaxed `Symbol` from the incorrect ASCII-only 2..20 constraint to the opaque Unicode identity
+  semantics in ADR-0011, preserving exact code points while rejecting ASCII controls/whitespace,
+  DEL, and surrogate code points.
 
 ### Architecture
 
@@ -54,8 +57,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Compatibility
 
-- All existing Pydantic contracts remain unchanged
-- Existing JSON Schema export continues unchanged
+- Existing values accepted by the former `Symbol` constraint remain accepted.
+- JSON Schema `Symbol` constraints are compatibly widened to non-empty values excluding
+  U+0000..U+0020 and U+007F; the former `maxLength: 20` and ASCII-only pattern are removed.
 - All existing tests pass without modification
 - Wire contracts are additive; consumers not using Protobuf are unaffected
 
