@@ -26,6 +26,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Registered the public DRAFT `GatewayStatusRequest` surface across registries, adapters, schemas,
+  manifests, fixtures, tests, generated wire artifacts, and documentation.
+- Made `TelemetryEnvelope.metrics` required and kept missing wire metrics fail-closed in adapters,
+  with schema, fixture, and domain↔wire regression coverage.
+- Corrected aggregate `MarketRuntimeStatus.connection_generation` to use explicit optional presence
+  at field 6 when no unique upstream source applies; cleanup of the temporary Buf exception is tracked
+  in [Issue #15](https://github.com/tomohikoAmada/BinanceMarketDataContracts/issues/15).
 - Version 0.1.0a1 → 0.2.0a1
 - Approved the C-M4-001 architecture for the Contracts-owned C++ Protobuf message package.
 - Accepted ADR-0009 after an independent architecture review with zero blocking findings.

@@ -14,8 +14,8 @@ lint:
 breaking:
   use:
     - FILE
-  # MarketRuntimeStatus.connection_generation is a DRAFT field whose explicit
-  # presence semantics are intentionally corrected while retaining field 6.
+  # Temporary DRAFT correction for PR #13; remove immediately after merge per
+  # https://github.com/tomohikoAmada/BinanceMarketDataContracts/issues/15.
   ignore_only:
     FIELD_SAME_CARDINALITY:
       - src/binance_market_data_contracts/proto/binance_market_data/gateway/v1/gateway_messages.proto
