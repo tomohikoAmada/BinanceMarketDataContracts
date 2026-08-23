@@ -8,6 +8,7 @@ from binance_market_data_contracts.enums import (
     RecoveryAction,
     SnapshotSource,
     Stream,
+    StreamLifecycleState,
     Venue,
 )
 from binance_market_data_contracts.gateway import (
@@ -15,7 +16,9 @@ from binance_market_data_contracts.gateway import (
     EventSubscriptionRequest,
     GatewayEnvelopeMetadata,
     GatewayEventEnvelope,
+    GatewayStatusRequest,
     GatewayStatusSnapshot,
+    MarketRuntimeStatus,
     MarketStateStreamItem,
     OrderBookStreamItem,
     StreamSelector,
@@ -34,6 +37,7 @@ from binance_market_data_contracts.snapshots import (
     LocalOrderBookSnapshot,
     MarketStateSnapshot,
 )
+from binance_market_data_contracts.telemetry import ConnectionMetrics, TelemetryEnvelope, TelemetryType
 from binance_market_data_contracts.wire.adapters import (
     agg_trade_from_pb,
     agg_trade_to_pb,
@@ -49,6 +53,8 @@ from binance_market_data_contracts.wire.adapters import (
     exchange_depth_snapshot_to_pb,
     gateway_event_envelope_from_pb,
     gateway_event_envelope_to_pb,
+    gateway_status_request_from_pb,
+    gateway_status_request_to_pb,
     gateway_status_snapshot_from_pb,
     gateway_status_snapshot_to_pb,
     local_order_book_snapshot_from_pb,
@@ -59,6 +65,8 @@ from binance_market_data_contracts.wire.adapters import (
     market_state_stream_item_to_pb,
     order_book_stream_item_from_pb,
     order_book_stream_item_to_pb,
+    telemetry_envelope_from_pb,
+    telemetry_envelope_to_pb,
 )
 
 
@@ -310,3 +318,39 @@ class TestWireRoundtrips:
         gs2 = _pb_roundtrip(gateway_status_snapshot_to_pb, gateway_status_snapshot_from_pb, gs, [])
         assert gs2.uptime_seconds == 3600
         assert gs2.total_active_subscriptions == 5
+
+    def test_gateway_status_snapshot_without_unique_generation(self):
+        gs = GatewayStatusSnapshot(
+            schema_version="gateway-status-snapshot.v1",
+            gateway_instance_id=GatewayInstanceId("gw-aggregate"),
+            observed_time_utc_ns=1_690_000_000,
+            uptime_seconds=3600,
+            markets=(
+                MarketRuntimeStatus(
+                    venue=Venue.BINANCE,
+                    market=Market.SPOT,
+                    symbol=Symbol("BTCUSDT"),
+                    state=StreamLifecycleState.LIVE,
+                    connection_generation=None,
+                ),
+            ),
+        )
+        gs2 = _pb_roundtrip(gateway_status_snapshot_to_pb, gateway_status_snapshot_from_pb, gs, [])
+        assert gs2.markets[0].connection_generation is None
+
+    def test_gateway_status_request(self):
+        req = GatewayStatusRequest(request_id=RequestId("status-req-1"), schema_version="gateway-status-request.v1")
+        req2 = _pb_roundtrip(gateway_status_request_to_pb, gateway_status_request_from_pb, req, [])
+        assert req2 == req
+
+    def test_telemetry_envelope(self):
+        telemetry = TelemetryEnvelope(
+            schema_version="telemetry.v1",
+            telemetry_type=TelemetryType.CONNECTION,
+            source_module="gateway",
+            source_instance_id="gw-001",
+            observed_time_utc_ns=1_690_000_000,
+            metrics=ConnectionMetrics(connected=True, reconnect_count=2),
+        )
+        telemetry2 = _pb_roundtrip(telemetry_envelope_to_pb, telemetry_envelope_from_pb, telemetry, [])
+        assert telemetry2 == telemetry

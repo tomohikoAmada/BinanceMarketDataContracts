@@ -38,7 +38,8 @@ All contracts with status, producer, and consumer information from `CONTRACT_REG
 |----------|---------|--------|-------|
 | historical-dataset-descriptor | v1 | DRAFT | Pending alignment with Recorder/History |
 | replay-query | v1 | DRAFT | Ordering rules need validation |
-| telemetry | v1 | DRAFT | Metrics payload types need refinement |
+| telemetry | v1 | DRAFT | Metrics payload is required and must match telemetry type |
+| gateway-status-request | v1 | DRAFT | Unary GetGatewayStatus RPC request |
 | control-command | v1 | DRAFT | Command parameters may expand |
 | command-result | v1 | DRAFT | Error codes need standardization |
 

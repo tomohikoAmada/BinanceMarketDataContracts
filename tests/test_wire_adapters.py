@@ -3,6 +3,7 @@
 import pytest
 
 from binance_market_data.gateway.v1 import gateway_messages_pb2 as pb_gw
+from binance_market_data.telemetry.v1 import telemetry_pb2 as pb_telemetry
 from binance_market_data_contracts.common import PositiveQuantityString, PriceString, QuantityString
 from binance_market_data_contracts.enums import (
     DeliveryMode,
@@ -16,6 +17,7 @@ from binance_market_data_contracts.gateway import (
     EventSubscriptionRequest,
     GatewayEnvelopeMetadata,
     GatewayEventEnvelope,
+    GatewayStatusRequest,
     StreamSelector,
     StreamStatus,
     SubscriptionAccepted,
@@ -59,6 +61,8 @@ from binance_market_data_contracts.wire.adapters import (
     exchange_depth_snapshot_to_pb,
     gateway_event_envelope_from_pb,
     gateway_event_envelope_to_pb,
+    gateway_status_request_from_pb,
+    gateway_status_request_to_pb,
     local_order_book_snapshot_from_pb,
     local_order_book_snapshot_to_pb,
     market_state_snapshot_from_pb,
@@ -69,6 +73,7 @@ from binance_market_data_contracts.wire.adapters import (
     stream_status_to_pb,
     subscription_accepted_from_pb,
     subscription_accepted_to_pb,
+    telemetry_envelope_from_pb,
 )
 
 
@@ -346,6 +351,26 @@ class TestGatewayRoundtrip:
         sa2 = subscription_accepted_from_pb(pb)
         assert sa2.subscription_id == "sub-1"
         assert sa2.gateway_instance_id == "gw-1"
+
+    def test_gateway_status_request(self):
+        req = GatewayStatusRequest(request_id=RequestId("status-req-1"), schema_version="gateway-status-request.v1")
+        pb = gateway_status_request_to_pb(req)
+        assert gateway_status_request_from_pb(pb) == req
+
+        pb.schema_version = "gateway-status-request.v2"
+        with pytest.raises(WireError, match="schema_version"):
+            gateway_status_request_from_pb(pb)
+
+    def test_telemetry_missing_metrics_rejected(self):
+        pb = pb_telemetry.TelemetryEnvelope(
+            schema_version="telemetry.v1",
+            telemetry_type=pb_telemetry.TelemetryType.TELEMETRY_TYPE_CONNECTION,
+            source_module="gateway",
+            source_instance_id="gw-001",
+            observed_time_utc_ns=1,
+        )
+        with pytest.raises(MissingWireFieldError, match="metrics"):
+            telemetry_envelope_from_pb(pb)
 
     def test_envelope_with_depth_update(self):
         du = DepthUpdate(

@@ -388,14 +388,18 @@ class GatewayStatusRequest(ContractModel):
 
 
 class MarketRuntimeStatus(ContractModel):
-    """Per-market runtime status within a Gateway instance."""
+    """Per-market aggregate runtime status within a Gateway instance.
+
+    Connection generation is optional because an aggregate market status may not
+    have one uniquely applicable upstream source.
+    """
 
     venue: Venue
     market: Market
     symbol: Symbol
     state: StreamLifecycleState
     last_event_utc_ns: int | None = Field(default=None, ge=0)
-    connection_generation: int = Field(..., ge=1)
+    connection_generation: int | None = Field(default=None, ge=1)
     active_subscription_count: int = Field(default=0, ge=0)
 
 
