@@ -14,6 +14,11 @@
 > candidate/re-review evidence and must not be read as a current pending-merge state. See
 > `docs/CURRENT_STATE.md` for the current orientation index.
 
+> ADR-0010 restores this accepted message-only boundary after the first M6 follow-on recipe
+> accidentally made gRPC an unconditional Conan dependency. The gRPC service/stub target now lives
+> in a separate artifact; the C-M4 fingerprint, seven message sources, and this acceptance record
+> are unchanged.
+
 This document records author-implementation evidence and the recorded independent
 implementation acceptance. It is not itself a substitute for the independent review, which
 concluded in the acceptance recorded below.

@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Descriptor tests validating generated Protobuf descriptors
 - C-M4-001 implementation candidate for a Contracts-owned versioned installable C++ Protobuf
   message package, including CMake and Conan consumers, fingerprinting, and provenance metadata
+- ADR-0010 and the separate `binance-market-data-contracts-grpc-cpp/0.1.0` service/stub artifact
 
 ### Changed
 
@@ -43,6 +44,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MarketStateSnapshot: added source_book_update_id and source_trade_id fields
 - TelemetryEnvelope: extended with stream and connection fields
 - QueueMetrics: extended with capacity and utilization fields
+- Restored `binance-market-data-contracts-cpp/0.1.0` to a gRPC-free host/build graph and moved
+  `BinanceMarketDataContracts::Grpc` into its own Conan and CMake package without duplicating
+  generated message symbols.
 
 ### Architecture
 
@@ -65,6 +69,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   revision is unassigned; Projection M4 is complete in the separate Projection repository
 - Assignment of the Contracts package revision (gated on release)
 - Publication of `binance-market-data-contracts-cpp/0.1.0`
+- Candidate identity assignment and publication decision for
+  `binance-market-data-contracts-grpc-cpp/0.1.0`
 - Gateway Runtime (gRPC server is not implemented in this repository)
 - Gateway implementation language is not selected (C++, Rust, Go, Python are all supported by the wire protocol)
 - Network performance benchmarking

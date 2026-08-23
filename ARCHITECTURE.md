@@ -63,6 +63,7 @@ A contract is promoted from PROPOSED to ACCEPTED when:
 - `docs/adr/ADR-0007-pydantic-domain-protobuf-wire-contracts.md` (ACCEPTED)
 - `docs/adr/ADR-0008-gateway-grpc-streaming-protocol.md` (ACCEPTED)
 - `docs/adr/ADR-0009-cpp-protobuf-package.md` (ACCEPTED)
+- `docs/adr/ADR-0010-separate-cpp-grpc-artifact.md` (ACCEPTED)
 
 ## C-M4-001 C++ package design
 
@@ -84,6 +85,9 @@ contract status, field semantics, or generated Python artifact.
 - Package version candidate: `0.1.0`; package revision: **NOT FORMALLY ASSIGNED — RELEASE GATE**
 - C-M4-001: **IMPLEMENTED / ACCEPTED / MERGED**
 - Published: **NO**
+- M6 gRPC bindings: separate candidate artifact
+  `binance-market-data-contracts-grpc-cpp/0.1.0`, exporting the frozen
+  `BinanceMarketDataContracts::Grpc` target without changing the message artifact graph
 - Projection M4 Implementation: **COMPLETE** in the separate Projection repository
 - Design: [`docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md`](docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md)
 - Candidate evidence: [`docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md`](docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md)

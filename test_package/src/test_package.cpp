@@ -4,7 +4,6 @@
 #include <string_view>
 
 #include "binance_market_data/contracts_metadata.hpp"
-#include "binance_market_data/gateway/v1/gateway_service.grpc.pb.h"
 #include "binance_market_data/market/v1/market_events.pb.h"
 #include "binance_market_data/projection/v1/snapshots.pb.h"
 
@@ -21,11 +20,6 @@ bool check(bool condition, std::string_view description) {
 }  // namespace
 
 int main() {
-  binance_market_data::gateway::v1::BinanceMarketDataGatewayService::Service service;
-  if (!check(static_cast<grpc::Service*>(&service) != nullptr, "Gateway gRPC service surface")) {
-    return EXIT_FAILURE;
-  }
-
   binance_market_data::market::v1::DepthUpdate depth;
   depth.set_first_update_id(10);
   depth.set_final_update_id(11);

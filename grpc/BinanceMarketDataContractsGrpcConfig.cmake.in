@@ -1,0 +1,24 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(BinanceMarketDataContracts 0.1.0 EXACT CONFIG COMPONENTS Protobuf)
+find_dependency(gRPC 1.83.0 EXACT CONFIG)
+
+set(BinanceMarketDataContractsGrpc_PACKAGE_VERSION
+    "@BinanceMarketDataContractsGrpc_PACKAGE_VERSION@")
+set(BinanceMarketDataContractsGrpc_PACKAGE_REVISION
+    "@BinanceMarketDataContractsGrpc_PACKAGE_REVISION@")
+set(BinanceMarketDataContractsGrpc_BASE_PACKAGE_VERSION
+    "@BinanceMarketDataContractsGrpc_BASE_PACKAGE_VERSION@")
+set(BinanceMarketDataContractsGrpc_BASE_RREV
+    "@BinanceMarketDataContractsGrpc_BASE_RREV@")
+set(BinanceMarketDataContractsGrpc_GRPC_VERSION
+    "@BinanceMarketDataContractsGrpc_GRPC_VERSION@")
+set(BinanceMarketDataContractsGrpc_GRPC_RREV
+    "@BinanceMarketDataContractsGrpc_GRPC_RREV@")
+set(BinanceMarketDataContractsGrpc_GRPC_RUNTIME_LINKAGE
+    "@BinanceMarketDataContractsGrpc_GRPC_RUNTIME_LINKAGE@")
+set(BinanceMarketDataContractsGrpc_CONTRACTS_SOURCE_REVISION
+    "@BinanceMarketDataContractsGrpc_CONTRACTS_SOURCE_REVISION@")
+
+include("${CMAKE_CURRENT_LIST_DIR}/BinanceMarketDataContractsGrpcTargets.cmake")

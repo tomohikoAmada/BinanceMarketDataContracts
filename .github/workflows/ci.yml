@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  BMD_CONTRACTS_SOURCE_REVISION: ${{ github.sha }}
+
 jobs:
   quality:
     runs-on: ubuntu-latest
@@ -247,6 +250,70 @@ jobs:
           --build-dir "$PWD/build/conan/build/Release"
           --dependency-prefix "$PWD/build/conan/build/Release/generators"
 
+  cpp-grpc:
+    name: C++ gRPC artifact / ${{ matrix.os }} / shared=${{ matrix.shared }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-15]
+        shared: [False, True]
+    env:
+      CC: ${{ startsWith(matrix.os, 'macos') && 'clang' || 'gcc' }}
+      CXX: ${{ startsWith(matrix.os, 'macos') && 'clang++' || 'g++' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assert macOS ARM64 runner
+        if: runner.os == 'macOS'
+        run: test "$RUNNER_ARCH" = ARM64
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated build tools
+        run: python -m pip install 'conan==2.31.2' 'protobuf==6.33.5' 'pytest>=8,<10'
+      - name: Detect Conan profile
+        run: conan profile detect --force
+      - name: Create exact base message artifact
+        run: >-
+          conan create . --build=missing --lockfile=conan.lock
+          -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20
+          -o:h '&:shared=${{ matrix.shared }}'
+      - name: Create and test separate gRPC artifact
+        run: >-
+          conan create conanfile_grpc.py --test-folder=test_package_grpc
+          --build=missing --lockfile=grpc/conan.lock
+          -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20
+          -o:h '&:shared=${{ matrix.shared }}'
+
+  cpp-conan-boundaries:
+    name: C++ Conan artifact graph boundaries
+    runs-on: ubuntu-latest
+    env:
+      CC: gcc
+      CXX: g++
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated build tools
+        run: python -m pip install 'conan==2.31.2' 'protobuf==6.33.5' 'pytest>=8,<10'
+      - name: Detect Conan profile
+        run: conan profile detect --force
+      - name: Export exact local base recipe
+        run: conan export .
+      - name: Verify base RREV is independent of Git HEAD
+        run: >-
+          python tools/verify_conan_rrev_stability.py
+          --source-root "$PWD"
+          --conan conan
+      - name: Verify message and gRPC graph separation
+        run: >-
+          python tools/verify_conan_graph_boundaries.py
+          --source-root "$PWD"
+          --profile-host "$PWD/profiles/conan/cpp20"
+          --profile-build "$PWD/profiles/conan/cpp20"
+
   cpp-shared:
     name: C++ shared Release / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -300,6 +367,38 @@ jobs:
           conan remove 'binance-market-data-contracts-cpp/*' -c
           conan remote disable conancenter
           conan create . --build=missing --lockfile=conan.lock -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20
+
+  grpc-conan-reproducibility:
+    name: gRPC Conan lock and offline replay
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated build tools
+        run: python -m pip install 'conan==2.31.2' 'protobuf==6.33.5' 'pytest>=8,<10'
+      - name: Use clean Conan cache
+        run: |
+          echo "CONAN_HOME=${RUNNER_TEMP}/contracts-grpc-conan" >> "$GITHUB_ENV"
+          export CONAN_HOME="${RUNNER_TEMP}/contracts-grpc-conan"
+          conan profile detect --force
+      - name: Populate base recipe and verify gRPC lock drift
+        run: |
+          conan export .
+          conan lock create conanfile_grpc.py -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20 --lockfile-out="${RUNNER_TEMP}/grpc-candidate.lock"
+          python scripts/check_conan_lock.py grpc/conan.lock "${RUNNER_TEMP}/grpc-candidate.lock" --expected-artifact grpc
+      - name: Populate clean cache and create both artifacts
+        run: |
+          conan create . --build=missing --lockfile=conan.lock -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20
+          conan create conanfile_grpc.py --test-folder=test_package_grpc --build=missing --lockfile=grpc/conan.lock -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20
+      - name: Offline source-build replay
+        run: |
+          conan remove 'binance-market-data-contracts-grpc-cpp/*' -c
+          conan remove 'binance-market-data-contracts-cpp/*' -c
+          conan remote disable conancenter
+          conan create . --build=missing --lockfile=conan.lock -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20
+          conan create conanfile_grpc.py --test-folder=test_package_grpc --build=missing --lockfile=grpc/conan.lock -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20
 
   cpp-macos-reproducibility:
     name: C++ macOS ARM64 deterministic static package
