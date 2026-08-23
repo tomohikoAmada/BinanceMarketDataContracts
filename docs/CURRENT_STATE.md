@@ -61,6 +61,8 @@ build/package workflow only.
 - The gRPC artifact generates/installs only `gateway_service.pb.*` and
   `gateway_service.grpc.pb.*`, publicly links the exact base artifact and `gRPC::grpc++`, and owns
   no generated message symbols.
+- `Symbol` is an opaque, non-empty Unicode-scalar identity. It preserves code points and case,
+  rejects U+0000..U+0020 and U+007F, and has no contract-level maximum length (ADR-0011).
 - Formal Schema Fingerprint Algorithm Version 1 digest:
   `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`.
 
@@ -85,8 +87,8 @@ build/package workflow only.
 
 Accepted ADRs and accepted semantic designs remain authoritative, especially ADR-0007 for the
 contract strata, ADR-0009 for Contracts-owned C++ Protobuf package ownership, and ADR-0010 for the
-separate gRPC artifact boundary. This file does not promote any PROPOSED/DRAFT contract or redefine
-another repository's semantics.
+separate gRPC artifact boundary, and ADR-0011 for opaque UTF-8 symbol identity. This file does not
+promote any PROPOSED/DRAFT contract or redefine another repository's semantics.
 
 ## Known Semantic Conflicts
 

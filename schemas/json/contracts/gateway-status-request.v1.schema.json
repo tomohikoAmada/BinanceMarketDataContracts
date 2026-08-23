@@ -1,0 +1,23 @@
+{
+  "$id": "urn:binance-market-data-contracts:gateway-status-request.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One-shot request for Gateway operational status.",
+  "properties": {
+    "request_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "gateway-status-request.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "schema_version"
+  ],
+  "type": "object"
+}

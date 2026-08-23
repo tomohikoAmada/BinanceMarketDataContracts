@@ -375,6 +375,17 @@
       "expected_error_path": null
     },
     {
+      "path": "valid/event-subscription-request.v1.unicode-symbol.json",
+      "contract_name": "event-subscription-request.v1",
+      "schema_version": "event-subscription-request.v1",
+      "python_type": "EventSubscriptionRequest",
+      "valid": true,
+      "scenario": "Non-ASCII UTF-8 symbol identity",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
       "path": "valid/order-book-subscription-request.v1.json",
       "contract_name": "order-book-subscription-request.v1",
       "schema_version": "order-book-subscription-request.v1",
@@ -483,6 +494,17 @@
       "validation_scope": "BOTH",
       "expected_error_code": "too_short",
       "expected_error_path": "selectors"
+    },
+    {
+      "path": "invalid/event-subscription-request.v1.del-symbol.json",
+      "contract_name": "event-subscription-request.v1",
+      "schema_version": "event-subscription-request.v1",
+      "python_type": "EventSubscriptionRequest",
+      "valid": false,
+      "scenario": "DEL in symbol identity",
+      "validation_scope": "BOTH",
+      "expected_error_code": "string_pattern_mismatch",
+      "expected_error_path": "selectors.0.symbol"
     },
     {
       "path": "invalid/event-subscription-request.v1.depth-snapshot.json",
@@ -607,6 +629,72 @@
     },
     {
       "path": "invalid/gateway-status-snapshot.v1.unknown-field.json", "contract_name": "gateway-status-snapshot.v1", "schema_version": "gateway-status-snapshot.v1", "python_type": "GatewayStatusSnapshot", "valid": false, "scenario": "Unknown status snapshot field", "validation_scope": "BOTH", "expected_error_code": "extra_forbidden", "expected_error_path": "timestamp"
+    },
+    {
+      "path": "valid/gateway-status-request.v1.json",
+      "contract_name": "gateway-status-request.v1",
+      "schema_version": "gateway-status-request.v1",
+      "python_type": "GatewayStatusRequest",
+      "valid": true,
+      "scenario": "Minimal Gateway status request",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "valid/gateway-status-request.v1.max-id.json",
+      "contract_name": "gateway-status-request.v1",
+      "schema_version": "gateway-status-request.v1",
+      "python_type": "GatewayStatusRequest",
+      "valid": true,
+      "scenario": "Maximum-length request identifier",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "invalid/gateway-status-request.v1.unknown-field.json",
+      "contract_name": "gateway-status-request.v1",
+      "schema_version": "gateway-status-request.v1",
+      "python_type": "GatewayStatusRequest",
+      "valid": false,
+      "scenario": "Unknown Gateway status request field",
+      "validation_scope": "BOTH",
+      "expected_error_code": "extra_forbidden",
+      "expected_error_path": "timestamp"
+    },
+    {
+      "path": "valid/telemetry.v1.json",
+      "contract_name": "telemetry.v1",
+      "schema_version": "telemetry.v1",
+      "python_type": "TelemetryEnvelope",
+      "valid": true,
+      "scenario": "Connection telemetry with required metrics",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "invalid/telemetry.v1.missing-metrics.json",
+      "contract_name": "telemetry.v1",
+      "schema_version": "telemetry.v1",
+      "python_type": "TelemetryEnvelope",
+      "valid": false,
+      "scenario": "Missing required metrics payload",
+      "validation_scope": "BOTH",
+      "expected_error_code": "missing",
+      "expected_error_path": "metrics"
+    },
+    {
+      "path": "valid/gateway-status-snapshot.v1.with-generation.json",
+      "contract_name": "gateway-status-snapshot.v1",
+      "schema_version": "gateway-status-snapshot.v1",
+      "python_type": "GatewayStatusSnapshot",
+      "valid": true,
+      "scenario": "Per-market status with uniquely applicable generation",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
     }
   ]
 }

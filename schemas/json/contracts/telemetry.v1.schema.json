@@ -378,45 +378,37 @@
       "default": null
     },
     "metrics": {
-      "anyOf": [
+      "discriminator": {
+        "mapping": {
+          "book": "#/$defs/BookMetrics",
+          "connection": "#/$defs/ConnectionMetrics",
+          "latency": "#/$defs/LatencyMetrics",
+          "queue": "#/$defs/QueueMetrics",
+          "sequence": "#/$defs/SequenceMetrics",
+          "system": "#/$defs/SystemMetrics"
+        },
+        "propertyName": "type"
+      },
+      "oneOf": [
         {
-          "discriminator": {
-            "mapping": {
-              "book": "#/$defs/BookMetrics",
-              "connection": "#/$defs/ConnectionMetrics",
-              "latency": "#/$defs/LatencyMetrics",
-              "queue": "#/$defs/QueueMetrics",
-              "sequence": "#/$defs/SequenceMetrics",
-              "system": "#/$defs/SystemMetrics"
-            },
-            "propertyName": "type"
-          },
-          "oneOf": [
-            {
-              "$ref": "#/$defs/ConnectionMetrics"
-            },
-            {
-              "$ref": "#/$defs/SequenceMetrics"
-            },
-            {
-              "$ref": "#/$defs/LatencyMetrics"
-            },
-            {
-              "$ref": "#/$defs/QueueMetrics"
-            },
-            {
-              "$ref": "#/$defs/BookMetrics"
-            },
-            {
-              "$ref": "#/$defs/SystemMetrics"
-            }
-          ]
+          "$ref": "#/$defs/ConnectionMetrics"
         },
         {
-          "type": "null"
+          "$ref": "#/$defs/SequenceMetrics"
+        },
+        {
+          "$ref": "#/$defs/LatencyMetrics"
+        },
+        {
+          "$ref": "#/$defs/QueueMetrics"
+        },
+        {
+          "$ref": "#/$defs/BookMetrics"
+        },
+        {
+          "$ref": "#/$defs/SystemMetrics"
         }
-      ],
-      "default": null
+      ]
     },
     "observed_time_utc_ns": {
       "minimum": 0,
@@ -473,9 +465,8 @@
     "symbol": {
       "anyOf": [
         {
-          "maxLength": 20,
-          "minLength": 2,
-          "pattern": "^[A-Z0-9]+$",
+          "minLength": 1,
+          "pattern": "^(?![\\s\\S]*[\\u0000-\\u0020\\u007F])[\\s\\S]+$",
           "type": "string"
         },
         {
@@ -493,7 +484,8 @@
     "telemetry_type",
     "source_module",
     "source_instance_id",
-    "observed_time_utc_ns"
+    "observed_time_utc_ns",
+    "metrics"
   ],
   "type": "object"
 }

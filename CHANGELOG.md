@@ -27,6 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Registered the public DRAFT `GatewayStatusRequest` surface across registries, adapters, schemas,
+  manifests, fixtures, tests, generated wire artifacts, and documentation.
+- Made `TelemetryEnvelope.metrics` required and kept missing wire metrics fail-closed in adapters,
+  with schema, fixture, and domain↔wire regression coverage.
+- Corrected aggregate `MarketRuntimeStatus.connection_generation` to use explicit optional presence
+  at field 6 when no unique upstream source applies; the temporary Buf breaking-check exception was
+  removed after integrating the correction.
 - Version 0.1.0a1 → 0.2.0a1
 - Approved the C-M4-001 architecture for the Contracts-owned C++ Protobuf message package.
 - Accepted ADR-0009 after an independent architecture review with zero blocking findings.
@@ -44,6 +51,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MarketStateSnapshot: added source_book_update_id and source_trade_id fields
 - TelemetryEnvelope: extended with stream and connection fields
 - QueueMetrics: extended with capacity and utilization fields
+- Relaxed `Symbol` from the incorrect ASCII-only 2..20 constraint to the opaque Unicode identity
+  semantics in ADR-0011, preserving exact code points while rejecting ASCII controls/whitespace,
+  DEL, and surrogate code points.
 - Restored `binance-market-data-contracts-cpp/0.1.0` to a gRPC-free host/build graph and moved
   `BinanceMarketDataContracts::Grpc` into its own Conan and CMake package without duplicating
   generated message symbols.
@@ -58,8 +68,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Compatibility
 
-- All existing Pydantic contracts remain unchanged
-- Existing JSON Schema export continues unchanged
+- Existing values accepted by the former `Symbol` constraint remain accepted.
+- JSON Schema `Symbol` constraints are compatibly widened to non-empty values excluding
+  U+0000..U+0020 and U+007F; the former `maxLength: 20` and ASCII-only pattern are removed.
 - All existing tests pass without modification
 - Wire contracts are additive; consumers not using Protobuf are unaffected
 

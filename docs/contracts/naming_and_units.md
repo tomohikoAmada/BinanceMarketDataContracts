@@ -31,6 +31,14 @@ See `docs/contracts/time_semantics.md`.
 - Type: `str` or validated `str` (`ConnectionId`, `RequestId`)
 - All IDs are non-empty strings
 
+## Symbol fields
+
+- `Symbol` is an opaque exchange identity, not a normalized ticker code.
+- Preserve its Unicode code points and case exactly; do not normalize or case-fold it.
+- It must be non-empty and contain no U+0000..U+0020, U+007F, or surrogate code points.
+- It has no contract-level maximum length. U+0080, U+00A0, and U+3000 are not forbidden.
+- See accepted ADR-0011 for the compatibility and wire rationale.
+
 ## Enum values
 
 - All enum values are UPPER_SNAKE_CASE strings

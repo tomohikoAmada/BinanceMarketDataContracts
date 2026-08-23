@@ -34,6 +34,7 @@ PROPOSED/DRAFT until they meet the formal acceptance criteria below.
 | event-subscription-request | DRAFT | v1 |
 | order-book-subscription-request | DRAFT | v1 |
 | market-state-subscription-request | DRAFT | v1 |
+| gateway-status-request | DRAFT | v1 |
 | subscription-accepted | DRAFT | v1 |
 | consumer-gap-notice | DRAFT | v1 |
 | stream-status | DRAFT | v1 |
@@ -64,6 +65,7 @@ A contract is promoted from PROPOSED to ACCEPTED when:
 - `docs/adr/ADR-0008-gateway-grpc-streaming-protocol.md` (ACCEPTED)
 - `docs/adr/ADR-0009-cpp-protobuf-package.md` (ACCEPTED)
 - `docs/adr/ADR-0010-separate-cpp-grpc-artifact.md` (ACCEPTED)
+- `docs/adr/ADR-0011-opaque-utf8-symbol-identity.md` (ACCEPTED)
 
 ## C-M4-001 C++ package design
 
