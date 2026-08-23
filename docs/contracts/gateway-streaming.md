@@ -143,6 +143,9 @@ A generation transition alone is permitted and does not require a gap notice.
 - For a uniquely applicable upstream source, `connection_generation` does not
   reset on source reconnect; it increments. It is absent when no unique source
   generation applies.
+- `MarketRuntimeStatus` is a per-market aggregate. Its `connection_generation`
+  is therefore optional and must be omitted when multiple upstream sources are
+  represented without one uniquely applicable generation.
 - `session_sequence` is per accepted subscription and covers every emitted item,
   regardless of delivery mode. It is not reset or skipped for an emitted control,
   status, snapshot, or state item.

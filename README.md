@@ -166,6 +166,7 @@ event = DepthUpdate(metadata=metadata, first_update_id=1001, final_update_id=100
 | HistoricalDatasetDescriptor | DRAFT | v1 |
 | ReplayQuery | DRAFT | v1 |
 | Telemetry | DRAFT | v1 |
+| GatewayStatusRequest | DRAFT | v1 |
 | ControlCommand / CommandResult | DRAFT | v1 |
 
 ### Wire Contracts (Protobuf)
@@ -180,6 +181,9 @@ Wire contracts are defined in proto files under `src/binance_market_data_contrac
 | Telemetry Wire Contract | DRAFT |
 
 DRAFT wire contracts are **not frozen** and may change.
+
+`TelemetryEnvelope.metrics` is required in `telemetry.v1`; its concrete metric type must match
+`telemetry_type`.
 
 ### Gateway RPCs
 
@@ -242,6 +246,7 @@ Key adapter pairs follow the `<contract>_to_pb` / `<contract>_from_pb` naming co
 | `order_book_stream_item_to_pb` | `order_book_stream_item_from_pb` |
 | `market_state_stream_item_to_pb` | `market_state_stream_item_from_pb` |
 | `event_subscription_request_to_pb` | `event_subscription_request_from_pb` |
+| `gateway_status_request_to_pb` | `gateway_status_request_from_pb` |
 | `telemetry_envelope_to_pb` | `telemetry_envelope_from_pb` |
 
 Example usage:

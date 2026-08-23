@@ -152,3 +152,10 @@ def test_gateway_delivery_metadata_is_additive_and_canonical():
         assert canonical.number == 2
         assert legacy.message_type.full_name == "binance_market_data.common.v1.EnvelopeMetadata"
         assert canonical.message_type.full_name == "binance_market_data.gateway.v1.GatewayEnvelopeMetadata"
+
+
+def test_market_runtime_status_generation_is_optional():
+    message = _get_message_descriptor("binance_market_data.gateway.v1.MarketRuntimeStatus")
+    generation = message.fields_by_name["connection_generation"]
+    assert generation.number == 6
+    assert generation.has_presence

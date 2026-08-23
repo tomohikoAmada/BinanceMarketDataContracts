@@ -34,6 +34,7 @@ PROPOSED/DRAFT until they meet the formal acceptance criteria below.
 | event-subscription-request | DRAFT | v1 |
 | order-book-subscription-request | DRAFT | v1 |
 | market-state-subscription-request | DRAFT | v1 |
+| gateway-status-request | DRAFT | v1 |
 | subscription-accepted | DRAFT | v1 |
 | consumer-gap-notice | DRAFT | v1 |
 | stream-status | DRAFT | v1 |

@@ -118,6 +118,17 @@
       "schema_id": "urn:binance-market-data-contracts:gateway-event-envelope.v1",
       "status": "DRAFT"
     },
+    "gateway-status-request.v1": {
+      "consumers": [
+        "gateway"
+      ],
+      "filename": "contracts/gateway-status-request.v1.schema.json",
+      "producers": [
+        "gateway-consumer"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:gateway-status-request.v1",
+      "status": "DRAFT"
+    },
     "gateway-status-snapshot.v1": {
       "consumers": [
         "control",

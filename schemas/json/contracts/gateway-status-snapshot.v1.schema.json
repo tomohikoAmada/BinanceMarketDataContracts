@@ -10,7 +10,7 @@
     },
     "MarketRuntimeStatus": {
       "additionalProperties": false,
-      "description": "Per-market runtime status within a Gateway instance.",
+      "description": "Per-market aggregate runtime status within a Gateway instance.\n\nConnection generation is optional because an aggregate market status may not\nhave one uniquely applicable upstream source.",
       "properties": {
         "active_subscription_count": {
           "default": 0,
@@ -19,9 +19,17 @@
           "type": "integer"
         },
         "connection_generation": {
-          "minimum": 1,
-          "title": "Connection Generation",
-          "type": "integer"
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Connection Generation"
         },
         "last_event_utc_ns": {
           "anyOf": [
@@ -56,8 +64,7 @@
         "venue",
         "market",
         "symbol",
-        "state",
-        "connection_generation"
+        "state"
       ],
       "title": "MarketRuntimeStatus",
       "type": "object"

@@ -58,6 +58,16 @@ class TestTelemetry:
         )
         assert e.telemetry_type == TelemetryType.CONNECTION
 
+    def test_metrics_required(self):
+        with pytest.raises(ValidationError, match="metrics"):
+            TelemetryEnvelope(
+                schema_version="telemetry.v1",
+                telemetry_type=TelemetryType.CONNECTION,
+                source_module="gateway",
+                source_instance_id="gw-001",
+                observed_time_utc_ns=1000,
+            )
+
 
 class TestControl:
     def test_control_command(self):

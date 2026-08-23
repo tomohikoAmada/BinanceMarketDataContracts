@@ -1,0 +1,13 @@
+{
+  "schema_version": "telemetry.v1",
+  "telemetry_type": "CONNECTION",
+  "source_module": "gateway",
+  "source_instance_id": "gw-001",
+  "observed_time_utc_ns": 1690000010000000000,
+  "metrics": {
+    "type": "connection",
+    "connected": true,
+    "reconnect_count": 2
+  },
+  "quality_flags": []
+}
