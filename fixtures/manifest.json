@@ -375,6 +375,17 @@
       "expected_error_path": null
     },
     {
+      "path": "valid/event-subscription-request.v1.unicode-symbol.json",
+      "contract_name": "event-subscription-request.v1",
+      "schema_version": "event-subscription-request.v1",
+      "python_type": "EventSubscriptionRequest",
+      "valid": true,
+      "scenario": "Non-ASCII UTF-8 symbol identity",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
       "path": "valid/order-book-subscription-request.v1.json",
       "contract_name": "order-book-subscription-request.v1",
       "schema_version": "order-book-subscription-request.v1",
@@ -483,6 +494,17 @@
       "validation_scope": "BOTH",
       "expected_error_code": "too_short",
       "expected_error_path": "selectors"
+    },
+    {
+      "path": "invalid/event-subscription-request.v1.del-symbol.json",
+      "contract_name": "event-subscription-request.v1",
+      "schema_version": "event-subscription-request.v1",
+      "python_type": "EventSubscriptionRequest",
+      "valid": false,
+      "scenario": "DEL in symbol identity",
+      "validation_scope": "BOTH",
+      "expected_error_code": "string_pattern_mismatch",
+      "expected_error_path": "selectors.0.symbol"
     },
     {
       "path": "invalid/event-subscription-request.v1.depth-snapshot.json",

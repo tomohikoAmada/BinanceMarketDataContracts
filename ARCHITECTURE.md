@@ -64,6 +64,8 @@ A contract is promoted from PROPOSED to ACCEPTED when:
 - `docs/adr/ADR-0007-pydantic-domain-protobuf-wire-contracts.md` (ACCEPTED)
 - `docs/adr/ADR-0008-gateway-grpc-streaming-protocol.md` (ACCEPTED)
 - `docs/adr/ADR-0009-cpp-protobuf-package.md` (ACCEPTED)
+- `docs/adr/ADR-0011-opaque-utf8-symbol-identity.md` (ACCEPTED; ADR-0010 is reserved by an
+  in-flight package-boundary change)
 
 ## C-M4-001 C++ package design
 
