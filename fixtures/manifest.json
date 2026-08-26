@@ -551,6 +551,17 @@
       "expected_error_path": "$"
     },
     {
+      "path": "invalid/consumer-gap-notice.v1.wrong-non-none-action.json",
+      "contract_name": "consumer-gap-notice.v1",
+      "schema_version": "consumer-gap-notice.v1",
+      "python_type": "ConsumerGapNotice",
+      "valid": false,
+      "scenario": "SLOW_CONSUMER with REQUEST_NEW_SNAPSHOT recovery (invalid)",
+      "validation_scope": "PYDANTIC_ONLY",
+      "expected_error_code": "value_error",
+      "expected_error_path": "$"
+    },
+    {
       "path": "invalid/gateway-event-envelope.v1.no-payload.json",
       "contract_name": "gateway-event-envelope.v1",
       "schema_version": "gateway-event-envelope.v1",

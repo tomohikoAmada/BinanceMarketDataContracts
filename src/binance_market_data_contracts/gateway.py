@@ -8,7 +8,7 @@ Network I/O and server implementation are not part of this module.
 from __future__ import annotations
 
 import re
-from typing import Literal
+from typing import Final, Literal
 
 from pydantic import Field, model_validator
 
@@ -38,6 +38,16 @@ def _validate_schema_version_tuple(versions: tuple[str, ...], field_name: str) -
         if v in seen:
             raise ValueError(f"{field_name} must not contain duplicates, got {v!r}")
         seen.add(v)
+
+
+_CONSUMER_GAP_RECOVERY_ACTION_BY_REASON: Final = {
+    ConsumerGapReason.SLOW_CONSUMER: RecoveryAction.RESUBSCRIBE,
+    ConsumerGapReason.RESUME_NOT_AVAILABLE: RecoveryAction.REQUEST_NEW_SNAPSHOT,
+    ConsumerGapReason.UPSTREAM_SEQUENCE_GAP: RecoveryAction.REQUEST_NEW_SNAPSHOT,
+    ConsumerGapReason.GATEWAY_RESTART: RecoveryAction.RESUBSCRIBE,
+    ConsumerGapReason.CONNECTION_GENERATION_CHANGED: RecoveryAction.RESUBSCRIBE,
+    ConsumerGapReason.SUBSCRIPTION_RECONFIGURED: RecoveryAction.RESUBSCRIBE,
+}
 
 
 class StreamSelector(ContractModel):
@@ -187,13 +197,12 @@ class ConsumerGapNotice(ContractModel):
 
     @model_validator(mode="after")
     def _validate_recovery_action(self) -> ConsumerGapNotice:
-        needs_recovery = {
-            ConsumerGapReason.SLOW_CONSUMER,
-            ConsumerGapReason.RESUME_NOT_AVAILABLE,
-            ConsumerGapReason.UPSTREAM_SEQUENCE_GAP,
-        }
-        if self.reason in needs_recovery and self.recovery_action == RecoveryAction.NONE:
-            raise ValueError(f"Gap reason '{self.reason.value}' requires a recovery action, got NONE")
+        expected_action = _CONSUMER_GAP_RECOVERY_ACTION_BY_REASON[self.reason]
+        if self.recovery_action != expected_action:
+            raise ValueError(
+                f"Gap reason '{self.reason.value}' requires recovery action "
+                f"'{expected_action.value}', got '{self.recovery_action.value}'"
+            )
         return self
 
 
