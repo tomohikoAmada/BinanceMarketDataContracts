@@ -13,6 +13,3 @@ set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_RREV
 set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_COMPATIBILITY
     "exactly 6.33.5 for this implementation candidate")
 set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_FLAVOR "full")
-set(BinanceMarketDataContracts_GRPC_VERSION "1.83.0")
-set(BinanceMarketDataContracts_GRPC_RREV
-    "67e377a995d4a1279bffe2b941ac2f55")

@@ -26,10 +26,6 @@ inline constexpr std::string_view protobuf_runtime_compatibility =
     "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_COMPATIBILITY@";
 inline constexpr std::string_view protobuf_runtime_flavor =
     "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_FLAVOR@";
-inline constexpr std::string_view grpc_version =
-    "@BinanceMarketDataContracts_GRPC_VERSION@";
-inline constexpr std::string_view grpc_rrev =
-    "@BinanceMarketDataContracts_GRPC_RREV@";
 inline constexpr std::string_view protobuf_runtime_linkage =
     "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_LINKAGE@";
 inline constexpr std::string_view contracts_source_revision =

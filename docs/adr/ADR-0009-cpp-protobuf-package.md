@@ -79,9 +79,10 @@ implementation while the implementation-blocking Open Decisions remain open.
 
 ## M6 follow-on implementation note
 
-The separately authorized M6 Contracts prerequisite implements the optional
-`BinanceMarketDataContracts::Grpc` component without changing the accepted `Protobuf` component.
-It generates the Gateway service and gRPC stubs at build time, links the gRPC C++ runtime only
-through `Grpc`, and keeps the existing M4 fingerprint and message-only dependency direction
-unchanged. This note records follow-on implementation status; it does not rewrite the historical
-C-M4-001 design or claim that the Gateway runtime exists.
+The separately authorized M6 Contracts prerequisite exports the optional frozen target
+`BinanceMarketDataContracts::Grpc`. ADR-0010 corrects its package-manager boundary: `Grpc` is
+provided by the independent `binance-market-data-contracts-grpc-cpp/0.1.0` Conan artifact and
+`BinanceMarketDataContractsGrpc` CMake package. It generates only the Gateway service and gRPC
+stubs, links the one base `Protobuf` target, and keeps gRPC out of the message artifact's host and
+build graphs. This note records follow-on implementation status; it does not rewrite the
+historical C-M4-001 design or claim that the Gateway runtime exists.

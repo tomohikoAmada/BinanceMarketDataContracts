@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Descriptor tests validating generated Protobuf descriptors
 - C-M4-001 implementation candidate for a Contracts-owned versioned installable C++ Protobuf
   message package, including CMake and Conan consumers, fingerprinting, and provenance metadata
+- ADR-0010 and the separate `binance-market-data-contracts-grpc-cpp/0.1.0` service/stub artifact
 
 ### Changed
 
@@ -31,8 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made `TelemetryEnvelope.metrics` required and kept missing wire metrics fail-closed in adapters,
   with schema, fixture, and domain↔wire regression coverage.
 - Corrected aggregate `MarketRuntimeStatus.connection_generation` to use explicit optional presence
-  at field 6 when no unique upstream source applies; cleanup of the temporary Buf exception is tracked
-  in [Issue #15](https://github.com/tomohikoAmada/BinanceMarketDataContracts/issues/15).
+  at field 6 when no unique upstream source applies; the temporary Buf breaking-check exception was
+  removed after integrating the correction.
 - Version 0.1.0a1 → 0.2.0a1
 - Approved the C-M4-001 architecture for the Contracts-owned C++ Protobuf message package.
 - Accepted ADR-0009 after an independent architecture review with zero blocking findings.
@@ -53,6 +54,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Relaxed `Symbol` from the incorrect ASCII-only 2..20 constraint to the opaque Unicode identity
   semantics in ADR-0011, preserving exact code points while rejecting ASCII controls/whitespace,
   DEL, and surrogate code points.
+- Restored `binance-market-data-contracts-cpp/0.1.0` to a gRPC-free host/build graph and moved
+  `BinanceMarketDataContracts::Grpc` into its own Conan and CMake package without duplicating
+  generated message symbols.
 
 ### Architecture
 
@@ -76,6 +80,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   revision is unassigned; Projection M4 is complete in the separate Projection repository
 - Assignment of the Contracts package revision (gated on release)
 - Publication of `binance-market-data-contracts-cpp/0.1.0`
+- Candidate identity assignment and publication decision for
+  `binance-market-data-contracts-grpc-cpp/0.1.0`
 - Gateway Runtime (gRPC server is not implemented in this repository)
 - Gateway implementation language is not selected (C++, Rust, Go, Python are all supported by the wire protocol)
 - Network performance benchmarking

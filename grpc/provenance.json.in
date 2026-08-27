@@ -1,0 +1,23 @@
+{
+  "package_coordinate_candidate": "binance-market-data-contracts-grpc-cpp/0.1.0",
+  "package_version_candidate": "@BinanceMarketDataContractsGrpc_PACKAGE_VERSION@",
+  "package_revision": "@BinanceMarketDataContractsGrpc_PACKAGE_REVISION@",
+  "package_revision_formal_state": "NOT_FORMALLY_ASSIGNED",
+  "contracts_source_revision": "@BinanceMarketDataContractsGrpc_CONTRACTS_SOURCE_REVISION@",
+  "base_contracts_coordinate": "binance-market-data-contracts-cpp/0.1.0",
+  "base_contracts_rrev": "@BinanceMarketDataContractsGrpc_BASE_RREV@",
+  "protoc_version": "@BinanceMarketDataContracts_PROTOC_VERSION@",
+  "protoc_provenance": "@BMD_CONTRACTS_GRPC_PROTOC_PROVENANCE@",
+  "grpc_version": "@BinanceMarketDataContractsGrpc_GRPC_VERSION@",
+  "grpc_rrev": "@BinanceMarketDataContractsGrpc_GRPC_RREV@",
+  "grpc_cpp_plugin_provenance": "@BMD_CONTRACTS_GRPC_CPP_PLUGIN_PROVENANCE@",
+  "grpc_runtime_linkage": "@BinanceMarketDataContractsGrpc_GRPC_RUNTIME_LINKAGE@",
+  "cxx_standard": "20",
+  "library_type": "@_grpc_library_type@",
+  "position_independent_code": "@BMD_CONTRACTS_GRPC_POSITION_INDEPENDENT_CODE@",
+  "generated_sources": [
+    "binance_market_data/gateway/v1/gateway_service.pb.cc",
+    "binance_market_data/gateway/v1/gateway_service.grpc.pb.cc"
+  ],
+  "published": false
+}

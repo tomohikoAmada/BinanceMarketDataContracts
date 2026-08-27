@@ -2,14 +2,12 @@ from __future__ import annotations
 
 import os
 import sys
-from pathlib import Path
 from typing import ClassVar
 
 from conan import ConanFile
 from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 from conan.tools.env import VirtualBuildEnv
-from conan.tools.files import save
 from conan.tools.scm import Git
 
 
@@ -19,30 +17,17 @@ class BinanceMarketDataContractsConan(ConanFile):
     required_conan_version = ">=2.31.2 <3"
     package_type = "library"
     license = "LicenseRef-Proprietary"
-    description = "Contracts-owned C++ Protobuf and Gateway gRPC package"
+    description = "Contracts-owned C++ Protobuf message package"
     settings = "os", "arch", "compiler", "build_type"
     options: ClassVar[dict[str, list[bool]]] = {"shared": [True, False], "fPIC": [True, False]}
-    default_options: ClassVar[dict[str, bool]] = {
-        "shared": False,
-        "fPIC": True,
-        "grpc/*:shared": False,
-        "grpc/*:codegen": True,
-        "grpc/*:cpp_plugin": True,
-        "grpc/*:csharp_plugin": False,
-        "grpc/*:node_plugin": False,
-        "grpc/*:objective_c_plugin": False,
-        "grpc/*:php_plugin": False,
-        "grpc/*:python_plugin": False,
-        "grpc/*:ruby_plugin": False,
-    }
+    default_options: ClassVar[dict[str, bool]] = {"shared": False, "fPIC": True}
     exports_sources = (
         "CMakeLists.txt",
         "cmake/*",
         "tools/__init__.py",
         "tools/schema_fingerprint.py",
-        "tools/verify_grpc_cpp_plugin.py",
         "tools/verify_protoc.py",
-        "tests/cpp/*",
+        "tests/cpp/semantic_tests.cpp",
         "tests/test_cpp_fingerprint.py",
         "src/binance_market_data_contracts/proto/*",
     )
@@ -60,47 +45,35 @@ class BinanceMarketDataContractsConan(ConanFile):
             transitive_headers=True,
             transitive_libs=True,
         )
-        self.requires(
-            "grpc/1.83.0",
-            transitive_headers=True,
-            transitive_libs=True,
-        )
 
     def configure(self):
         if self.options.get_safe("shared"):
             self.options.rm_safe("fPIC")
         self.options["protobuf"].shared = bool(self.options.shared)
-        self.options["grpc"].shared = bool(self.options.shared)
 
     def validate(self):
         check_min_cppstd(self, 20)
 
     def build_requirements(self):
         self.tool_requires("protobuf/6.33.5")
-        self.tool_requires("grpc/1.83.0")
 
     def layout(self):
         cmake_layout(self)
 
     def export(self):
-        try:
-            revision = Git(self, self.recipe_folder).get_commit()
-        except Exception:
-            revision = "CANDIDATE_SOURCE_REVISION_UNAVAILABLE"
-        save(self, Path(self.export_folder) / "contracts_source_revision.txt", revision + "\n")
+        git = Git(self, self.recipe_folder)
+        revision = git.get_commit()
+        if git.is_dirty():
+            raise ValueError("Conan export requires a clean Contracts Git worktree")
+        injected = os.environ.get("BMD_CONTRACTS_SOURCE_REVISION")
+        if injected is not None and injected != revision:
+            raise ValueError("BMD_CONTRACTS_SOURCE_REVISION does not match the exported Contracts Git HEAD")
 
     def generate(self):
         protobuf = self.dependencies["protobuf"]
-        grpc_tool = self.dependencies.build["grpc"]
         runtime_linkage = "SHARED" if bool(protobuf.options.get_safe("shared")) else "STATIC"
         if bool(protobuf.options.get_safe("lite")):
             raise ValueError("C-M4-001 requires the full Protobuf runtime, not lite")
-
-        grpc_plugin = Path(grpc_tool.package_folder) / "bin" / "grpc_cpp_plugin"
-        grpc_ref = grpc_tool.ref
-        grpc_rrev = getattr(grpc_ref, "revision", None) or getattr(grpc_tool, "recipe_revision", None)
-        if not grpc_rrev:
-            raise ValueError("Unable to resolve the locked gRPC build-context recipe revision")
 
         CMakeDeps(self).generate()
         VirtualBuildEnv(self).generate()
@@ -114,18 +87,17 @@ class BinanceMarketDataContractsConan(ConanFile):
         )
         toolchain.cache_variables["BMD_CONTRACTS_PROTOBUF_RREV"] = "ca5ff466767b31a1b496ec60247e105c"
         toolchain.cache_variables["BMD_CONTRACTS_PROTOBUF_RUNTIME_LINKAGE"] = runtime_linkage
-        toolchain.cache_variables["BMD_CONTRACTS_GRPC_RREV"] = str(grpc_rrev)
-        toolchain.cache_variables["BMD_CONTRACTS_GRPC_CPP_PLUGIN_EXECUTABLE"] = str(grpc_plugin)
-        toolchain.cache_variables["BMD_CONTRACTS_GRPC_CPP_PLUGIN_PACKAGE_FOLDER"] = str(Path(grpc_tool.package_folder))
-        toolchain.cache_variables["BMD_CONTRACTS_GRPC_CPP_PLUGIN_PROVENANCE"] = f"conan:grpc/1.83.0#{grpc_rrev}"
-        revision_file = Path(self.recipe_folder) / "contracts_source_revision.txt"
-        if revision_file.is_file():
-            revision = revision_file.read_text(encoding="utf-8").strip()
-        else:
+        revision = os.environ.get("BMD_CONTRACTS_SOURCE_REVISION")
+        if revision is None:
             try:
-                revision = Git(self, self.source_folder).get_commit()
-            except Exception:
-                revision = os.environ.get("BMD_CONTRACTS_SOURCE_REVISION", "CANDIDATE_SOURCE_REVISION_UNAVAILABLE")
+                git = Git(self, self.source_folder)
+                revision = git.get_commit()
+                if git.is_dirty():
+                    raise ValueError("Contracts source provenance cannot describe a dirty worktree")
+            except Exception as exc:
+                raise ValueError("BMD_CONTRACTS_SOURCE_REVISION is required when building an exported recipe") from exc
+        if len(revision) != 40 or any(character not in "0123456789abcdef" for character in revision):
+            raise ValueError("Contracts source revision must be a lowercase 40-character Git SHA")
         toolchain.cache_variables["BinanceMarketDataContracts_CONTRACTS_SOURCE_REVISION"] = revision
         toolchain.generate()
 
@@ -148,8 +120,4 @@ class BinanceMarketDataContractsConan(ConanFile):
         component.libs = ["binance_market_data_contracts_protobuf"]
         component.requires = ["protobuf::libprotobuf"]
         component.set_property("cmake_target_name", "BinanceMarketDataContracts::Protobuf")
-        grpc = self.cpp_info.components["Grpc"]
-        grpc.libs = ["binance_market_data_contracts_grpc"]
-        grpc.requires = ["Protobuf", "grpc::grpc++"]
-        grpc.set_property("cmake_target_name", "BinanceMarketDataContracts::Grpc")
         self.cpp_info.builddirs.append("lib/cmake/BinanceMarketDataContracts")

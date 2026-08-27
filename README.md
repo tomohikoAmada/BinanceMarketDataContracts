@@ -38,11 +38,13 @@ generated artifacts for that language.
 
 The currently tracked generated wire artifacts are Python artifacts.
 
-The C++ candidate generates seven non-service message sources as build outputs and installs their
-headers with the exported target `BinanceMarketDataContracts::Protobuf`. The separately optional
-`BinanceMarketDataContracts::Grpc` component generates the Gateway service and gRPC stubs at build
-time and links the gRPC C++ runtime. Generated `.pb.cc` and `.pb.h` files are not committed as
-primary sources; a Protobuf-only consumer does not acquire a mandatory gRPC link dependency.
+The C++ message artifact generates seven non-service message sources as build outputs and installs
+their headers with the exported target `BinanceMarketDataContracts::Protobuf`. Its Conan host and
+build graphs contain no gRPC dependency. The separate
+`binance-market-data-contracts-grpc-cpp/0.1.0` artifact generates only the Gateway service and gRPC
+stubs and exports `BinanceMarketDataContracts::Grpc`. Generated `.pb.cc` and `.pb.h` files are not
+committed as primary sources, and the gRPC artifact links the one base message target rather than
+generating a second message symbol set.
 
 Contracts remains wire-language-neutral and does not own the Gateway implementation-language
 decision. The accepted cross-repository M6 authority currently selects C++ for
@@ -77,6 +79,34 @@ hash-covered package payload. A CMake consumer uses:
 find_package(BinanceMarketDataContracts CONFIG REQUIRED COMPONENTS Protobuf)
 target_link_libraries(my_target PRIVATE BinanceMarketDataContracts::Protobuf)
 ```
+
+A Gateway/service consumer additionally installs
+`binance-market-data-contracts-grpc-cpp/0.1.0` and uses its separate CMake package while retaining
+the frozen target namespace:
+
+```cmake
+find_package(BinanceMarketDataContracts 0.1.0 EXACT CONFIG REQUIRED COMPONENTS Protobuf)
+find_package(BinanceMarketDataContractsGrpc 0.1.0 EXACT CONFIG REQUIRED)
+target_link_libraries(my_gateway PRIVATE BinanceMarketDataContracts::Grpc)
+```
+
+`conan.lock` pins the message-only graph. `grpc/conan.lock` independently pins the gRPC artifact's
+host/build graph and exact base message RREV. Both recipes require a clean checkout and fail closed
+when the exported recipe cannot receive an exact source revision. A local static build is:
+
+```bash
+test -z "$(git status --porcelain)" || { echo "Contracts checkout must be clean" >&2; exit 1; }
+export BMD_CONTRACTS_SOURCE_REVISION="$(git rev-parse HEAD)"
+conan create . --build=missing --lockfile=conan.lock \
+  -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20 -o:h '&:shared=False'
+conan create conanfile_grpc.py --test-folder=test_package_grpc \
+  --build=missing --lockfile=grpc/conan.lock \
+  -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20 -o:h '&:shared=False'
+```
+
+CI injects its already-checked-out `github.sha` through `BMD_CONTRACTS_SOURCE_REVISION`; local
+builds must set it explicitly as above. The SHA is provenance, not exported recipe content, so a
+lock-refresh commit cannot recursively change the base RREV that the lock records.
 
 The Schema Fingerprint Algorithm Version 1 digest is
 `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0` and is formally **APPROVED**

@@ -52,9 +52,15 @@ build/package workflow only.
 - Installed target: `BinanceMarketDataContracts::Protobuf`.
 - Seven non-service Protobuf message sources are generated at build time; generated C++ files are
   build outputs, not primary committed sources.
-- The M6 Contracts prerequisite adds the optional `BinanceMarketDataContracts::Grpc` component;
-  Gateway service and gRPC stub sources remain build outputs and the Protobuf component remains
-  message-only.
+- ADR-0010 corrects the M6 C++ package boundary. The optional frozen
+  `BinanceMarketDataContracts::Grpc` target is supplied by the separate candidate coordinate
+  `binance-market-data-contracts-grpc-cpp/0.1.0` and CMake package
+  `BinanceMarketDataContractsGrpc`.
+- `binance-market-data-contracts-cpp/0.1.0` is again a true message-only artifact: its Conan host
+  and build graphs contain no gRPC, and it generates/installs only the seven non-service messages.
+- The gRPC artifact generates/installs only `gateway_service.pb.*` and
+  `gateway_service.grpc.pb.*`, publicly links the exact base artifact and `gRPC::grpc++`, and owns
+  no generated message symbols.
 - `Symbol` is an opaque, non-empty Unicode-scalar identity. It preserves code points and case,
   rejects U+0000..U+0020 and U+007F, and has no contract-level maximum length (ADR-0011).
 - Formal Schema Fingerprint Algorithm Version 1 digest:
@@ -69,6 +75,7 @@ build/package workflow only.
   service/stub package surface.
 - Formal acceptance of the Domain and Wire Contracts; they remain PROPOSED or DRAFT unless a
   separate contract authority says otherwise.
+- Publication of the new gRPC artifact or formal assignment of its package revision.
 
 ## Current Blockers
 
@@ -79,9 +86,9 @@ build/package workflow only.
 ## Accepted Semantic Authorities
 
 Accepted ADRs and accepted semantic designs remain authoritative, especially ADR-0007 for the
-contract strata, ADR-0009 for Contracts-owned C++ Protobuf package ownership, and ADR-0011 for
-opaque UTF-8 symbol identity. This file does not promote any PROPOSED/DRAFT contract or redefine
-another repository's semantics.
+contract strata, ADR-0009 for Contracts-owned C++ Protobuf package ownership, and ADR-0010 for the
+separate gRPC artifact boundary, and ADR-0011 for opaque UTF-8 symbol identity. This file does not
+promote any PROPOSED/DRAFT contract or redefine another repository's semantics.
 
 ## Known Semantic Conflicts
 
@@ -108,9 +115,9 @@ The accepted C-M4-001 implementation re-review recorded CI `31167981350` as
 
 ## Next Authorized Step
 
-Maintain contract/schema compatibility and prepare a separately authorized release/publication
-decision when the formal Package Revision and release identities are assigned. Do not start Gateway
-runtime or redefine Projection sequence semantics in this repository.
+Complete exact-head review/CI for the ADR-0010 artifact split, then hand the two exact coordinates
+to Gateway. Release/publication remains separately gated. Do not implement Gateway runtime or
+redefine Projection sequence semantics in this repository.
 
 ## AI / Reviewer Reading Order
 

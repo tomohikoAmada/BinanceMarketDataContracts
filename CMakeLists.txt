@@ -14,16 +14,8 @@ option(BMD_CONTRACTS_POSITION_INDEPENDENT_CODE "Build position-independent gener
 option(BMD_CONTRACTS_RELEASE_MODE "Require formally assigned release identities" OFF)
 set(BMD_CONTRACTS_PROTOC_EXECUTABLE "" CACHE FILEPATH "Locked build-context protoc executable")
 set(BMD_CONTRACTS_PROTOC_PROVENANCE "" CACHE STRING "protoc provenance assertion")
-set(BMD_CONTRACTS_GRPC_CPP_PLUGIN_EXECUTABLE "" CACHE FILEPATH
-    "Locked build-context grpc_cpp_plugin executable")
-set(BMD_CONTRACTS_GRPC_CPP_PLUGIN_PACKAGE_FOLDER "" CACHE PATH
-    "Locked Conan build-context gRPC package folder")
-set(BMD_CONTRACTS_GRPC_CPP_PLUGIN_PROVENANCE "" CACHE STRING
-    "grpc_cpp_plugin provenance assertion")
 set(BMD_CONTRACTS_PROTOBUF_RREV
     "${BinanceMarketDataContracts_PROTOBUF_RUNTIME_RREV}" CACHE STRING "Locked Protobuf recipe revision")
-set(BMD_CONTRACTS_GRPC_RREV
-    "${BinanceMarketDataContracts_GRPC_RREV}" CACHE STRING "Locked gRPC recipe revision")
 set(BMD_CONTRACTS_PROTOBUF_RUNTIME_LINKAGE "" CACHE STRING
     "Protobuf runtime linkage used by this build: STATIC or SHARED")
 set_property(CACHE BMD_CONTRACTS_PROTOBUF_RUNTIME_LINKAGE PROPERTY STRINGS STATIC SHARED)
@@ -82,7 +74,6 @@ if(BMD_CONTRACTS_RELEASE_MODE)
 endif()
 
 find_package(Protobuf 6.33.5 EXACT CONFIG REQUIRED)
-find_package(gRPC 1.83.0 EXACT CONFIG REQUIRED)
 find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
 
 if(NOT BMD_CONTRACTS_PROTOBUF_RUNTIME_LINKAGE STREQUAL "STATIC" AND
@@ -136,37 +127,6 @@ if(NOT _protoc_result EQUAL 0)
         "got '${_protoc_version}' (${_protoc_error})")
 endif()
 
-set(_required_grpc_plugin_provenance
-    "conan:grpc/1.83.0#${BinanceMarketDataContracts_GRPC_RREV}")
-if(NOT BMD_CONTRACTS_GRPC_RREV STREQUAL BinanceMarketDataContracts_GRPC_RREV)
-    message(FATAL_ERROR "gRPC RREV does not match the approved lock identity")
-endif()
-if(NOT BMD_CONTRACTS_GRPC_CPP_PLUGIN_PROVENANCE STREQUAL
-   "${_required_grpc_plugin_provenance}")
-    message(FATAL_ERROR
-        "Locked build-context grpc_cpp_plugin provenance is required: "
-        "${_required_grpc_plugin_provenance}")
-endif()
-if(NOT BMD_CONTRACTS_GRPC_CPP_PLUGIN_EXECUTABLE)
-    message(FATAL_ERROR
-        "A locked build-context grpc_cpp_plugin executable is required")
-endif()
-execute_process(
-    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tools/verify_grpc_cpp_plugin.py"
-            "--executable=${BMD_CONTRACTS_GRPC_CPP_PLUGIN_EXECUTABLE}"
-            "--package-folder=${BMD_CONTRACTS_GRPC_CPP_PLUGIN_PACKAGE_FOLDER}"
-            "--actual-provenance=${BMD_CONTRACTS_GRPC_CPP_PLUGIN_PROVENANCE}"
-            "--expected-provenance=${_required_grpc_plugin_provenance}"
-    RESULT_VARIABLE _grpc_plugin_result
-    OUTPUT_VARIABLE _grpc_plugin_identity
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_VARIABLE _grpc_plugin_error)
-if(NOT _grpc_plugin_result EQUAL 0)
-    message(FATAL_ERROR
-        "grpc_cpp_plugin identity mismatch: ${_grpc_plugin_error}")
-endif()
-set(_grpc_cpp_plugin_executable "${BMD_CONTRACTS_GRPC_CPP_PLUGIN_EXECUTABLE}")
-
 set(_proto_root "${CMAKE_CURRENT_SOURCE_DIR}/src/binance_market_data_contracts/proto")
 set(_message_protos
     binance_market_data/common/v1/enums.proto
@@ -180,16 +140,6 @@ set(_fingerprint_roots
     binance_market_data/market/v1/market_events.proto
     binance_market_data/projection/v1/snapshots.proto)
 set(_generated_root "${CMAKE_CURRENT_BINARY_DIR}/generated")
-set(_gateway_service_proto "${_proto_root}/binance_market_data/gateway/v1/gateway_service.proto")
-set(_gateway_service_proto_relative "binance_market_data/gateway/v1/gateway_service.proto")
-set(_gateway_service_pb_source
-    "${_generated_root}/binance_market_data/gateway/v1/gateway_service.pb.cc")
-set(_gateway_service_pb_header
-    "${_generated_root}/binance_market_data/gateway/v1/gateway_service.pb.h")
-set(_gateway_service_grpc_source
-    "${_generated_root}/binance_market_data/gateway/v1/gateway_service.grpc.pb.cc")
-set(_gateway_service_grpc_header
-    "${_generated_root}/binance_market_data/gateway/v1/gateway_service.grpc.pb.h")
 set(_descriptor_set "${CMAKE_CURRENT_BINARY_DIR}/metadata/m4-descriptor.pb")
 set(_canonical_descriptor "${CMAKE_CURRENT_BINARY_DIR}/metadata/m4-canonical.pb")
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/metadata")
@@ -249,26 +199,6 @@ add_custom_command(
     COMMENT "Generating the seven Contracts-owned C++ Protobuf message files"
     VERBATIM)
 
-add_custom_command(
-    OUTPUT
-        "${_gateway_service_pb_source}"
-        "${_gateway_service_pb_header}"
-        "${_gateway_service_grpc_source}"
-        "${_gateway_service_grpc_header}"
-    COMMAND "${CMAKE_COMMAND}" -E make_directory "${_generated_root}"
-    COMMAND "${_protoc_executable}"
-            "--proto_path=${_proto_root}"
-            "--cpp_out=dllexport_decl=BMD_CONTRACTS_PROTOBUF_API:${_generated_root}"
-            "--grpc_out=${_generated_root}"
-            "--plugin=protoc-gen-grpc=${_grpc_cpp_plugin_executable}"
-            "${_gateway_service_proto_relative}"
-    WORKING_DIRECTORY "${_proto_root}"
-    DEPENDS
-        "${_gateway_service_proto}"
-        "${_generated_root}/binance_market_data/gateway/v1/gateway_messages.pb.h"
-    COMMENT "Generating the Contracts-owned Gateway gRPC service files"
-    VERBATIM)
-
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/contracts_metadata.hpp.in"
     "${_generated_root}/binance_market_data/contracts_metadata.hpp" @ONLY)
@@ -320,36 +250,6 @@ else()
         BMD_CONTRACTS_PROTOBUF_API=)
 endif()
 
-add_library(binance_market_data_contracts_grpc ${_contracts_library_type}
-    "${_gateway_service_pb_source}"
-    "${_gateway_service_pb_header}"
-    "${_gateway_service_grpc_source}"
-    "${_gateway_service_grpc_header}")
-add_library(BinanceMarketDataContracts::Grpc ALIAS
-    binance_market_data_contracts_grpc)
-set_target_properties(binance_market_data_contracts_grpc PROPERTIES
-    EXPORT_NAME Grpc
-    POSITION_INDEPENDENT_CODE "${BMD_CONTRACTS_POSITION_INDEPENDENT_CODE}")
-target_compile_features(binance_market_data_contracts_grpc PUBLIC cxx_std_20)
-target_include_directories(binance_market_data_contracts_grpc PUBLIC
-    "$<BUILD_INTERFACE:${_generated_root}>"
-    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
-target_link_libraries(binance_market_data_contracts_grpc PUBLIC
-    BinanceMarketDataContracts::Protobuf
-    gRPC::grpc++)
-if(_contracts_library_type STREQUAL "SHARED")
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
-        set_target_properties(binance_market_data_contracts_grpc PROPERTIES
-            # grpc_cpp_plugin 1.83.0 does not support dllexport_decl. Keep the
-            # generated service/stub symbols visible from the shared component
-            # without editing generated headers.
-            CXX_VISIBILITY_PRESET default
-            VISIBILITY_INLINES_HIDDEN YES)
-    else()
-        message(FATAL_ERROR "Shared C-M6 gRPC visibility is only implemented for GCC/Clang/AppleClang")
-    endif()
-endif()
-
 set(_cmake_package_dir "${CMAKE_INSTALL_LIBDIR}/cmake/BinanceMarketDataContracts")
 write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/BinanceMarketDataContractsConfigVersion.cmake"
@@ -360,7 +260,7 @@ configure_package_config_file(
     "${CMAKE_CURRENT_BINARY_DIR}/BinanceMarketDataContractsConfig.cmake"
     INSTALL_DESTINATION "."
     NO_SET_AND_CHECK_MACRO)
-export(TARGETS binance_market_data_contracts_protobuf binance_market_data_contracts_grpc
+export(TARGETS binance_market_data_contracts_protobuf
     FILE "${CMAKE_CURRENT_BINARY_DIR}/BinanceMarketDataContractsTargets.cmake"
     NAMESPACE BinanceMarketDataContracts::)
 
@@ -372,7 +272,7 @@ configure_package_config_file(
     INSTALL_DESTINATION "${_cmake_package_dir}"
     NO_SET_AND_CHECK_MACRO)
 
-install(TARGETS binance_market_data_contracts_protobuf binance_market_data_contracts_grpc
+install(TARGETS binance_market_data_contracts_protobuf
     EXPORT BinanceMarketDataContractsTargets
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
@@ -396,10 +296,6 @@ if(BUILD_TESTING)
     target_link_libraries(contracts_cpp_semantic_tests PRIVATE
         BinanceMarketDataContracts::Protobuf)
     add_test(NAME cpp_semantic_and_metadata COMMAND contracts_cpp_semantic_tests)
-    add_executable(contracts_cpp_grpc_tests tests/cpp/grpc_tests.cpp)
-    target_link_libraries(contracts_cpp_grpc_tests PRIVATE
-        BinanceMarketDataContracts::Grpc)
-    add_test(NAME cpp_grpc_service_surface COMMAND contracts_cpp_grpc_tests)
     add_test(NAME fingerprint_algorithm
         COMMAND "${Python3_EXECUTABLE}" -m pytest -q
                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_cpp_fingerprint.py")

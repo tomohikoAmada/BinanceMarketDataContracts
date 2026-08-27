@@ -20,8 +20,6 @@ set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_COMPATIBILITY
     "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_COMPATIBILITY@")
 set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_FLAVOR
     "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_FLAVOR@")
-set(BinanceMarketDataContracts_GRPC_VERSION "@BinanceMarketDataContracts_GRPC_VERSION@")
-set(BinanceMarketDataContracts_GRPC_RREV "@BinanceMarketDataContracts_GRPC_RREV@")
 set(BinanceMarketDataContracts_PROTOBUF_RUNTIME_LINKAGE
     "@BinanceMarketDataContracts_PROTOBUF_RUNTIME_LINKAGE@")
 set(BinanceMarketDataContracts_CONTRACTS_SOURCE_REVISION
@@ -29,8 +27,9 @@ set(BinanceMarketDataContracts_CONTRACTS_SOURCE_REVISION
 
 set(BinanceMarketDataContracts_Protobuf_FOUND TRUE)
 if("Grpc" IN_LIST BinanceMarketDataContracts_FIND_COMPONENTS)
-    find_dependency(gRPC 1.83.0 EXACT CONFIG)
-    set(BinanceMarketDataContracts_Grpc_FOUND TRUE)
+    set(BinanceMarketDataContracts_Grpc_FOUND FALSE)
+    set(BinanceMarketDataContracts_NOT_FOUND_MESSAGE
+        "Grpc is provided by the separate BinanceMarketDataContractsGrpc package")
 endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/BinanceMarketDataContractsTargets.cmake")

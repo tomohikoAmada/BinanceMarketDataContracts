@@ -18,8 +18,7 @@ or change which symbols a Gateway can represent.
 
 `Symbol` is an opaque exchange identity. Contracts must preserve it exactly across the Pydantic
 and Protobuf strata rather than interpreting its script, case, or normalization form. This ADR is
-numbered 0011 because ADR-0010 is already used by the in-flight package-boundary change, even
-though that change is not present in this branch's `origin/main` baseline.
+numbered 0011 because ADR-0010 was already reserved by the concurrent package-boundary change.
 
 ## Decision
 
