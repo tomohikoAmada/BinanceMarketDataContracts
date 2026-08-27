@@ -72,8 +72,10 @@ accepted DepthUpdates are ordered after the emitted Snapshot.
 If snapshot fails, bootstrap buffer overflows, the publication cut cannot be established,
 upstream sequence gap is detected, Gateway restarts, or resume data is evicted:
 
-1. Gateway sends `ConsumerGapNotice` or `StreamStatus(DEGRADED)` with
-   `recovery_action = REQUEST_NEW_SNAPSHOT | RESUBSCRIBE`.
+1. Gateway sends `ConsumerGapNotice` with
+   `recovery_action = REQUEST_NEW_SNAPSHOT | RESUBSCRIBE`. `StreamStatus` may
+   separately report lifecycle or degraded diagnostic state, but has no
+   `recovery_action` field.
 2. Subscription is closed or marked for resync.
 3. No further DepthUpdates are sent until a new snapshot is established.
 4. Gateway MUST NOT continue delivering DepthUpdates and claim the book is
@@ -138,7 +140,8 @@ A generation transition alone is permitted and does not require a gap notice.
 | `gateway_instance_id` | Opaque Gateway identifier | New on restart | Changes after restart |
 | `connection_generation` | Upstream connection cycle when uniquely applicable | 1 when present | Incremented on reconnect |
 | `session_sequence` | Per accepted-subscription emitted-item order | 1 | Every emitted item increments exactly +1; not Binance `U/u/pu` |
-| `publish_time_utc_ns` | Gateway wall-clock at publish | N/A | Monotonic within session |
+| `publish_time_utc_ns` | UTC wall-clock publish timestamp | N/A | No monotonic guarantee |
+| `publish_monotonic_ns` | Optional monotonic clock-domain publish timestamp | N/A | Meaningful only within the applicable monotonic clock/boot/process domain |
 
 - For a uniquely applicable upstream source, `connection_generation` does not
   reset on source reconnect; it increments. It is absent when no unique source
