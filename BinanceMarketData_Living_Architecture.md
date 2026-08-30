@@ -750,19 +750,20 @@ FeatureEngineering 可以把 MarketData 作为输入，但输出不属于 Market
 ## Projection
 
 - M0-M5 已完成；
-- current core 已证明 deterministic / single-writer / order-book / sequence / ProtoAdapter 边界；
-- M6 real-Gateway integration acceptance 尚未完成。
+- M6 real-Gateway integration acceptance 已完成；
+- current core 继续保持 deterministic / single-writer / order-book / sequence / ProtoAdapter 边界；
+- M6/G8 closure 不要求修改 Projection production Core。
 
 ## Gateway
 
-- G0-G7 已完成；
-- real Spot BTCUSDT network、recovery、rotation、bounded publication、`SubscribeOrderBook` 已存在；
-- `NEXT=G8`。
+- G0-G8 已完成；
+- real Spot BTCUSDT network、recovery、rotation、bounded publication、`SubscribeOrderBook` 与 G8 Projection M6 integration acceptance 已存在；
+- `NEXT=G9`：实现 `SubscribeEvents`。
 
 ## History / View
 
 - 顶层职责已定义；
-- 当前不应抢在 Gateway/Projection 核心收口前扩张实现。
+- 当前不应抢在 Gateway realtime surface 与 Recorder reliability 主线之前扩大实现范围。
 
 ---
 
@@ -771,22 +772,21 @@ FeatureEngineering 可以把 MarketData 作为输入，但输出不属于 Market
 ## 实时主线
 
 ```text
-Gateway G7 complete
-  -> G8: Projection M6 real-Gateway integration acceptance
+Gateway G8 complete / Projection M6 integration complete
   -> G9: SubscribeEvents
   -> G10: minimal GetGatewayStatus
   -> G11: USD-M + multi-market
 ```
 
-### G8 的定位
+### 已完成的 G8 / M6 integration gate
 
-G8 的目标是证明当前已经存在的真实 Gateway + Projection + `SubscribeOrderBook` 垂直切片能够作为一个完整 integration boundary 工作，包括必要的 reconnect / resync / planned rotation consumer observation。
+G8 已证明真实 Gateway + embedded Projection + `SubscribeOrderBook` 垂直切片可以作为完整 integration boundary 工作，并覆盖必要的 consumer-visible recovery / resync / planned-rotation 行为。
 
-因此：
+G8 的完成也确认了此前的顶层顺序判断：
 
-> G8 不需要等待 G9 `SubscribeEvents` 或 G10 `GetGatewayStatus` 才能开始。
+> Projection M6 real-Gateway integration acceptance 不需要等待 G9 `SubscribeEvents` 或 G10 `GetGatewayStatus`。
 
-这条顶层顺序在本文合并后作为新的跨仓开发方向。任何 Projection 旧文档中把 `SubscribeEvents` / `GetGatewayStatus` 放在 M6 acceptance 之前的历史顺序，都必须在宣称 G8/M6 acceptance 前完成文档对齐。
+当前 Projection/Gateway repository-local authority 已完成这一顺序对齐；后续开发从 G9 继续。
 
 ## Recorder 并行主线
 
