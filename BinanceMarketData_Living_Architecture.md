@@ -1,1398 +1,914 @@
-# BinanceMarketData 持续架构文档
+# BinanceMarketData 顶层持续架构
 
-> **文档类型**：Living Architecture Document（持续演进的架构文档）  
+> **文档类型**：Living Architecture Document  
 > **模块**：BinanceMarketData  
-> **状态**：Draft / 待审核  
-> **版本**：0.2.0
-> **最后更新**：2026-08-10
-> **主要读者**：软件架构师、开发者、测试人员、运维人员、量化研究人员、AI 编码代理  
-> **事实来源**：当前架构讨论、Binance 官方接口语义、各子模块实际代码与 ADR  
-> **维护原则**：文档与代码同库、随架构变更更新；重要决策另写 ADR，不在本文中抹去历史
+> **状态**：CURRENT TOP-LEVEL ARCHITECTURE（合并到 `main` 后生效）  
+> **版本**：0.3.0  
+> **最后更新**：2026-08-30  
+> **用途**：定义 BinanceMarketData 大模块的长期职责边界、组件关系、数据流、依赖规则和开发方向。后续子项目不得在没有显式架构变更的情况下违反本文边界。
 
 ---
 
-## 0. 如何使用本文档
+# 1. 一句话定义
 
-本文档是 `BinanceMarketData` 模块的长期架构入口，用于让不同开发者、不同团队以及不同 AI 模型在进入项目时快速建立一致理解。
+`BinanceMarketData` 是量化交易系统中的 **Binance 公共市场数据子系统**。
 
-本文档主要回答：
+它负责：
 
-1. `BinanceMarketData` 负责什么，不负责什么；
-2. 它由哪些子模块组成；
-3. 每个子模块解决什么问题；
-4. 外部输入与对外输出是什么；
-5. 模块之间通过什么合同协作；
-6. 实时数据、历史数据和健康状态如何流动；
-7. 系统需要满足哪些质量目标；
-8. 出现故障时应如何降级和恢复；
-9. 哪些设计已经确定，哪些仍待决定。
+- 从 Binance 公共 REST / WebSocket 获取市场事实；
+- 可靠记录并保存这些事实；
+- 将深度事件确定性地投影为本地订单簿状态；
+- 向实时消费者提供低延迟数据；
+- 向研究、回测和界面提供可验证的历史查询；
+- 暴露数据质量、完整性和运行状态事实。
 
-### 推荐阅读顺序
+它不负责：
 
-1. 本文第 1～5 节：建立整体认识；
-2. 第 6～8 节：理解合同、运行流程和数据生命周期；
-3. 第 9～13 节：理解质量、故障、部署和安全；
-4. `docs/adr/`：理解重要决策为何如此；
-5. 对应子模块自身的 README、合同与测试。
-
-### 本文档不替代
-
-- Binance 官方 API 文档；
-- 子模块的代码级 API 文档；
-- JSON Schema / Protobuf / Pydantic 合同；
-- ADR；
-- 运维手册；
-- 测试计划；
-- 策略与回测文档。
-
----
-
-# 1. 模块定位
-
-## 1.1 一句话定义
-
-`BinanceMarketData` 是量化交易系统中的 **Binance 市场数据领域模块**，负责接入、记录、整理、查询、分发、展示并监测所有来自 Binance 的市场事实。
-
-## 1.2 它解决的核心问题
-
-`BinanceMarketData` 应统一回答以下问题：
-
-- Binance 现在发生了什么？
-- Binance 历史上发生过什么？
-- 某个时刻的订单簿、成交和报价状态是什么？
-- 当前数据是否及时、连续、完整、可信？
-- 实时策略如何以尽量低的延迟获得数据？
-- 回测和研究如何获得可验证、可重放的历史数据？
-- 人和运维系统如何观察数据与系统健康？
-- 各消费者如何在不依赖内部文件布局和实现细节的情况下读取数据？
-
-## 1.3 模块边界
-
-### 模块负责
-
-- Binance Spot 公共市场数据；
-- Binance USD-M Perpetual 公共市场数据；
-- WebSocket / REST 市场数据接入；
-- 原始事件持久化；
-- 本地订单簿重建；
-- 历史查询与重放；
-- 低延迟实时数据分发；
-- 策略无关的市场状态投影；
-- 数据质量、延迟、缺口和同步状态；
-- 数据相关的可视化与运维控制。
-
-### 模块不负责
-
-- 新闻、链上、社交媒体等非 Binance 数据；
-- Alpha 因子和预测性特征；
-- 预测价格涨跌；
-- 策略决策；
-- 回测交易逻辑；
+- Alpha、预测模型或策略特征；
+- 买卖信号；
 - 风险审批；
-- 账户、仓位和订单；
-- API Key、签名和真实下单；
-- 投资组合管理。
+- 账户、仓位、订单和下单；
+- 投资组合管理；
+- 交易 API Key 或交易权限。
 
-### 与其他顶层模块的关系
+最重要的边界：
 
-```mermaid
-flowchart LR
-    B[Binance Public APIs] --> M[BinanceMarketData]
-    M --> F[FeatureEngineering]
-    M --> R[StrategyResearch]
-    M --> BT[Backtesting]
-    M --> LS[LiveStrategy]
-    M --> UV[UnifiedView]
-
-    F --> R
-    F --> BT
-    F --> LS
-
-    LS --> RM[RiskManagement]
-    RM --> EX[Execution]
-    EX --> PF[Portfolio]
+```text
+MarketData 告诉其他模块“市场发生了什么、现在是什么状态、数据是否可信”。
+Feature / Strategy / Risk 决定“这些事实意味着什么、是否应该交易”。
 ```
 
 ---
 
-# 2. 架构目标与优先级
+# 2. 顶层组件
 
-## 2.1 核心质量目标
-
-按优先级排列：
-
-1. **正确性**：市场事件、时间、序号和字段语义必须正确；
-2. **可证明的完整性**：缺口、重复、乱序和不可靠区间必须显式记录；
-3. **实时性**：Gateway 面向实时消费者提供尽可能低且稳定的延迟；
-4. **可恢复性**：进程、网络和存储故障后可以恢复，不伪造连续性；
-5. **可重放性**：同一历史数据与排序规则应产生确定结果；
-6. **故障隔离**：Recorder、Gateway、Health、View 等互不无理由拖垮；
-7. **可演进性**：合同、数据格式和实现可以版本化升级；
-8. **可观测性**：能够解释数据是否可用、延迟在哪里、错误发生在哪里；
-9. **可移植性**：避免将合同绑定到单一操作系统；具体平台支持、部署与验证 profile 由各实现仓库记录；
-10. **安全性**：市场数据模块不持有交易权限和账户密钥。
-
-## 2.2 明确的取舍
-
-- Recorder 优先可靠性，不追求最低延迟；
-- Gateway 优先实时性，不承担历史持久化事务；
-- Health 是异步观察者，不进入 Gateway 的关键热路径；
-- View 只展示公开读模型，不读取内部数据库和原始文件；
-- 原始数据不可变，派生数据可重新生成；
-- 对不可靠数据，宁可拒绝使用，也不静默填补或假装完整。
-
----
-
-# 3. 系统上下文
-
-## 3.1 外部输入
-
-### Binance Spot
-
-- WebSocket Streams；
-- REST Market Data；
-- 历史公开归档。
-
-### Binance USD-M Perpetual
-
-- WebSocket Streams；
-- REST Market Data；
-- 历史公开归档。
-
-### 当前优先市场
-
-- `BTCUSDT Spot`
-- `BTCUSDT USD-M Perpetual`
-
-### 当前核心流
-
-- Diff Depth；
-- AggTrade；
-- BookTicker；
-- REST Depth Snapshot（仅初始化、恢复和校验）。
-
-### 后续辅助数据
-
-- Mark Price；
-- Index / Premium Index；
-- Funding Rate；
-- Open Interest；
-- Liquidation Events；
-- Exchange Information 与交易规则。
-
-## 3.2 外部消费者
-
-- FeatureEngineering；
-- StrategyResearch；
-- Backtesting；
-- LiveStrategy；
-- UnifiedView；
-- 运维与告警系统；
-- 数据审计工具；
-- 临时研究脚本。
-
----
-
-# 4. 子模块总览
-
-```mermaid
-flowchart TB
-    B[Binance Spot / USD-M] --> G[BinanceMarketDataGateway]
-    B --> R[BinanceMarketDataRecorder]
-
-    G --> P[BinanceMarketDataProjection]
-    G --> H[BinanceMarketDataHealth]
-    R --> H
-
-    R --> HS[BinanceMarketDataHistory]
-    P --> V[BinanceMarketDataView]
-    HS --> V
-    H --> V
-
-    C[BinanceMarketDataControl] --> G
-    C --> R
-    C --> H
-    C --> HS
-
-    CT[BinanceMarketDataContracts] --- G
-    CT --- R
-    CT --- HS
-    CT --- P
-    CT --- H
-    CT --- V
-```
-
-建议的逻辑子模块：
+当前顶层只承认六个有明确名字的逻辑组件：
 
 1. `BinanceMarketDataContracts`
 2. `BinanceMarketDataRecorder`
-3. `BinanceMarketDataGateway`
-4. `BinanceMarketDataHistory`
-5. `BinanceMarketDataProjection`
-6. `BinanceMarketDataHealth`
-7. `BinanceMarketDataView`
-8. `BinanceMarketDataControl`
+3. `BinanceMarketDataProjection`
+4. `BinanceMarketDataGateway`
+5. `BinanceMarketDataHistory`
+6. `BinanceMarketDataView`
 
-这些是逻辑职责，不代表必须形成八个仓库、八个数据库或八个进程。
+其中前四个已经存在独立仓库；`History` 与 `View` 是后续明确需要的逻辑组件，但不要求现在立即建立独立仓库或服务。
+
+`Health` 与 `Control` 当前定义为 **横切能力（capability）**，不是一级独立系统。只有真实规模和运维需求证明需要时，才允许升级为独立组件。
 
 ---
 
-# 5. 子模块职责
+# 3. 最简系统关系
 
-## 5.1 BinanceMarketDataContracts
+```mermaid
+flowchart TB
+    B[Binance Public APIs]
 
-### 解决的问题
+    B -->|独立连接：记录| R[Recorder]
+    B -->|独立连接：实时| G[Gateway]
 
-防止各模块对市场、时间、序号、价格、数量、健康状态和数据版本产生不同解释。
+    G -->|Depth / Snapshot| P[Projection library]
+    P -->|OrderBook / projection state| G
 
-### 负责
+    R -->|Recorder-owned datasets| H[History]
+    H -->|历史重建需要时| P
 
-- 公共数据类型；
-- Schema 版本；
-- 单位和精度；
-- 时间语义；
-- 唯一标识；
-- 质量标记；
-- 兼容规则；
-- 错误与状态代码；
-- 序列化格式约定。
+    G -->|实时 API| LC[Live consumers]
+    H -->|历史 API| HC[Research / Backtesting / FeatureEngineering]
 
-### 不负责
+    G --> V[View]
+    H --> V
 
-- 网络连接；
-- 业务流程；
-- 持久化；
-- 数据计算；
-- 界面。
+    C[Contracts] -.跨模块数据合同.-> R
+    C -.跨模块数据合同.-> G
+    C -.Adapter boundary.-> P
+    C -.未来 History API 合同.-> H
+```
 
-### 主要合同候选
+这张图必须这样理解：
+
+- **Recorder 是录像机**：保存“Binance 当时到底发了什么”。
+- **Projection 是计算库**：把 Snapshot + DepthUpdate 还原为“当前订单簿是什么”。
+- **Gateway 是实时服务器**：连接 Binance、调用 Projection，并把实时结果提供给下游。
+- **History 是历史查询层**：读取 Recorder 保存的数据；需要历史订单簿时可以复用 Projection。
+- **下游消费者不把 Projection 当成网络服务使用。** Projection 是嵌入 Gateway / History 的共享语义引擎。
+
+---
+
+# 4. 实时数据到底怎么走
+
+Gateway 有两条不同的实时输出路径。
+
+## 4.1 事件路径
+
+消费者想知道“Binance 刚刚发生了什么”：
+
+```text
+Binance
+  -> Gateway transport/parser
+  -> canonical market event
+  -> SubscribeEvents
+  -> consumer
+```
+
+典型数据：
 
 - `DepthUpdate`
 - `AggTrade`
 - `BookTicker`
-- `ExchangeDepthSnapshot`
-- `LocalOrderBookSnapshot`
-- `MarketStateSnapshot`
-- `HistoricalDatasetDescriptor`
-- `DataHealthSnapshot`
 
-### C-M4-001 C++ 包设计
+这条路径不要求事件先经过 Projection。
 
-Contracts 当前拥有 `.proto` 源文件、Python 生成物、Wire Contract 语义，以及已合并的
-Contracts-owned、可安装、版本化 C++ Protobuf message package 实现。面向 Projection M4 的
-包实现状态如下：
+## 4.2 订单簿状态路径
 
-- C-M4-001 Design：**APPROVED**；
-- ADR-0009：**ACCEPTED**；
-- External Architecture Review：**APPROVED**；
-- Architecture blockers：**0**；
-- C-M4-001 Implementation：**COMPLETE / MERGED**；
-- Independent Implementation Re-Review：**APPROVED**（IIR-1 至 IIR-5 全部 CLOSED；P0/P1/P2 = 0）；
-- Reviewed Corrected Head：`4e5d3d846afba982ab5e48d2737bc40560e34a6c`；Reviewed CI：`31167981350` — 15/15 PASS；
-- Schema Fingerprint：`33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`；
-- Formal Fingerprint Approval：**APPROVED**（Algorithm Version 1）；
-- Package Version Candidate：`0.1.0`；Package Revision：**NOT FORMALLY ASSIGNED — RELEASE GATE**；
-- C-M4-001：**IMPLEMENTED / ACCEPTED / MERGED**；
-- 设计文档：`docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md`；
-- 实现证据：`docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md`；
+消费者想知道“应用完这些变化后，现在订单簿是什么”：
 
-实现提供 `BinanceMarketDataContracts::Protobuf`、七个非 service message 的 build-time
-生成、可迁移 CMake install package、Conan 2 recipe/lockfile 及隔离 consumer 验证；M6
-后续实现另提供可选的 `BinanceMarketDataContracts::Grpc` service/stub 组件，仍未发布。
-`Protobuf` 不引入强制 gRPC link 依赖。独立实现复审已 APPROVED，静态与共享支持矩阵已确认，包版本为
-`0.1.0`，正式 Package Revision 仍为 **NOT FORMALLY ASSIGNED — RELEASE GATE**。message
-package 与 gRPC/Gateway runtime 保持独立；Projection Core 不依赖 Protobuf。Projection M4
-Implementation：**COMPLETE**（在独立 Projection 仓库中）。
+```text
+Binance
+  -> Gateway
+  -> ExchangeDepthSnapshot + ordered DepthUpdate
+  -> embedded Projection
+  -> LocalOrderBookSnapshot / accepted ordered updates
+  -> Gateway publication
+  -> SubscribeOrderBook
+  -> consumer
+```
+
+因此：
+
+> 下游连接的是 **Gateway**；
+> 下游拿到的订单簿数据是 **Gateway 内部调用 Projection 后发布的结果**。
+
+Projection 不拥有 socket、gRPC server、subscriber 或独立进程生命周期。
+
+---
+
+# 5. 组件职责
+
+## 5.1 BinanceMarketDataContracts
+
+### 作用
+
+统一跨模块“说话方式”。
+
+### 负责
+
+- 公共数据类型与字段语义；
+- Protobuf / Pydantic / schema；
+- wire compatibility；
+- 时间、标识、单位和 presence 语义；
+- Gateway RPC contract；
+- C++ message package；
+- 独立的 C++ gRPC service/stub package。
+
+### 不负责
+
+- Binance 网络连接；
+- order-book sequence 分类；
+- Projection lifecycle；
+- Recorder 存储；
+- Gateway runtime；
+- UI。
+
+### 重要规则
+
+Contracts 是跨模块合同 authority，但不是“所有内部代码都必须依赖的中央框架”。
+
+例如：
+
+```text
+Projection Core        -> 不依赖 Protobuf / gRPC
+Projection ProtoAdapter -> 可以依赖 Contracts message package
+```
+
+不得为了“统一”而让 Contracts 渗入各组件内部实现。
 
 ---
 
 ## 5.2 BinanceMarketDataRecorder
 
-### 解决的问题
+### 作用
 
-可靠保存 Binance 当时实际发送的市场事件，使数据可验证、可恢复和可重放。
+Recorder 是 BinanceMarketData 的 **durable system of record**。
+
+它回答：
+
+> Binance 当时发送了什么？什么时候收到？来自哪条连接？有没有缺口？后来保存在哪里？
 
 ### 负责
 
-- 独立 WebSocket / REST 采集；
-- 原始 payload 和多时间戳记录；
-- 有界队列；
-- 顺序追加写入；
-- Chunk 轮换与封口；
-- CRC / Hash / Manifest；
+- 独立 Binance Spot / USD-M 公共连接；
+- exact Raw capture；
+- receive/provenance/connection evidence；
+- 有界 ingress 与 durable spool；
+- Raw chunk / seal / manifest；
 - Catalog；
-- 崩溃恢复；
-- 外置目录长期归档；
-- Raw 到 Normalized 数据构建；
-- 历史 Replay 基础能力；
-- 每日输入输出统计。
+- crash recovery；
+- reconnect / gap durable evidence；
+- archive 生命周期；
+- normalize；
+- replay；
+- historical import；
+- storage / capacity / operational evidence。
 
 ### 不负责
 
-- 为策略提供最低延迟实时流；
-- 实时图表；
-- 策略特征；
-- 交易。
+- 为 LiveStrategy 提供最低延迟实时行情；
+- Gateway subscriber lifecycle；
+- 对外实时 gRPC；
+- strategy feature；
+- trading。
 
-### 核心原则
+### 关于 Recorder 内部订单簿
 
-- Raw 不可变；
-- 缺口显式；
-- 允许 Raw 层存在重复；
-- 删除内部副本前必须验证外部副本；
-- 外置设备不存在时仍能本地记录。
+Recorder 可以保留自身用于 capture quality、gap/resync 和验证的内部 order-book 逻辑。
+
+但是：
+
+> Recorder 内部 order-book 实现不是跨模块 consumer-facing order-book authority。
+
+对外实时 / 历史订单簿产品的共享语义 authority 属于 `BinanceMarketDataProjection`。
 
 ---
 
-## 5.3 BinanceMarketDataGateway
+## 5.3 BinanceMarketDataProjection
 
-### 解决的问题
+### 作用
 
-向同机或跨设备的实时消费者提供低延迟、统一、带质量状态的 Binance 实时数据。
+Projection 是一个 **strategy-independent、deterministic、replayable、single-writer 的嵌入式 C++ 库**。
+
+它回答：
+
+> 给我一个合法 baseline 和按顺序到达的 depth updates，确定性地告诉我订单簿和 sequence/lifecycle 状态是什么。
+
+### 当前核心职责
+
+- fixed-point numeric semantics；
+- deterministic `OrderBook`；
+- Spot sequence policy；
+- USD-M sequence policy；
+- stale / duplicate / bridge / gap classification；
+- projection lifecycle；
+- reset / resync semantics；
+- optional Contracts `ProtoAdapter`；
+- `LocalOrderBookSnapshot` construction。
+
+### 明确不负责
+
+- REST / WebSocket；
+- Binance connection lifecycle；
+- threads / scheduler；
+- runtime queues；
+- gRPC；
+- persistence；
+- subscriber management；
+- strategy features。
+
+### 部署原则
+
+Projection 逻辑独立，但 Phase 1 不作为独立服务：
+
+```text
+Gateway embeds Projection  -> 实时订单簿
+History embeds Projection  -> 历史重建
+```
+
+同样的有序输入和配置必须得到相同的确定性结果。
+
+### 防止 Projection 膨胀
+
+“可以确定性计算”并不意味着“应该塞进 Projection Core”。
+
+当前 `BinanceMarketDataProjection` 不自动扩张为 OHLCV、trade tape、premium、funding composition、OBI、microprice 等万能派生计算框架。
+
+任何新的 derived-data capability 必须单独证明：
+
+1. 它是稳定的市场数据语义，而不是策略 feature；
+2. 它确实需要成为共享 authority；
+3. 它不会破坏当前狭窄、可验证的 Projection Core。
+
+---
+
+## 5.4 BinanceMarketDataGateway
+
+### 作用
+
+Gateway 是 BinanceMarketData 的 **低延迟实时 serving host**。
+
+它回答：
+
+> 实时消费者现在需要哪些 Binance 市场事件或订单簿状态，我如何以有界、可恢复、不会被慢消费者拖死的方式交付？
 
 ### 负责
 
-- 独立 Binance 实时连接；
-- 最少必要的解析；
-- 本地订单簿实时重建；
-- 实时事件分发；
-- 当前市场状态维护；
-- 消费者订阅；
-- 慢消费者隔离；
-- 状态快照；
-- 实时连接轮换与恢复；
-- 发布延迟统计。
+- 独立 Binance REST / WebSocket；
+- authoritative symbol metadata acquisition；
+- receive timestamps；
+- wire / transport parsing；
+- connection identity / generation；
+- bootstrap buffering；
+- REST snapshot acquisition；
+- reconnect / resync orchestration；
+- planned connection rotation；
+- bounded ingress / egress；
+- serialized Projection scheduling；
+- subscription admission；
+- slow-consumer isolation；
+- gRPC runtime；
+- `gateway_instance_id` / `subscription_id` / `session_sequence`；
+- realtime status/telemetry facts。
 
 ### 不负责
 
-- fsync；
-- Raw 历史归档；
-- Parquet；
-- 长期存储；
-- 复杂策略特征；
-- 下单。
+- 第二套 order book；
+- 第二套 Spot / USD-M sequence classifier；
+- durable Raw archive；
+- historical persistence；
+- strategy feature；
+- trading。
 
-### 第一版建议
+### Gateway 与 Projection 的硬边界
 
-Recorder 和 Gateway 独立连接 Binance，以获得故障隔离，并由 Health 对比两条数据通道。
+Gateway **拥有 orchestration**；Projection **拥有 order-book semantics**。
 
----
+```text
+Gateway decides:
+- 什么时候连接 / 重连
+- 什么时候取 REST snapshot
+- 怎么缓存
+- 怎么排队
+- 怎么发布
 
-## 5.4 BinanceMarketDataHistory
+Projection decides:
+- update 是 stale / duplicate / applied / gap
+- book 如何确定性变化
+- lifecycle / reset / resync semantics
+```
 
-### 解决的问题
-
-让研究、回测和界面能够读取历史数据，而不依赖 Recorder 的内部目录、Catalog 表和外置盘路径。
-
-### 负责
-
-- 数据集发现；
-- 时间覆盖查询；
-- 数据完整度查询；
-- Gap 区间；
-- Dataset 版本；
-- 历史事件读取；
-- 历史订单簿重放；
-- Checkpoint Seek；
-- Bar、Trade、Depth 查询；
-- 数据来源追踪。
-
-### 不负责
-
-- 写 Raw；
-- 修改历史数据；
-- 策略回测；
-- 特征计算；
-- 实时流。
+Gateway 必须遵循 Projection 的分类结果，不得自己实现第二套 continuity authority。
 
 ---
 
-## 5.5 BinanceMarketDataProjection
+## 5.5 BinanceMarketDataHistory
 
 ### 状态
 
-**[待审核] 是否作为独立模块保留。**
+未来明确需要；当前不要求立即形成独立服务或仓库。
 
-### 解决的问题
+### 作用
 
-将原始市场事件转换为策略无关、确定性的市场表示，避免每个消费者重复实现基础计算。
+History 是 **历史查询 / serving layer**，不是第二个 Recorder。
 
-### 可以负责
+它回答：
 
-- 本地订单簿；
-- Best Bid / Ask；
-- Mid Price；
-- Spread；
-- Microprice；
-- Top-N Depth；
-- 1 秒 / 1 分钟 OHLCV；
-- 成交 Tape；
-- Signed Trade Volume（仅按公开方向规则）；
-- Spot–Perpetual 当前 Premium；
-- 当前 Mark / Index / Funding / OI 状态组合。
+- 某时间区间有哪些事件？
+- 某个数据集覆盖到哪里？
+- 哪些区间存在 gap？
+- 某个时刻的订单簿是什么？
+- 这份历史结果来自哪些 Raw / dataset / code version？
 
-### 不应负责
+### 数据来源
 
-- RSI、MACD 等策略指标；
-- Z-score、历史百分位等带研究窗口的特征；
-- 上涨概率；
-- Alpha；
-- 买卖信号；
-- 目标仓位。
+History 读取 Recorder-owned：
 
-### 边界判断
-
-若输出只是“市场事实的另一种确定性表示”，属于 Projection；  
-若输出带有预测假设、训练参数或策略目的，属于 FeatureEngineering。
-
----
-
-## 5.6 BinanceMarketDataHealth
-
-### 解决的问题
-
-判断数据是否及时、完整、连续、同步、可信，以及问题发生在何处。
+- Raw-derived normalized datasets；
+- replay surfaces；
+- checkpoints；
+- manifests / lineage；
+- dataset descriptors。
 
 ### 负责
 
-#### 连接健康
+- dataset discovery；
+- time-range query；
+- gap / coverage query；
+- historical event query；
+- point-in-time query；
+- replay/query interface；
+- lineage / version exposure；
+- 必要时嵌入 Projection 重建历史 order book。
 
-- DNS、TLS、WebSocket；
-- Ping / Pong；
-- 重连；
-- 24 小时连接轮换；
-- 最后消息时间；
-- 心跳。
+### 不负责
 
-#### 延迟健康
+- 第二套 Raw persistence；
+- 第二套 Catalog authority；
+- 修改 Recorder 历史；
+- 复制一套 order-book sequence semantics；
+- strategy backtest logic；
+- feature computation；
+- realtime serving。
 
-- Exchange Event Time → Receive Time；
-- Receive Time → Gateway Publish Time；
-- Consumer End-to-End Delay；
-- p50 / p95 / p99。
+### 第一阶段部署原则
 
-#### 序列健康
+优先从 library / CLI / local query boundary 开始。
 
-- `U / u / pu` 连续性；
-- 重复；
-- 乱序；
-- Gap；
-- Resync。
-
-#### 订单簿健康
-
-- 是否同步；
-- 是否 crossed；
-- 是否为空；
-- Best Bid / Ask 是否与 BookTicker 一致；
-- Snapshot 与 Diff 是否桥接成功。
-
-#### 双通道一致性
-
-- Recorder 与 Gateway 最后事件；
-- Update ID 差异；
-- Trade ID 差异；
-- Mid Price 差异；
-- 消息速率差异；
-- 一方停滞。
-
-#### 系统资源
-
-- 队列；
-- CPU；
-- 内存；
-- 文件描述符；
-- 磁盘；
-- Archive Backlog；
-- 写入和查询延迟。
-
-### 对外输出
-
-- `HEALTHY`
-- `DEGRADED`
-- `UNRELIABLE`
-- `UNAVAILABLE`
-
-### 关键原则
-
-Health 不阻塞 Gateway 热路径；它异步消费 Telemetry，并向 Risk 与 View 输出判断。
+只有在跨进程、跨设备或并发 consumer 的真实需求出现后，才升级为独立 History service。
 
 ---
 
-## 5.7 BinanceMarketDataView
+## 5.6 BinanceMarketDataView
 
-### 解决的问题
+### 状态
 
-为开发者、研究者和运维人员展示 BinanceMarketData 模块内部的实时、历史和健康状态。
+未来组件。
 
-### 负责的视图
+### 作用
 
-#### 实时市场
+给人看。
 
-- 价格；
-- Order Book；
-- Trade Tape；
-- Spread；
-- Mid / Microprice；
-- Spot–Perpetual Premium；
-- Mark / Funding / OI。
+### 读取关系
 
-#### 历史数据
+```text
+实时：View -> Gateway
+历史：View -> History
+状态：View -> 各组件公开 status/read API
+```
 
-- 时间覆盖；
-- 每日消息量与流量；
-- 历史成交与盘口；
-- Gap；
-- Dataset 版本；
-- 数据 Lineage。
+### 可以展示
 
-#### 数据健康
-
-- 连接；
-- 延迟；
-- 心跳；
-- 序号；
-- 同步；
-- Recorder / Gateway 一致性；
-- 故障时间轴。
-
-#### 存储与 Recorder
-
-- Raw 写入；
-- Sealed Chunk；
-- 归档；
-- 外置存储；
-- 剩余空间；
-- 容量预测。
+- 实时价格与订单簿；
+- event / trade tape；
+- 历史 timeline；
+- point-in-time order book；
+- gap / data-quality；
+- Recorder storage/archive 状态；
+- Gateway connection/subscription 状态；
+- latency / resource / coverage 信息。
 
 ### 不负责
 
 - 直接连接 Binance；
-- 直接打开 SQLite；
-- 扫描 Raw 文件；
-- 重建订单簿；
-- 计算 Health；
-- 运行策略；
-- 下单。
+- 直接读取 Recorder SQLite / Raw；
+- 自己重建订单簿；
+- 自己定义 sequence semantics；
+- strategy / trading。
 
-### 建议结构
-
-`View Frontend → View Backend / BFF → 各模块公开 Read API`
+浏览器协议转换属于 View Backend / BFF，不要求 Gateway 为浏览器改变核心 gRPC contract。
 
 ---
 
-## 5.8 BinanceMarketDataControl
+# 6. Health 与 Control：现在是能力，不是系统
 
-### 状态
+## 6.1 Health / Observability
 
-**[待审核] 应定义为运维控制面，还是分散到各子模块。**
-
-### 解决的问题
-
-统一执行与“市场数据系统运维”相关的受控命令。
-
-### 候选职责
-
-- 启停服务；
-- 查看状态；
-- 重载非破坏性配置；
-- 注册 / 注销归档目录；
-- 手动触发归档；
-- 安全弹出外置盘；
-- 触发数据校验；
-- 触发订单簿 Resync；
-- 切换消费者订阅；
-- 蓝绿部署；
-- 生成诊断包。
-
-### 不负责
-
-- 交易命令；
-- 策略启停；
-- 风险参数；
-- 账户操作。
-
-### 设计要求
-
-Control 必须通过各模块公开命令接口执行，不能直接篡改其内部数据库和文件。
-
----
-
-# 6. 对外输出合同
-
-## 6.1 DepthUpdate
-
-表示 Binance 订单簿某些价格档的最新数量更新。
-
-关键字段：
-
-- market；
-- symbol；
-- first / final / previous update ID；
-- bids；
-- asks；
-- exchange event time；
-- receive time；
-- source connection；
-- quality flags。
-
-注意：数量表示更新后的数量，不是增减量；数量为 0 表示删除价格档。
-
----
-
-## 6.2 AggTrade
-
-表示一个主动订单在同一价格等条件下形成的聚合成交。
-
-关键字段：
-
-- aggregate trade ID；
-- price；
-- quantity；
-- first / last trade ID；
-- trade time；
-- buyer is maker；
-- receive time。
-
-用途：
-
-- 成交 Tape；
-- OHLCV；
-- 主动买卖量；
-- VWAP；
-- 历史 Replay。
-
----
-
-## 6.3 BookTicker
-
-表示当前最优买一、卖一及其数量。
-
-关键字段：
-
-- best bid price / quantity；
-- best ask price / quantity；
-- update ID（若产品提供）；
-- receive time。
-
-用途：
-
-- Spread；
-- Mid；
-- Top-of-book；
-- 本地订单簿第一档校验。
-
----
-
-## 6.4 ExchangeDepthSnapshot
-
-表示 Binance REST 在请求时返回的有限深度订单簿快照。
-
-用途：
-
-- 本地订单簿初始化；
-- Gap 后恢复；
-- 状态校验。
-
-它不是持续的完整 WebSocket 快照流。
-
----
-
-## 6.5 LocalOrderBookSnapshot
-
-表示 Gateway 或 Replay 根据 ExchangeDepthSnapshot 与连续 DepthUpdate 在本地重建出的某一时刻订单簿。
-
-关键字段：
-
-- source；
-- last update ID；
-- bids / asks；
-- depth limit；
-- generated time；
-- synchronized；
-- last gap；
-- quality flags。
-
----
-
-## 6.6 MarketStateSnapshot
-
-表示当前市场的策略无关综合状态。
-
-可包含：
-
-- Best Bid / Ask；
-- Mid；
-- Spread；
-- Microprice；
-- 最近成交；
-- Top-N Depth；
-- Mark / Index；
-- Funding；
-- OI；
-- 数据新鲜度；
-- Order Book 同步状态。
-
-不得包含：
-
-- 预测收益；
-- 上涨概率；
-- 买卖建议；
-- Alpha；
-- 目标仓位。
-
----
-
-## 6.7 HistoricalDatasetDescriptor
-
-表示一个可查询、可重放、可验证的历史数据集描述，而不是把整个数据集装入一个对象。
-
-关键字段：
-
-- dataset ID；
-- market；
-- symbol；
-- streams；
-- start / end；
-- schema version；
-- producer version；
-- source manifests；
-- gap count / intervals；
-- partition information；
-- manifest hash；
-- query / replay capabilities。
-
----
-
-## 6.8 DataHealthSnapshot
-
-表示某市场数据在某一时刻是否可安全使用。
-
-关键字段：
-
-- overall state；
-- connection；
-- last message age；
-- receive / publish latency；
-- sequence gaps；
-- resync；
-- book synchronized；
-- Recorder alive；
-- Gateway alive；
-- reason codes；
-- observed time。
-
----
-
-# 7. 关键运行流程
-
-## 7.1 实时 Gateway 流程
-
-```mermaid
-sequenceDiagram
-    participant B as Binance
-    participant G as Gateway
-    participant O as Local Order Book
-    participant H as Health
-    participant C as Consumer
-
-    B->>G: WebSocket Depth/AggTrade/BookTicker
-    G->>G: 记录 receive time + 最少解析
-    G->>O: 应用 DepthUpdate
-    O-->>G: 当前同步状态 / Snapshot
-    G-->>C: 实时事件或 MarketState
-    G-->>H: 异步 Telemetry
-```
-
-## 7.2 Recorder 流程
-
-```mermaid
-sequenceDiagram
-    participant B as Binance
-    participant R as Recorder
-    participant S as Internal Spool
-    participant C as Catalog
-    participant A as External Archive
-
-    B->>R: 原始市场消息
-    R->>S: Append EventEnvelope
-    S->>S: Flush / Rotate / Seal
-    S->>C: 提交 Manifest 与生命周期
-    C->>A: 选择待归档 Chunk
-    A->>A: Copy / fsync / re-read / hash
-    A->>C: ARCHIVED_VERIFIED
-    C->>S: 允许删除本地副本
-```
-
-## 7.3 本地订单簿同步
-
-```mermaid
-flowchart TD
-    A[先连接 Diff Depth 并缓存] --> B[请求 REST Depth Snapshot]
-    B --> C[按 lastUpdateId 与 U/u/pu 找桥接点]
-    C -->|成功| D[连续应用缓存更新]
-    C -->|失败| E[重新请求 Snapshot / 重建会话]
-    D --> F[进入同步状态]
-    F --> G{序号连续?}
-    G -->|是| F
-    G -->|否| H[标记 Gap 与 UNRELIABLE]
-    H --> E
-```
-
-## 7.4 历史消费
-
-```mermaid
-flowchart LR
-    RAW[Raw Chunks] --> N[Normalizer]
-    N --> P[Parquet / Checkpoints]
-    P --> H[History API]
-    H --> BT[Backtesting]
-    H --> FE[Offline FeatureEngineering]
-    H --> V[Historical View]
-```
-
----
-
-# 8. 数据生命周期与时间语义
-
-## 8.1 数据层级
-
-1. **Raw**：交易所原始事实，不可变；
-2. **Normalized**：规范字段与分区，可重建；
-3. **Projection**：策略无关的市场状态；
-4. **Feature**：带研究假设的预测输入，属于 FeatureEngineering；
-5. **Experiment / Backtest**：属于研究和回测模块。
-
-## 8.2 必须区分的时间
-
-- Exchange Event Time；
-- Exchange Trade / Transaction Time；
-- Local Receive Wall Time；
-- Local Monotonic Time；
-- Gateway Publish Time；
-- Consumer Receive Time；
-- Historical Replay Clock。
-
-禁止只用一个含义模糊的 `timestamp`。
-
-## 8.3 排序规则
-
-历史 Replay 必须明确选择：
-
-- Receive-time ordering；
-- Exchange-time ordering；
-- Tie-breaker；
-- 缺失时间的处理；
-- 重复事件的处理；
-- Gap policy。
-
-排序规则必须版本化。
-
-## 8.4 完整性语义
-
-数据不能只有“有 / 无”，应至少区分：
-
-- COMPLETE；
-- COMPLETE_WITH_DUPLICATES；
-- DEGRADED；
-- GAP_PRESENT；
-- UNRELIABLE；
-- UNKNOWN。
-
----
-
-# 9. 模块协作原则
-
-## 9.1 版本化合同
-
-所有跨模块对象必须有：
-
-- schema version；
-- producer；
-- consumer；
-- ID；
-- 时间语义；
-- 单位；
-- 质量状态；
-- 兼容策略。
-
-## 9.2 禁止共享内部实现
-
-- View 不读取 Catalog；
-- Strategy 不读取 Raw 文件；
-- History 不暴露 Archive mountpoint；
-- Health 不直接修改 Gateway 状态；
-- Control 不直接改数据库；
-- Consumer 不依赖 Recorder 内部类。
-
-## 9.3 慢消费者隔离
-
-每个 Gateway 消费者有独立有界队列。
-
-可能的积压策略：
-
-- 实时策略：断开或显式标记缺口；
-- View：丢弃旧画面，只保留最新状态；
-- Health：允许聚合和降采样；
-- Recorder：使用独立连接，不依赖 Gateway 队列。
-
-## 9.4 幂等与重复
-
-- Raw 层允许重复；
-- Normalized 层按明确身份确定性去重；
-- 不能用“看起来相同”作为去重标准；
-- 蓝绿升级重叠区必须可识别。
-
----
-
-# 10. 部署与语言边界
-
-## 10.1 逻辑模块不等于进程
-
-- Domain：BinanceMarketData；
-- Logical Module：Recorder、Gateway、Health 等；
-- Package：Python / Go / C++ 代码组织；
-- Process：独立运行与故障边界；
-- Deployment：实际运行在哪台设备。
-
-## 10.2 第一版建议部署
-
-- `BinanceMarketDataRecorder`：独立进程；
-- `BinanceMarketDataGateway`：独立进程；
-- `BinanceMarketDataHealth`：独立进程或与 Gateway 同机；
-- `BinanceMarketDataView`：后期；
-- `History`：库或按需服务；
-- `Projection`：可内嵌 Gateway / History，先不强制独立进程；
-- `Control`：CLI + 运维接口。
-
-## 10.3 跨设备通信
-
-gRPC Server Streaming + Protobuf 是 Gateway 向消费者分发实时数据的**首选跨设备协议**。
-Protobuf 作为线上合同（wire contract），提供语言无关的结构化序列化，确保 C++、Rust、Go、
-Python Consumer 共享相同的消息定义。Gateway 实现语言未由本仓库决定，将另行通过 ADR 确定。
-
-### 同进程
-
-- 函数 / 对象调用。
-
-### 同机不同进程
-
-- Unix Domain Socket；
-- localhost TCP；
-- gRPC；
-- Shared Memory（只有测量后需要）。
-
-### 跨设备
-
-- gRPC / Protobuf（**主要推荐**）；
-- TCP；
-- WebSocket（适合 View / 浏览器消费者）；
-- HTTP（适合查询与控制）。
-
-### 注意事项
-
-- **浏览器消费者**不直接使用 gRPC。浏览器通过 WebSocket 或 HTTP 接入 View Backend / BFF，由 View Backend 负责协议转换，而非 Gateway。
-- **生成的 `.proto` 代码**（Python stubs 等）**不得手动编辑**。生成代码位于 `src/binance_market_data/`，由 `python -m binance_market_data_contracts.proto_codegen` 自动生成。
-- 第一版不引入 Kafka、Kubernetes 或分布式一致性系统。
-
-## 10.4 多语言原则
-
-不同语言必须共享**线上的合同**，而不是共享某种语言的内部类。
-
-例如：
-
-- Schema：Protobuf / JSON Schema；
-- 数据集：Parquet / Arrow；
-- 事件日志：已冻结的二进制格式；
-- API：gRPC / HTTP / WebSocket。
-
----
-
-# 11. 故障与降级
-
-必须明确处理：
-
-- WebSocket 断开；
-- 连接满 24 小时；
-- Ping / Pong 异常；
-- REST Snapshot 失败；
-- Depth 序号 Gap；
-- JSON 错误；
-- 队列满；
-- 磁盘空间不足；
-- 写入失败；
-- 外置盘拔出；
-- 校验失败；
-- Gateway 慢消费者；
-- Recorder / Gateway 数据分歧；
-- 系统睡眠与唤醒；
-- 时钟漂移；
-- 进程崩溃；
-- 蓝绿升级失败。
-
-### 默认安全原则
-
-- 数据不可靠时，Health 输出 `UNRELIABLE`；
-- LiveStrategy / Risk 应禁止新增仓位；
-- Recorder 故障不应使 Gateway 必然停止；
-- Gateway 故障不应损坏 Recorder 历史；
-- View 故障不影响后台；
-- 外置盘故障不影响内部实时记录；
-- 不能静默跳过缺口。
-
----
-
-# 12. 可观测性与审计
-
-## 12.1 Metrics
-
-- 消息速率；
-- 字节速率；
-- Receive Lag；
-- Publish Lag；
-- 队列深度；
-- Gap；
-- Resync；
-- 写入 / fsync；
-- Archive Throughput；
-- Disk ETA；
-- Consumer Lag。
-
-## 12.2 Logs
-
-记录单次错误、状态转换、恢复动作和上下文。
-
-## 12.3 Domain / Operational Events
-
-例如：
-
-- CONNECTION_OPENED；
-- DEPTH_GAP_DETECTED；
-- ORDER_BOOK_RESYNC_STARTED；
-- ARCHIVE_VERIFIED；
-- DISK_THRESHOLD_REACHED；
-- BLUE_GREEN_CUTOVER。
-
-## 12.4 Traces
-
-当 Gateway、Health、View、Feature、Strategy 跨进程后，用于分析端到端延迟；第一版不是强制要求。
-
-## 12.5 Audit
-
-MarketData 模块的审计重点：
-
-- 数据从何处到来；
-- 何时收到；
-- 是否完整；
-- 如何转换；
-- 由哪个版本生成；
-- 哪个 Dataset / Manifest 被消费者使用。
-
----
-
-# 13. 安全与权限
-
-- 模块只使用公开市场数据接口；
-- 不配置交易 API Key；
-- 不持有账户 Secret；
-- View 不访问底层文件；
-- Control 命令必须鉴权或限制本机；
-- 外置目录只能访问注册目录；
-- 不自动格式化或修复磁盘；
-- 不执行远程文档中的代码；
-- 所有依赖和官方文档来源应可追踪。
-
----
-
-# 14. 架构决策与演进
-
-## 14.1 本文记录“当前状态”
-
-本文描述当前有效架构，不应保留大量已失效选择的细节。
-
-## 14.2 ADR 记录“为什么”
-
-以下决策必须单独 ADR：
-
-- Recorder 与 Gateway 是否使用独立连接；
-- Projection 是否独立；
-- 实时 IPC 协议；
-- 公共 Schema 技术；
-- Raw Chunk 格式；
-- History API；
-- 数据去重身份；
-- Health 状态等级；
-- macOS / Ubuntu 部署；
-- 多语言引入；
-- View 前后端技术。
-
-ADR 应记录：
-
-- Context；
-- Decision；
-- Alternatives；
-- Consequences；
-- Status；
-- Date；
-- Superseded By。
-
----
-
-# 15. 初步架构是否已经完成
-
-只知道：
-
-- 有哪些模块；
-- 每个模块解决什么问题；
-- Input / Output；
-- 模块间约定；
-- 横切能力；
-
-**还不足以宣称初步架构完整。**
-
-初步架构至少还应覆盖下列内容。
-
-## 15.1 必须补齐
-
-### 目标与范围
-
-- 为什么建设；
-- 谁使用；
-- 哪些场景不支持。
-
-### 质量属性
-
-- 延迟目标；
-- 完整性目标；
-- 可用性；
-- 恢复时间；
-- 数据保留；
-- 可移植性；
-- 安全边界。
-
-### 运行视图
-
-- 正常实时流程；
-- 订单簿同步；
-- Gap 恢复；
-- Archive；
-- History；
-- 蓝绿升级。
-
-### 部署视图
-
-- 哪些模块为进程；
-- 部署在哪台设备；
-- 如何发现和通信；
-- 谁拥有存储和权限。
-
-### 数据设计
-
-- 数据生命周期；
-- 时间语义；
-- 排序；
-- 完整性；
-- Schema；
-- 版本；
-- 单位与精度。
-
-### 故障模型
-
-- 什么会坏；
-- 怎样检测；
-- 怎样恢复；
-- 怎样降级；
-- 什么情况下停止服务。
-
-### 安全模型
-
-- 哪些模块有什么权限；
-- Secret 在哪里；
-- 命令如何授权。
-
-### 运维与可观测
-
-- Health；
-- Metrics；
-- Logs；
-- Alerts；
-- 日报；
-- 容量预测。
-
-### 测试与验收
-
-- 单元；
-- 合同；
-- 集成；
-- 故障注入；
-- 长期运行；
-- 性能；
-- 数据一致性；
-- 跨版本兼容。
-
-### 决策与风险
-
-- ADR；
-- 开放问题；
-- 技术债；
-- 风险登记；
-- 回滚方案。
-
-### Ownership
-
-- 每个模块负责人；
-- 谁批准合同变更；
-- 谁处理事故；
-- 谁维护文档。
-
-## 15.2 初步架构完成标准
-
-当以下问题都有明确答案或被标记为受控 TBD 时，可认为初步架构达到可开发状态：
-
-- 模块边界是否清楚；
-- 关键输入输出是否版本化；
-- 主运行流程是否画出；
-- 部署边界是否明确；
-- 关键质量目标是否可测量；
-- 主要故障是否有策略；
-- 数据时间与完整性语义是否清楚；
-- 安全权限是否分离；
-- 测试与验收是否定义；
-- 重要决策是否有 ADR；
-- 剩余开放问题是否有负责人和截止条件。
-
----
-
-# 16. 当前开放问题
-
-| ID | 问题 | 当前倾向 | 状态 |
-|---|---|---|---|
-| O-001 | Recorder 与 Gateway 是否永久独立连接 | 第一版独立 | 已决定（ADR-0001 ACCEPTED） |
-| O-002 | Projection 是否独立模块 | 先逻辑独立、部署内嵌 | 已决定（ADR-0006 ACCEPTED） |
-| O-003 | Control 是否独立控制面 | 先 CLI + 模块命令接口 | 待审核 |
-| O-004 | Gateway IPC | gRPC Server Streaming + Protobuf | 已决定（ADR-0008） |
-| O-005 | 公共 Schema | Pydantic Domain + Protobuf Wire | 已决定（ADR-0007） |
-| O-006 | History 是库还是服务 | 先库 / CLI | 待决定 |
-| O-007 | View 何时开发 | 模拟盘前 | 待决定 |
-| O-008 | Health 的 SLO 阈值 | 尚未冻结 | 待实测 |
-| O-009 | Spot 首次 Depth 桥接边界 | 继续按官方与实测核验 | 开放风险 |
-| O-010 | Recorder / Gateway 分歧阈值 | 尚未冻结 | 待实测 |
-| O-011 | Contracts-owned C++ Protobuf package（C-M4-001） | 按 ADR-0009 和已批准设计建立独立 message package | 已决定（ADR-0009 ACCEPTED）；实现已合并，发布与正式 Package Revision 仍待 release；Projection M4 已完成 |
-
----
-
-# 17. 文档治理
-
-## 17.1 更新触发条件
-
-出现以下变化时必须更新本文或 ADR：
-
-- 新增 / 删除子模块；
-- 跨模块合同变化；
-- 运行流程变化；
-- 部署变化；
-- 数据格式变化；
-- 健康状态语义变化；
-- 质量目标变化；
-- 安全权限变化；
-- 新的重大故障经验。
-
-## 17.2 建议目录
+每个组件首先对自己的状态负责：
 
 ```text
-BinanceMarketData/
-├── ARCHITECTURE.md
-├── AGENTS.md
-└── docs/
-    ├── architecture/
-    │   ├── context.md
-    │   ├── containers.md
-    │   ├── runtime.md
-    │   ├── deployment.md
-    │   └── data.md
-    ├── contracts/
-    ├── adr/
-    ├── risks/
-    ├── operations/
-    └── glossary.md
+Recorder -> Recorder health/status/metrics
+Gateway  -> Gateway health/status/metrics
+History  -> History health/status/metrics
+View     -> View health/status
 ```
 
-第一阶段可以只保留一份 `ARCHITECTURE.md`，内容增长后再拆分。
+可报告：
 
-## 17.3 AI 模型上下文
+- last event age；
+- gap / resync；
+- queue occupancy；
+- connection state；
+- subscriber count；
+- latency；
+- storage runway；
+- archive backlog；
+- process resources。
 
-`AGENTS.md` 用于告诉编码代理：
+当前不建立独立 `BinanceMarketDataHealth` 服务。
 
-- 仓库结构；
-- 当前有效架构文档位置；
-- 允许修改的范围；
-- 测试命令；
-- 禁止事项；
-- 合同变更流程。
+如果未来出现多实例、多地域、大量运行组件，需要集中聚合时，再建立 Health aggregator。
 
-`AGENTS.md` 不应复制整份架构文档，而应引用本文，并包含最小、稳定、可执行的工作规则。
+### 与 Risk 的边界
 
-## 17.4 审核规则
+MarketData 可以报告：
 
-每次架构变更 PR 至少检查：
+```text
+STALE
+GAP_PRESENT
+NEEDS_RESYNC
+UNAVAILABLE
+```
 
-- 本文是否仍准确；
-- 合同是否兼容；
-- 是否需要 ADR；
-- 是否更新图；
-- 是否增加测试；
-- 是否增加故障或安全风险；
-- 是否影响其他模块和部署。
+但 MarketData 不决定：
 
----
+```text
+禁止开仓
+减仓
+停止交易
+```
 
-# 18. 术语表
-
-- **Market Fact**：来自交易所或可确定性重建的市场事实。
-- **Raw**：未改变语义的原始市场事件记录。
-- **Projection**：策略无关的确定性市场表示。
-- **Feature**：为预测或策略构建的解释变量。
-- **Snapshot**：某个时间点的整体状态描述。
-- **Event**：发生了什么变化。
-- **Gap**：预期事件序列不连续。
-- **Resync**：重新建立本地可靠状态。
-- **Replay**：按指定时钟和顺序重放历史事件。
-- **Contract**：模块之间稳定、版本化的数据与行为约定。
-- **ADR**：记录单个重要架构决策及其背景和后果。
-- **Health**：数据或服务当前是否可安全使用。
-- **Lineage**：派生数据可追踪到哪些原始数据与代码版本。
-- **Control Plane**：运维、配置和状态管理路径。
-- **Data Plane**：市场数据实际流动路径。
+这些决定属于 `RiskManagement`。
 
 ---
 
-# 19. 参考方法
+## 6.2 Control
 
-本文结构参考以下实践，但按项目规模进行裁剪：
+当前控制能力由各模块自己的 CLI / admin interface 提供，例如：
 
-- arc42：用于组织架构目标、范围、构建块、运行、部署、质量、风险和决策；
-- C4 Model：用于 Context、Container、Component 与 Deployment 图；
-- Architecture Decision Records：用于保存单项重要决策及其原因；
-- Docs-as-Code：文档与代码共同版本控制、评审和测试；
-- Repository Agent Guidance：使用 `AGENTS.md` 为 AI 编码代理提供可执行的仓库级规则。
+- Recorder start/stop/status/archive；
+- Gateway start/stop/status/reconnect；
+- History query/admin；
+- diagnostic / validation commands。
+
+当前不建立独立 `BinanceMarketDataControl` 服务。
+
+只有出现真实的集中控制需求时才允许抽离。
+
+任何 Control 都不得直接篡改其他模块的数据库或内部文件。
 
 ---
 
-# 20. 审核清单
+# 7. 数据层级
 
-请重点审核：
+## L0 — Raw Source Evidence
 
-- [ ] `BinanceMarketData` 的范围是否过大或过小；
-- [ ] Projection 是否应保留；
-- [ ] Control 是否应成为子模块；
-- [ ] Recorder 与 Gateway 独立连接是否接受；
-- [ ] Outputs 名称是否准确；
-- [ ] MarketData 与 FeatureEngineering 边界是否清楚；
-- [ ] History 的职责是否与 Recorder 重复；
-- [ ] Health 是否包含过多系统资源内容；
-- [ ] View 是否应属于 BinanceMarketData；
-- [ ] 第一版部署是否过度；
-- [ ] 当前开放问题是否完整；
-- [ ] 是否有关键运行场景或故障遗漏；
-- [ ] 哪些内容需要冻结为 ADR；
-- [ ] 哪些内容应从本文拆成单独合同或运维文档。
+Owner：Recorder。
+
+内容：
+
+- exact source payload；
+- receive evidence；
+- connection / provenance；
+- durable gap / lifecycle evidence。
+
+原则：不可变、可验证、可追踪。
+
+---
+
+## L1 — Canonical Market Events
+
+Contract owner：Contracts。
+
+典型对象：
+
+- `DepthUpdate`
+- `AggTrade`
+- `BookTicker`
+- `ExchangeDepthSnapshot`
+
+Producer 可以是 Recorder adapter、Gateway parser/adapter 或 History adapter。
+
+它表达：
+
+> “市场发生了什么。”
+
+---
+
+## L2 — Deterministic Market State
+
+Semantic owner：Projection。
+
+当前核心产品：
+
+- synchronized local order book；
+- `LocalOrderBookSnapshot`；
+- deterministic projection lifecycle/status。
+
+它表达：
+
+> “按统一规则应用市场事实后，市场状态是什么。”
+
+`MarketStateSnapshot` 仍是较宽的未来 composition surface；当前架构不要求为了填满它而扩张 Projection。
+
+---
+
+## L3 — Strategy Features
+
+Owner：FeatureEngineering。
+
+例如：
+
+- OBI；
+- microprice variants；
+- rolling imbalance；
+- RSI / MACD；
+- z-score；
+- alpha factors；
+- model features。
+
+它表达：
+
+> “这些市场事实对预测或策略意味着什么。”
+
+不得反向塞回 MarketData core。
+
+---
+
+# 8. Live 与 Historical 必须共享语义
+
+实时：
+
+```text
+Binance
+ -> Gateway
+ -> Projection
+ -> OrderBook
+```
+
+历史：
+
+```text
+Recorder dataset
+ -> History replay
+ -> Projection
+ -> historical OrderBook
+```
+
+目标 invariant：
+
+> 同一合法 ordered input、相同 NumericSpec、相同 Projection configuration，live 与 replay 必须得到相同确定性 projection 结果。
+
+这不要求 Recorder 现在重写为 C++ Projection；它要求 **consumer-facing projection semantics 只有一个共享 authority**。
+
+---
+
+# 9. 时间、标识与排序域
+
+以下域必须分开，不得混用。
+
+## 时间
+
+- exchange event time；
+- trade / transaction time；
+- local receive wall time；
+- monotonic runtime time；
+- publish time；
+- consumer receive time；
+- historical replay / simulation clock。
+
+不得使用一个含义模糊的 `timestamp` 代替所有时间。
+
+## Sequence / identity
+
+- Binance `U / u / pu`；
+- Projection `last_update_id`；
+- Gateway `connection_id`；
+- Gateway `connection_generation`；
+- `gateway_instance_id`；
+- `subscription_id`；
+- per-subscription `session_sequence`；
+- Recorder storage / chunk / manifest identities。
+
+这些值表达不同事实，禁止互相替代。
+
+---
+
+# 10. 可靠性与有界性原则
+
+1. Recorder 与 Gateway 使用 **独立 Binance connections**。
+2. Gateway 不依赖 Recorder 才能运行。
+3. Recorder 不依赖 Gateway 才能记录。
+4. 所有 runtime queue / buffer 必须有明确上限。
+5. 慢消费者不得无限阻塞 Binance ingress、Projection mutation 或其他消费者。
+6. contiguous delivery 不允许 silent drop。
+7. continuity 一旦失去，必须显式 gap / terminate / resubscribe / rebootstrap。
+8. 原始历史事实不可静默改写。
+9. 派生数据必须可追踪到 source + schema + producer/build version。
+10. 不因为“未来可能需要”提前引入 Kafka、Kubernetes、generic event bus、plugin framework、DI framework 或 lock-free infrastructure。
+
+---
+
+# 11. 部署模型
+
+## 当前推荐
+
+```text
+Storage-oriented host:
+    Recorder
+
+Latency-oriented host:
+    Gateway
+      └── embedded Projection
+
+Local/offline first:
+    History
+      └── embedded Projection when needed
+
+Web/UI later:
+    View + BFF
+
+Contracts:
+    package/schema, not runtime service
+```
+
+Recorder 与 Gateway 可以在不同机器上运行，并应保持独立 failure domain。
+
+Projection 不需要单独部署。
+
+History 是否最终独立服务由真实 consumer / concurrency / remote-query 需求决定。
+
+---
+
+# 12. 对整个量化系统的接口
+
+## LiveStrategy
+
+主要通过 Gateway：
+
+```text
+Gateway SubscribeOrderBook -> projected order book
+Gateway SubscribeEvents    -> canonical realtime events
+Gateway status              -> data/runtime facts
+```
+
+## FeatureEngineering
+
+实时 feature 可以消费 Gateway；离线 feature 主要消费 History。
+
+FeatureEngineering 可以把 MarketData 作为输入，但输出不属于 MarketData。
+
+## StrategyResearch / Backtesting
+
+主要通过 History / Replay，必要时复用 Projection 重建历史 order book。
+
+不得直接依赖 Recorder 内部文件布局作为长期公共接口。
+
+## RiskManagement
+
+可以消费 MarketData 的 data-health facts，但交易允许/禁止决策由 RiskManagement 自己拥有。
+
+## Execution / Portfolio
+
+不属于 BinanceMarketData dependency core，不在本模块设计交易职责。
+
+---
+
+# 13. 当前实现映射（2026-08-30）
+
+这部分只用于方向定位；具体 SHA、CI、运行状态以各仓库自己的 CURRENT_STATE / GitHub live state 为准。
+
+## Contracts
+
+- 公共 schema / Protobuf 已存在；
+- C++ message package 已存在；
+- separate C++ gRPC service/stub artifact 已存在；
+- formal publication/release 仍是后续 release concern。
+
+## Recorder
+
+- 主要 capture/storage/archive/normalize/replay 能力已实现；
+- 当前重点是 progressive long-running VPS validation；
+- 尚未 Production Ready。
+
+## Projection
+
+- M0-M5 已完成；
+- M6 real-Gateway integration acceptance 已完成；
+- current core 继续保持 deterministic / single-writer / order-book / sequence / ProtoAdapter 边界；
+- M6/G8 closure 不要求修改 Projection production Core。
+
+## Gateway
+
+- G0-G8 已完成；
+- real Spot BTCUSDT network、recovery、rotation、bounded publication、`SubscribeOrderBook` 与 G8 Projection M6 integration acceptance 已存在；
+- `NEXT=G9`：实现 `SubscribeEvents`。
+
+## History / View
+
+- 顶层职责已定义；
+- 当前不应抢在 Gateway realtime surface 与 Recorder reliability 主线之前扩大实现范围。
+
+---
+
+# 14. 当前开发顺序
+
+## 实时主线
+
+```text
+Gateway G8 complete / Projection M6 integration complete
+  -> G9: SubscribeEvents
+  -> G10: minimal GetGatewayStatus
+  -> G11: USD-M + multi-market
+```
+
+### 已完成的 G8 / M6 integration gate
+
+G8 已证明真实 Gateway + embedded Projection + `SubscribeOrderBook` 垂直切片可以作为完整 integration boundary 工作，并覆盖必要的 consumer-visible recovery / resync / planned-rotation 行为。
+
+G8 的完成也确认了此前的顶层顺序判断：
+
+> Projection M6 real-Gateway integration acceptance 不需要等待 G9 `SubscribeEvents` 或 G10 `GetGatewayStatus`。
+
+当前 Projection/Gateway repository-local authority 已完成这一顺序对齐；后续开发从 G9 继续。
+
+## Recorder 并行主线
+
+继续长时间验证和正式 acceptance 准备；不要为了配合 Gateway 重构 Recorder runtime。
+
+## 后续
+
+实时核心和 Recorder 可靠性进一步收口后：
+
+```text
+History architecture/contract
+ -> History MVP
+ -> View
+```
+
+Health / Control 只有真实需求证明后才升级为独立组件。
+
+---
+
+# 15. 架构不变量
+
+以下规则是后续开发的默认 gate。
+
+- **MD-INV-01**：Recorder 与 Gateway 独立连接 Binance。
+- **MD-INV-02**：Recorder 是 durable source of record。
+- **MD-INV-03**：Gateway runtime 不依赖 Recorder。
+- **MD-INV-04**：Projection 是 embedded deterministic library，不是网络服务。
+- **MD-INV-05**：下游实时消费者连接 Gateway，不直接连接 Projection。
+- **MD-INV-06**：consumer-facing order-book / sequence / gap semantics 由 Projection 单一拥有。
+- **MD-INV-07**：Gateway 拥有 transport/orchestration，但不得创建第二套 Projection semantics。
+- **MD-INV-08**：History 是 query/serving layer，不成为第二个 Recorder。
+- **MD-INV-09**：View 是 consumer，不读取 Raw/Catalog internals，不实现 market semantics。
+- **MD-INV-10**：Health / Control 当前是 capability，不是默认独立 service。
+- **MD-INV-11**：所有 runtime queue/buffer 有界；silent continuity loss 禁止。
+- **MD-INV-12**：不同 clock / sequence / identity domain 不混用。
+- **MD-INV-13**：strategy-specific feature 不进入 MarketData Core。
+- **MD-INV-14**：历史/派生产品必须保留 provenance 与 version identity。
+- **MD-INV-15**：Live 与 historical replay 复用同一 consumer-facing Projection semantics。
+- **MD-INV-16**：没有 measurement / concrete requirement，不引入通用框架和分布式基础设施。
+
+违反这些 invariant 的实现必须先做明确的架构变更和 review，不能在 feature PR 中顺带改变。
+
+---
+
+# 16. 当前受控开放问题
+
+| ID | 问题 | 当前方向 |
+|---|---|---|
+| O-001 | History 最终是 library 还是 service | 先 library/CLI；真实 remote/concurrency 需求出现再服务化 |
+| O-002 | View 何时开发 | History API 和 Gateway realtime surface 足够稳定后 |
+| O-003 | 是否需要独立 Health aggregator | 当前不需要；多实例/多地域规模出现后再评估 |
+| O-004 | 是否需要独立 Control plane | 当前不需要；集中运维需求出现后再评估 |
+| O-005 | `MarketStateSnapshot` 的最终 composition | deferred；不为填 schema 强迫 Projection 膨胀 |
+| O-006 | OHLCV / tape / premium 等 deterministic derived data 放哪里 | 逐项设计；“可确定性计算”本身不足以进入 Projection Core |
+| O-007 | Contracts formal release / package revision | release concern；当前不是 Gateway/Projection engineering blocker |
+| O-008 | Recorder-local quality orderbook 与 consumer-facing Projection 的长期语义对齐 | 保持职责隔离；任何统一必须另行设计和验证，不自动重写 Recorder |
+
+---
+
+# 17. 文档与架构治理
+
+## Authority scope
+
+本文是 **BinanceMarketData 跨仓顶层边界与开发方向 authority**。
+
+它不替代：
+
+- Binance 官方协议事实；
+- 各仓库内部算法 / lifecycle ADR；
+- Contracts wire schema；
+- Recorder durable-format/storage contracts；
+- Projection sequence semantics；
+- Gateway runtime milestone acceptance。
+
+当顶层边界与旧的 repository-local 文档发生冲突时：
+
+1. 不允许静默选择；
+2. 先确认哪份是更新的有效 authority；
+3. 在开始受影响 milestone 前完成文档对齐；
+4. 涉及 public schema / persistent format / sequence semantics 的变化必须走对应 repo 的正式 ADR / compatibility review。
+
+## 何时必须更新本文
+
+- 新增 / 删除一级组件；
+- 组件 ownership 变化；
+- Gateway / Recorder / Projection / History 依赖方向变化；
+- consumer-facing data flow 变化；
+- Health / Control 升级成独立系统；
+- MarketData 与 Feature/Strategy/Risk 边界变化；
+- 部署 failure domain 发生重大变化。
+
+## 不应该写进本文的东西
+
+- 某一次 CI run 细节；
+- 某个 temporary SHA 的执行记录；
+- 具体 bug forensic；
+- 实现函数级说明；
+- 可以在 repo-local CURRENT_STATE / MILESTONES / evidence 中维护的短期状态。
+
+---
+
+# 18. 给新开发者的一分钟版本
+
+```text
+Contracts  = 大家交换数据时使用的公共语言。
+Recorder   = 录像机：把 Binance 历史事实可靠保存下来。
+Projection = 计算库：把 Snapshot + DepthUpdate 确定性还原成订单簿。
+Gateway    = 实时服务器：连接 Binance，调用 Projection，向下游提供实时事件和订单簿。
+History    = 历史查询层：读取 Recorder 数据，需要时调用 Projection 重建历史订单簿。
+View       = 给人看的界面：实时看 Gateway，历史看 History。
+
+Health / Control = 目前是各模块自己的能力，不是新建两个系统。
+```
+
+如果一个新功能不知道放哪里，先问：
+
+```text
+它是在记录事实？          -> Recorder
+它是在定义公共数据语义？  -> Contracts
+它是在确定性重建订单簿？  -> Projection
+它是在实时连接和交付？    -> Gateway
+它是在查询历史？          -> History
+它是在展示？              -> View
+它是在构造预测/策略输入？  -> FeatureEngineering，不属于 BinanceMarketData Core
+```

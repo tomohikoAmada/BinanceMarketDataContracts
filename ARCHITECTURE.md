@@ -1,21 +1,23 @@
 # ARCHITECTURE.md — BinanceMarketDataContracts
 
-Entry point for architectural context. See the full living architecture document at
-`BinanceMarketData_Living_Architecture.md`.
+Entry point for Contracts architectural context. The cross-repository BinanceMarketData top-level
+boundary authority is `BinanceMarketData_Living_Architecture.md`.
 
 ## Module
 
 `BinanceMarketDataContracts` is the public contracts layer for the BinanceMarketData domain.
-It provides versioned data types, generated JSON Schemas, golden fixtures, and architecture
-decision records. It has no network, storage, or trading dependencies.
+It provides versioned data types, generated JSON Schemas, golden fixtures, wire/service contracts,
+and architecture decision records. It has no network, storage, trading-policy, or market-runtime
+ownership.
+
+Contracts is the cross-module language authority, not a framework that every internal Core must
+import. For example, Projection Core remains independent of Protobuf/gRPC; its optional ProtoAdapter
+may consume the Contracts message artifact.
 
 ## Contract status
 
-All contracts are **PROPOSED** or **DRAFT**. No contract has been formally ACCEPTED.
-
-**ADR acceptance does NOT imply contract acceptance.** ADRs document architectural decisions
-(wire protocol choice, contract strata, module boundaries). Domain and Wire contracts remain
-PROPOSED/DRAFT until they meet the formal acceptance criteria below.
+All public Domain/Wire contracts remain **PROPOSED** or **DRAFT** unless explicitly promoted by the
+formal acceptance process. An accepted ADR does not itself promote a contract.
 
 | Contract | Status | Version |
 |----------|--------|---------|
@@ -46,12 +48,12 @@ PROPOSED/DRAFT until they meet the formal acceptance criteria below.
 ## Acceptance criteria
 
 A contract is promoted from PROPOSED to ACCEPTED when:
-1. Producer and Consumer are identified
-2. Schema is frozen
-3. Valid, invalid, and boundary fixtures are complete
-4. Contract tests pass
-5. At least one producer adapter and one consumer usage are validated
-6. Architecture review is complete
+1. Producer and Consumer are identified.
+2. Schema is frozen.
+3. Valid, invalid, and boundary fixtures are complete.
+4. Contract tests pass.
+5. At least one producer adapter and one consumer usage are validated where applicable.
+6. Architecture review is complete.
 
 ## Architecture decision records
 
@@ -70,53 +72,80 @@ A contract is promoted from PROPOSED to ACCEPTED when:
 ## C-M4-001 C++ package design
 
 The approved C-M4-001 architecture defines a Contracts-owned, versioned, installable C++ Protobuf
-message package for the Projection M4 adapter. It does not change any `.proto` schema,
-contract status, field semantics, or generated Python artifact.
+message package for Projection's optional wire adapter. It does not change `.proto` field semantics
+or make Projection Core depend on Protobuf/gRPC.
 
 - Design: **APPROVED**
 - ADR-0009: **ACCEPTED**
-- External architecture review: **APPROVED**
-- Architecture blocking findings: **0**
-- Implementation: **COMPLETE / MERGED** into Contracts main by commit `67ee1bf69fad980d114cfa278c3a6ffe310a4d7a`
-- Independent implementation re-review: **APPROVED** (IIR-1 through IIR-5 CLOSED; P0/P1/P2 = 0)
-- Reviewed corrected head: `4e5d3d846afba982ab5e48d2737bc40560e34a6c`
-- Reviewed CI: `31167981350` — 15/15 PASS
-- Schema baseline: `01d76a41929f36d89573159f5f458f9f1e378ada`
-- Schema fingerprint: `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`
-- Formal fingerprint approval: **APPROVED** (Algorithm Version 1)
-- Package version candidate: `0.1.0`; package revision: **NOT FORMALLY ASSIGNED — RELEASE GATE**
-- C-M4-001: **IMPLEMENTED / ACCEPTED / MERGED**
+- C-M4-001 implementation: **COMPLETE / MERGED**
+- Independent implementation re-review: **APPROVED**
+- Package version candidate: `0.1.0`
+- Package revision: **NOT FORMALLY ASSIGNED — RELEASE GATE**
 - Published: **NO**
-- M6 gRPC bindings: separate candidate artifact
-  `binance-market-data-contracts-grpc-cpp/0.1.0`, exporting the frozen
-  `BinanceMarketDataContracts::Grpc` target without changing the message artifact graph
-- Projection M4 Implementation: **COMPLETE** in the separate Projection repository
-- Design: [`docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md`](docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md)
-- Candidate evidence: [`docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md`](docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md)
+- Message target: `BinanceMarketDataContracts::Protobuf`
+- Separate gRPC artifact: `binance-market-data-contracts-grpc-cpp/0.1.0`, exporting
+  `BinanceMarketDataContracts::Grpc`
+- Projection M4 package integration: **COMPLETE** in the Projection repository
+
+Detailed package evidence remains in:
+
+- `docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md`
+- `docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md`
+
+## Current cross-repository orientation
+
+As of 2026-08-30, current live repository authority has moved beyond the older G8/M6 planning state:
+
+- Projection M6 real-Gateway integration acceptance is complete.
+- Gateway G8 is complete.
+- Gateway `NEXT=G9` (`SubscribeEvents`).
+
+Exact SHAs and CI/evidence belong in repository-local `CURRENT_STATE`/milestone documents rather than
+being frozen here.
 
 ## Open questions
 
 | ID | Question | Status |
 |----|----------|--------|
 | O-001 | Recorder/Gateway independent connections | DECIDED (ADR-0001) |
-| O-002 | Projection as independent module | DECIDED (ADR-0006) |
+| O-002 | Projection logical independence / deployment | DECIDED (ADR-0006): embedded library in current deployment |
 | O-004 | Gateway IPC protocol | DECIDED: gRPC Server Streaming + Protobuf (ADR-0008) |
 | O-005 | Public Schema | DECIDED: Pydantic Domain + Protobuf Wire (ADR-0007) |
-| O-006 | History: library or service | TBD |
-| O-008 | Health SLO thresholds | TBD |
-| O-009 | Spot initial depth bridging | TBD |
+| O-006 | History: library or service | TBD; top-level v0.3 direction is library/CLI first |
+| O-008 | Health SLO thresholds | TBD; Health is currently a capability, not a required standalone service |
+| O-009 | Spot initial depth bridging | SEMANTIC AUTHORITY FROZEN in Projection's accepted Spot successor-coverage/bootstrap rules; reopen only through Projection architecture review |
+
+## Derived-product ownership note
+
+Legacy contract inventories and early ADR examples may mention microprice, OHLCV, trade tape,
+premium, funding/OI composition or other deterministic products. Those examples do not assign the
+current Projection Core responsibility for all such products.
+
+Current top-level rule:
+
+> Deterministically computable is necessary for a deterministic market-data product, but is not by
+> itself sufficient reason to add that product to `BinanceMarketDataProjection` Core.
+
+New shared derived-data authorities must be designed explicitly and must preserve the MarketData vs
+FeatureEngineering boundary.
 
 ## Module boundaries
 
-See `docs/architecture/module_boundaries.md` and `docs/architecture/dependency_rules.md`.
+See:
+
+- `docs/architecture/module_boundaries.md`
+- `docs/architecture/dependency_rules.md`
+- `docs/architecture/integration_model.md`
 
 ## Contract semantics
 
-See `docs/contracts/` for detailed documentation on time semantics, quality semantics,
-decimal string rules, and compatibility policy.
+See `docs/contracts/` for detailed time, quality, decimal/string and compatibility semantics.
+
+Health/status contracts report MarketData facts and assessments; they do not own trading permission.
+`RiskManagement` owns normative trading authorization/policy.
 
 ## AI and independent-reviewer reading order
 
-Start with [`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md), then read this file, the full living
-architecture, the relevant accepted ADRs, and the actual code/tests. Verify current GitHub main and
-PR/CI state independently; the orientation file is not semantic authority.
+Start with `docs/CURRENT_STATE.md`, then read this file, the top-level living architecture, relevant
+accepted ADRs, and actual code/tests. Verify current GitHub main and PR/CI state independently;
+orientation documents do not override narrower accepted semantic authorities.

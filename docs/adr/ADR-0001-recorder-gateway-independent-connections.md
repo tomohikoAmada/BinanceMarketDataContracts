@@ -33,11 +33,11 @@ The Recorder and Gateway will each maintain their own independent WebSocket conn
 ### Positive
 - Fault isolation: Recorder failure does not affect Gateway and vice versa
 - Each module can optimize for its own quality target
-- Health module can compare two independent data channels for divergence detection
+- Independent channels can be compared later by an observability/health capability if that comparison is operationally useful
 
 ### Negative
 - Double the WebSocket connections to Binance
-- Slight data divergence between Recorder and Gateway is possible (detected by Health)
+- Slight data divergence between Recorder and Gateway is possible
 - Higher operational complexity (two connection lifecycles to manage)
 
 ## Compatibility impact
@@ -48,8 +48,16 @@ None. This is an operational deployment decision that does not affect public con
 
 - [ ] Gateway latency meets targets with independent connection
 - [ ] Recorder completeness meets targets with independent connection
-- [ ] Health module detects and reports Recorder/Gateway divergence
 - [ ] Connection limits are within Binance rate limits
+- [ ] If Recorder/Gateway divergence comparison is implemented, it remains out of both critical data paths and reports facts rather than trading decisions
+
+## Current interpretation — 2026-08-30
+
+The accepted authority of this ADR is the **independent Recorder/Gateway source connection and failure-domain decision**.
+
+References in the original design to a dedicated `Health` module must not be interpreted as requiring a standalone `BinanceMarketDataHealth` service. Under the current top-level architecture, health/observability is first a capability of each component; a future aggregator may compare the independent Recorder and Gateway channels when scale or operations justify it.
+
+See `BinanceMarketData_Living_Architecture.md` v0.3+ for the current top-level component model.
 
 ## Superseded by
 
