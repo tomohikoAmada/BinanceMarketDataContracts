@@ -20,7 +20,8 @@ C-M4-001 was merged into Contracts main by commit
 The Contracts-owned CMake and Conan C++ message package exists at
 `binance-market-data-contracts-cpp/0.1.0` and is not published. The formal package revision
 remains **NOT FORMALLY ASSIGNED** (release gate). Projection M4 is **COMPLETE** in the separate
-`BinanceMarketDataProjection` repository; Gateway Runtime remains unimplemented.
+`BinanceMarketDataProjection` repository. Gateway runtime is implemented in the separate
+`BinanceMarketDataGateway` repository; Contracts does not own that runtime.
 
 ## Wire Protocol Target Languages
 
@@ -30,7 +31,7 @@ generated artifacts for that language.
 
 | Role | Language | Current artifact availability |
 |------|----------|-------------------------------|
-| Gateway Runtime | C++ | Selected by accepted cross-repository M6 authority; runtime not implemented |
+| Gateway Runtime | C++ | Implemented in the separate Gateway repository; this package supplies its contracts |
 | Python Consumer | Python | Generated Protobuf/gRPC artifacts available |
 | Go Consumer | Go | Protocol-compatible target; artifacts not published here |
 | Rust Consumer | Rust | Protocol-compatible target; artifacts not published here |
@@ -50,7 +51,22 @@ Contracts remains wire-language-neutral and does not own the Gateway implementat
 decision. The accepted cross-repository M6 authority currently selects C++ for
 `BinanceMarketDataGateway`; the wire protocol continues to support all languages listed above.
 
-The Gateway Runtime is **not implemented** in this repository. This package provides only the contract types.
+The Gateway Runtime is outside this repository. This package provides the contract types and the
+separate C++ gRPC service/stub artifact consumed by Gateway.
+
+## Current cross-repository Gateway orientation
+
+The separate Gateway repository has completed G0-G11, post-G11 runtime
+productization, recovery observability, performance instrumentation, and the
+accepted post-G11 performance baseline. Its ordinary daemon is the fixed
+two-product `bmd-gatewayd` for Spot BTCUSDT and USD-M perpetual BTCUSDT, with
+`SubscribeOrderBook`, `SubscribeEvents`, and `GetGatewayStatus` implemented.
+Contracts remains the owner of the public schemas and C++ artifacts; it has not
+implemented those Gateway features. Contracts also declares `SubscribeMarketState`,
+which the current Gateway service does not implement. That is nonblocking future
+contract/implementation surface reconciliation debt, not a DOC-ALIGN-01 schema
+change. Domain and Wire contracts remain PROPOSED or DRAFT, and formal package
+revision/publication remains separately gated.
 
 ## Installation
 

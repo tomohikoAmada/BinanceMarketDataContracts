@@ -94,11 +94,19 @@ Detailed package evidence remains in:
 
 ## Current cross-repository orientation
 
-As of 2026-08-30, current live repository authority has moved beyond the older G8/M6 planning state:
+The older G8/M6 planning state is historical. The separate Gateway repository
+has completed G0-G11, post-G11 runtime productization, recovery observability,
+performance instrumentation, and the accepted post-G11 performance baseline.
+Its ordinary `bmd-gatewayd` is a fixed two-product daemon for Spot BTCUSDT and
+USD-M perpetual BTCUSDT, and it currently implements `SubscribeOrderBook`,
+`SubscribeEvents`, and `GetGatewayStatus`.
 
-- Projection M6 real-Gateway integration acceptance is complete.
-- Gateway G8 is complete.
-- Gateway `NEXT=G9` (`SubscribeEvents`).
+Contracts remains the schema/package owner and does not own or implement the
+Gateway runtime. Contracts declares `SubscribeMarketState`, while the current
+Gateway service does not implement it; this is nonblocking future
+contract/implementation surface reconciliation debt. Domain and Wire contract
+status remains PROPOSED/DRAFT, and formal package revision/publication remains
+separately gated.
 
 Exact SHAs and CI/evidence belong in repository-local `CURRENT_STATE`/milestone documents rather than
 being frozen here.
