@@ -756,9 +756,16 @@ FeatureEngineering 可以把 MarketData 作为输入，但输出不属于 Market
 
 ## Gateway
 
-- G0-G8 已完成；
-- real Spot BTCUSDT network、recovery、rotation、bounded publication、`SubscribeOrderBook` 与 G8 Projection M6 integration acceptance 已存在；
-- `NEXT=G9`：实现 `SubscribeEvents`。
+- G0-G11 已完成；
+- post-G11 runtime productization、recovery observability、performance
+  instrumentation 与 accepted performance baseline 已完成；
+- ordinary `bmd-gatewayd` 是固定的两个产品（Spot BTCUSDT 与 USD-M
+  perpetual BTCUSDT）production daemon，当前实现
+  `SubscribeOrderBook`、`SubscribeEvents` 与 `GetGatewayStatus`；
+- Contracts 仍只负责 schema/package/service contract，不拥有 Gateway
+  runtime。`SubscribeMarketState` 仍在 Contracts service surface，但当前
+  Gateway 未实现；这是不阻塞的后续 contract/implementation surface
+  reconciliation debt。
 
 ## History / View
 
@@ -772,10 +779,10 @@ FeatureEngineering 可以把 MarketData 作为输入，但输出不属于 Market
 ## 实时主线
 
 ```text
-Gateway G8 complete / Projection M6 integration complete
-  -> G9: SubscribeEvents
-  -> G10: minimal GetGatewayStatus
-  -> G11: USD-M + multi-market
+Gateway G0-G11 complete / Projection M6 integration acceptance complete
+  -> post-G11 runtime productization complete
+  -> recovery observability and performance baseline complete
+  -> no further numbered Gateway milestone frozen
 ```
 
 ### 已完成的 G8 / M6 integration gate
@@ -786,7 +793,9 @@ G8 的完成也确认了此前的顶层顺序判断：
 
 > Projection M6 real-Gateway integration acceptance 不需要等待 G9 `SubscribeEvents` 或 G10 `GetGatewayStatus`。
 
-当前 Projection/Gateway repository-local authority 已完成这一顺序对齐；后续开发从 G9 继续。
+上述 G9/G10/G11 是在 G8/M6 acceptance 之后完成的历史顺序；当前没有
+新的 numbered Gateway milestone 被冻结。Production Qualification 与
+optimization 也未被授权。
 
 ## Recorder 并行主线
 

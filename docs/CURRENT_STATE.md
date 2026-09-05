@@ -71,8 +71,9 @@ build/package workflow only.
 - Formal Contracts Package Revision assignment; it remains `NOT_FORMALLY_ASSIGNED` and is gated on
   release.
 - Package publication/release.
-- Gateway runtime or gRPC server; this repository only provides the Contracts-owned optional gRPC
-  service/stub package surface.
+- Gateway runtime or gRPC server in this repository; the separate Gateway
+  repository owns that runtime and this repository provides its optional
+  Contracts-owned gRPC service/stub package surface.
 - Formal acceptance of the Domain and Wire Contracts; they remain PROPOSED or DRAFT unless a
   separate contract authority says otherwise.
 - Publication of the new gRPC artifact or formal assignment of its package revision.
@@ -104,7 +105,8 @@ promote any PROPOSED/DRAFT contract or redefine another repository's semantics.
   market-specific sequencing, lifecycle, and M5 validation.
 - Contracts schemas may be consumed by Projection's optional adapter; Contracts does not redefine
   Projection M3 sequence semantics.
-- Projection M4 is complete in `BinanceMarketDataProjection`; Gateway runtime is not implemented.
+- Projection M4 is complete in `BinanceMarketDataProjection`; Gateway runtime
+  is implemented in its separate repository and remains outside Contracts.
 
 ## Validation / CI Evidence
 
@@ -113,11 +115,26 @@ synchronization baseline commit `67ee1bf69fad980d114cfa278c3a6ffe310a4d7a`.
 The accepted C-M4-001 implementation re-review recorded CI `31167981350` as
 15/15 PASS; that is historical review evidence, not a current PR state.
 
-## Next Authorized Step
+## Next repository boundary
 
-Complete exact-head review/CI for the ADR-0010 artifact split, then hand the two exact coordinates
-to Gateway. Release/publication remains separately gated. Do not implement Gateway runtime or
-redefine Projection sequence semantics in this repository.
+The ADR-0010 artifact split is complete and the two exact coordinates are
+available to Gateway. Release/publication remains separately gated. Do not
+implement Gateway runtime or redefine Projection sequence semantics in this
+repository.
+
+## Current cross-repository Gateway orientation
+
+The separate Gateway repository has completed G0-G11, post-G11 runtime
+productization, recovery observability, performance instrumentation, and the
+accepted post-G11 performance baseline. Its ordinary `bmd-gatewayd` is the
+fixed two-product daemon for Spot BTCUSDT and USD-M perpetual BTCUSDT, with
+`SubscribeOrderBook`, `SubscribeEvents`, and `GetGatewayStatus` implemented.
+Contracts does not claim ownership or implementation of those features.
+Contracts declares `SubscribeMarketState`, while current Gateway does not
+implement it; this is nonblocking future contract/implementation surface
+reconciliation debt, and baseline closure is not blocked. Domain and Wire
+contracts remain PROPOSED/DRAFT, and formal package revision/publication remains
+separately gated.
 
 ## AI / Reviewer Reading Order
 
