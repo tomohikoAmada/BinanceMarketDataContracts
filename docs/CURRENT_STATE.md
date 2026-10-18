@@ -10,7 +10,7 @@ Updated 2026-10-18; all six sibling Milestone Plan documents were read.
 | Stage | State | Evidence |
 | --- | --- | --- |
 | C0 correctness | Existing local implementation preserved as source `db8156f1e16ba7a4a5ee8d5b26316139b7e218f3`; independently reviewed; all 675 tests passed with C1 | [C0 fields/fixtures/migration](C0_IMPLEMENTATION.md), [ADR-0012](adr/ADR-0012-current-consumer-wire-correctness.md) |
-| C1 used internal v1 contract | Implemented, fixed-dependency offline verified and independently reviewed; PR/CI delivery pending | [Consumer page](contracts/current-capabilities.md), [C1 evidence](C1_EVIDENCE.md) |
+| C1 used internal v1 contract | COMPLETE: used internal semantics/pins, fixed-dependency offline validation and independent review; delivery/CI/merge tracked by PR #23 | [Consumer page](contracts/current-capabilities.md), [C1 evidence](C1_EVIDENCE.md) |
 | C2 conditional simplification | Not triggered; no evidenced maintenance/performance reason for changes in this task | Sibling Contracts milestone plan |
 
 ## Repository role and implemented boundaries

@@ -1,7 +1,8 @@
 # Contracts C1 evidence
 
 2026-10-18 · C1 implementation, fixed-dependency offline validation and independent
-review complete. PR/CI delivery is recorded below as it completes.
+review complete. Delivery is tracked by [PR #23](https://github.com/tomohikoAmada/BinanceMarketDataContracts/pull/23);
+the PR records its exact-head CI and final merge state.
 All six sibling Milestone Plan documents were read. Scope is C1 under BMD-2,
 including preserving and committing the pre-existing C0 prerequisite; no C2
 optimization, runtime expansion, Recorder/VPS changes or package publication.
@@ -14,7 +15,7 @@ optimization, runtime expansion, Recorder/VPS changes or package publication.
 - [x] Contracts validation and schema/codegen/descriptor compatibility.
 - [x] Fixed Gateway production build/RPC integration and Projection replay/adapter checks.
 - [x] Independent subagent code/document review: no actionable findings.
-- [ ] PR CI and merge delivery (pending).
+- [x] Reviewable commits pushed and [PR #23](https://github.com/tomohikoAmada/BinanceMarketDataContracts/pull/23) opened; inspect that PR for live CI/merge state.
 
 ## Concrete binary graph
 
@@ -59,7 +60,9 @@ C0/C1 leave all C++ export inputs unchanged against Contracts main `8701c330`:
 recipes, cmake, proto/generated Python, C++ tests/tools and both Conan locks.
 The C++ build initially found system libprotoc 35.0 and rejected it; explicitly
 selecting cached locked libprotoc 33.5 resolved configuration, with no source or
-pin change. No dependencies were cold-built, and no acceptance hook was added.
+pin change. After the clean documentation commit `abc1d97`, both Contracts exports also
+reproduced their original RREVs (`build/c1/message-export.log`, `grpc-export.log`).
+No dependencies were cold-built locally, and no acceptance hook was added.
 No C++ runtime/concurrency change was made, so no new sanitizer matrix was
 needed; Gateway G1's existing sanitizer evidence is not re-labelled as C1 work.
 
@@ -115,5 +118,10 @@ Its independent C0 tests: 127 passed; full suite without injected CMake inputs:
 666 passed / 9 expected skips. The complete primary run above supplies those
 inputs and passes all 675. This is a distinct review, not self-review.
 
-PR creation, exact-head CI and merge are pending at this checkpoint.
+Independent final review of clean `abc1d97b3fc87346e6316148d8b31008d8a2f774`
+re-read the completed evidence and all test/export logs, with no actionable
+findings. C1 technical closure is complete. [PR #23](https://github.com/tomohikoAmada/BinanceMarketDataContracts/pull/23)
+is the delivery/CI/merge record; this document does not substitute historical
+baseline CI for the PR candidate checks. The existing workflow automatically
+runs its larger C++ matrix; it was not changed for this task.
 
