@@ -354,9 +354,9 @@ jobs:
           echo "CONAN_HOME=${RUNNER_TEMP}/c-m4-001-conan" >> "$GITHUB_ENV"
           export CONAN_HOME="${RUNNER_TEMP}/c-m4-001-conan"
           conan profile detect --force
-      - name: Check lock drift
+      - name: Verify committed dependency lock
         run: |
-          conan lock create . -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20 --lockfile-out="${RUNNER_TEMP}/candidate.lock"
+          conan lock create . --lockfile=conan.lock -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20 --lockfile-out="${RUNNER_TEMP}/candidate.lock"
           python scripts/check_conan_lock.py conan.lock "${RUNNER_TEMP}/candidate.lock"
       - name: Populate clean cache and create package
         run: >-
@@ -383,10 +383,10 @@ jobs:
           echo "CONAN_HOME=${RUNNER_TEMP}/contracts-grpc-conan" >> "$GITHUB_ENV"
           export CONAN_HOME="${RUNNER_TEMP}/contracts-grpc-conan"
           conan profile detect --force
-      - name: Populate base recipe and verify gRPC lock drift
+      - name: Populate base recipe and verify committed gRPC lock
         run: |
           conan export .
-          conan lock create conanfile_grpc.py -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20 --lockfile-out="${RUNNER_TEMP}/grpc-candidate.lock"
+          conan lock create conanfile_grpc.py --lockfile=grpc/conan.lock -pr:h=profiles/conan/cpp20 -pr:b=profiles/conan/cpp20 --lockfile-out="${RUNNER_TEMP}/grpc-candidate.lock"
           python scripts/check_conan_lock.py grpc/conan.lock "${RUNNER_TEMP}/grpc-candidate.lock" --expected-artifact grpc
       - name: Populate clean cache and create both artifacts
         run: |

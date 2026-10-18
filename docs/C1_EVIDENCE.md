@@ -55,6 +55,7 @@ not a newly published Python dependency lock.
 | Projection actual adapter differential/fixture replay and snapshot extraction | **50/50 PASS** | Gateway `build/contracts-c1/projection-adapter-replay-ctest.log` |
 | Projection wire admission, exact Symbol, depth limits, known-fixture round-trip and snapshot output | **21/21 PASS** | Gateway `build/contracts-c1/projection-wire-ctest.log` |
 | Gateway `scripts/format-check.sh` | PASS | Gateway `build/contracts-c1/gateway-format.log` |
+| Conan lock creation against each committed lock + identity comparison | PASS for message and gRPC graphs; OpenSSL stays 3.6.4 | Contracts `build/c1/{base,grpc}-lock-replay.log` |
 
 C0/C1 leave all C++ export inputs unchanged against Contracts main `8701c330`:
 recipes, cmake, proto/generated Python, C++ tests/tools and both Conan locks.
@@ -123,5 +124,15 @@ re-read the completed evidence and all test/export logs, with no actionable
 findings. C1 technical closure is complete. [PR #23](https://github.com/tomohikoAmada/BinanceMarketDataContracts/pull/23)
 is the delivery/CI/merge record; this document does not substitute historical
 baseline CI for the PR candidate checks. The existing workflow automatically
-runs its larger C++ matrix; it was not changed for this task.
+runs its larger C++ matrix. Initial final-head CI
+[39100977623](https://github.com/tomohikoAmada/BinanceMarketDataContracts/actions/runs/39100977623)
+passed Python 3.11/3.12/3.13, Buf and graph boundaries, but the gRPC lock
+regeneration step failed: without selecting `grpc/conan.lock`, it resolved newer
+OpenSSL 3.6.5 instead of the committed 3.6.4. That failure is retained.
+The bounded fix supplies each existing lock explicitly to `conan lock create`
+and keeps the existing comparison and replay checks. Local resolution and
+identity comparisons pass for both graphs; the independent subagent also
+reviewed this fix and rechecked both generated locks with the original comparator,
+with no actionable findings. No lock, package pin, matrix or
+C++ export input changes; subsequent candidate CI is recorded on the PR.
 
