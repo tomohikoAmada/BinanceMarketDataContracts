@@ -68,6 +68,7 @@ A contract is promoted from PROPOSED to ACCEPTED when:
 - `docs/adr/ADR-0009-cpp-protobuf-package.md` (ACCEPTED)
 - `docs/adr/ADR-0010-separate-cpp-grpc-artifact.md` (ACCEPTED)
 - `docs/adr/ADR-0011-opaque-utf8-symbol-identity.md` (ACCEPTED)
+- `docs/adr/ADR-0012-current-consumer-wire-correctness.md` (PROPOSED; C0 implementation authorized by v0.3 plan)
 
 ## C-M4-001 C++ package design
 
@@ -94,22 +95,16 @@ Detailed package evidence remains in:
 
 ## Current cross-repository orientation
 
-The older G8/M6 planning state is historical. The separate Gateway repository
-has completed G0-G11, post-G11 runtime productization, recovery observability,
-performance instrumentation, and the accepted post-G11 performance baseline.
-Its ordinary `bmd-gatewayd` is a fixed two-product daemon for Spot BTCUSDT and
-USD-M perpetual BTCUSDT, and it currently implements `SubscribeOrderBook`,
-`SubscribeEvents`, and `GetGatewayStatus`.
-
-Contracts remains the schema/package owner and does not own or implement the
-Gateway runtime. Contracts declares `SubscribeMarketState`, while the current
-Gateway service does not implement it; this is nonblocking future
-contract/implementation surface reconciliation debt. Domain and Wire contract
-status remains PROPOSED/DRAFT, and formal package revision/publication remains
-separately gated.
-
-Exact SHAs and CI/evidence belong in repository-local `CURRENT_STATE`/milestone documents rather than
-being frozen here.
+The older G8/M6 planning state is historical. Gateway now supports startup JSON configuration (`bmd-gatewayd --config PATH`)
+for 1..8 isolated products, with `SubscribeOrderBook`, `SubscribeEvents` and
+`GetGatewayStatus`. Spot supports depth/aggTrade/bookTicker; USD-M supports
+only depth. The current used internal v1 subset, exact dependency combination
+and migration rules are fixed in [the C1 consumer page](docs/contracts/current-capabilities.md).
+`SubscribeMarketState` remains UNIMPLEMENTED. Gateway v0.3 G0/G1 are complete;
+four-product production/CI and VPS/API/performance acceptance (G2/G3) remain open.
+Eight products is a resource bound, not measured capacity. Contracts owns the
+schemas/packages; Domain/Wire registry statuses stay PROPOSED/DRAFT and package
+publication remains separate.
 
 ## Open questions
 

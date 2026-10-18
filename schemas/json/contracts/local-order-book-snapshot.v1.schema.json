@@ -5,6 +5,7 @@
       "description": "Structured description of a sequence gap.",
       "properties": {
         "detected_at_utc_ns": {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "title": "Detected At Utc Ns",
           "type": "integer"
@@ -12,6 +13,7 @@
         "next_sequence": {
           "anyOf": [
             {
+              "maximum": 18446744073709551615,
               "minimum": 0,
               "type": "integer"
             },
@@ -25,6 +27,7 @@
         "previous_sequence": {
           "anyOf": [
             {
+              "maximum": 18446744073709551615,
               "minimum": 0,
               "type": "integer"
             },
@@ -209,6 +212,7 @@
       "anyOf": [
         {
           "exclusiveMinimum": 0,
+          "maximum": 2147483647,
           "type": "integer"
         },
         {
@@ -220,6 +224,7 @@
     "generated_monotonic_ns": {
       "anyOf": [
         {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "type": "integer"
         },
@@ -230,6 +235,7 @@
       "default": null
     },
     "generated_time_utc_ns": {
+      "maximum": 18446744073709551615,
       "minimum": 0,
       "type": "integer"
     },
@@ -245,6 +251,7 @@
       "default": null
     },
     "last_update_id": {
+      "maximum": 18446744073709551615,
       "minimum": 0,
       "type": "integer"
     },

@@ -2,6 +2,11 @@
 
 The registry is the single source of truth for all contracts, their statuses,
 and their corresponding Python types. Duplicate names are rejected.
+
+C0 wire-representable integer bounds live on the registered current-consumer
+models and their shared metadata (ADR-0012); they do not introduce new versions
+or promote statuses. Producer/consumer labels below are design roles, not proof
+of deployed adapters (Recorder currently uses independent Raw/Replay types).
 """
 
 from __future__ import annotations

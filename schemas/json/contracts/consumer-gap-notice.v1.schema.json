@@ -46,6 +46,7 @@
   "description": "Informs the consumer that a gap has been detected in their stream.",
   "properties": {
     "detected_time_utc_ns": {
+      "maximum": 18446744073709551615,
       "minimum": 0,
       "type": "integer"
     },
@@ -53,6 +54,7 @@
       "anyOf": [
         {
           "exclusiveMinimum": 0,
+          "maximum": 18446744073709551615,
           "type": "integer"
         },
         {
@@ -76,6 +78,7 @@
       "anyOf": [
         {
           "exclusiveMinimum": 0,
+          "maximum": 18446744073709551615,
           "type": "integer"
         },
         {

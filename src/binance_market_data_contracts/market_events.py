@@ -14,6 +14,7 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from binance_market_data_contracts.common import (
+    UINT64_MAX,
     ContractModel,
     NonEmptyText,
     PositiveQuantityString,
@@ -33,11 +34,11 @@ class _BaseEventMetadata(ContractModel):
     producer: NonEmptyText
     producer_version: NonEmptyText
     connection_id: ConnectionId
-    exchange_event_time_ms: int | None = Field(default=None, ge=0)
-    exchange_trade_time_ms: int | None = Field(default=None, ge=0)
-    exchange_transaction_time_ms: int | None = Field(default=None, ge=0)
-    receive_time_utc_ns: int | None = Field(default=None, ge=0)
-    receive_monotonic_ns: int | None = Field(default=None, ge=0)
+    exchange_event_time_ms: int | None = Field(default=None, ge=0, le=UINT64_MAX)
+    exchange_trade_time_ms: int | None = Field(default=None, ge=0, le=UINT64_MAX)
+    exchange_transaction_time_ms: int | None = Field(default=None, ge=0, le=UINT64_MAX)
+    receive_time_utc_ns: int | None = Field(default=None, ge=0, le=UINT64_MAX)
+    receive_monotonic_ns: int | None = Field(default=None, ge=0, le=UINT64_MAX)
     quality_flags: tuple[QualityFlag, ...] = ()
 
 
@@ -81,9 +82,9 @@ class DepthUpdate(ContractModel):
     """
 
     metadata: DepthUpdateMetadata
-    first_update_id: int = Field(..., ge=0)
-    final_update_id: int = Field(..., ge=0)
-    previous_final_update_id: int | None = Field(default=None, ge=0)
+    first_update_id: int = Field(..., ge=0, le=UINT64_MAX)
+    final_update_id: int = Field(..., ge=0, le=UINT64_MAX)
+    previous_final_update_id: int | None = Field(default=None, ge=0, le=UINT64_MAX)
     bids: tuple[PriceLevel, ...] = ()
     asks: tuple[PriceLevel, ...] = ()
 
@@ -104,12 +105,12 @@ class AggTrade(ContractModel):
     """
 
     metadata: AggTradeMetadata
-    aggregate_trade_id: int = Field(..., ge=0)
+    aggregate_trade_id: int = Field(..., ge=0, le=UINT64_MAX)
     price: PriceString
     quantity: PositiveQuantityString = Field(..., description="Total quantity of the aggregate trade (> 0)")
-    first_trade_id: int = Field(..., ge=0)
-    last_trade_id: int = Field(..., ge=0)
-    trade_time_ms: int = Field(..., ge=0)
+    first_trade_id: int = Field(..., ge=0, le=UINT64_MAX)
+    last_trade_id: int = Field(..., ge=0, le=UINT64_MAX)
+    trade_time_ms: int = Field(..., ge=0, le=UINT64_MAX)
     buyer_is_maker: bool
 
     @model_validator(mode="after")
@@ -127,7 +128,7 @@ class BookTicker(ContractModel):
     """
 
     metadata: BookTickerMetadata
-    update_id: int | None = Field(default=None, ge=0)
+    update_id: int | None = Field(default=None, ge=0, le=UINT64_MAX)
     best_bid_price: PriceString
     best_bid_quantity: QuantityString
     best_ask_price: PriceString

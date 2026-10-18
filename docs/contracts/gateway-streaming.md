@@ -3,6 +3,12 @@
 Documents the Gateway gRPC streaming protocol semantics for Snapshot + Stream
 handoff, gap detection, recovery, slow consumer behavior, and delivery modes.
 
+Current implementation scope is fixed by [the C1 consumer page](current-capabilities.md).
+This document also describes broader protocol shapes: LATEST_STATE and
+SubscribeMarketState are declared but **UNIMPLEMENTED** in current Gateway;
+Domain multi-selector representability does not promise runtime multi-selector
+support. Current Gateway ends sessions at full rebootstrap/source replacement.
+
 ## 1. Delivery Modes
 
 ### 1.1 CONTIGUOUS_EVENTS

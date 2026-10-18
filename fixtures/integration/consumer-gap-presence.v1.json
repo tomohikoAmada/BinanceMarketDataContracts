@@ -1,0 +1,34 @@
+{
+  "fixture_version": "contracts-c0.consumer-gap-presence.v1",
+  "proto_full_name": "binance_market_data.gateway.v1.ConsumerGapNotice",
+  "cases": [
+    {
+      "name": "absent",
+      "protobuf_hex": "0a16636f6e73756d65722d6761702d6e6f746963652e763112147375622d627463757364742d73706f742d3030311880c8d3d3e1c185ba17206428c8013001380240015001",
+      "symbol_present": false,
+      "symbol": null,
+      "domain_valid": true
+    },
+    {
+      "name": "present-ascii",
+      "protobuf_hex": "0a16636f6e73756d65722d6761702d6e6f746963652e763112147375622d627463757364742d73706f742d3030311880c8d3d3e1c185ba17206428c8013001380240014a07425443555344545001",
+      "symbol_present": true,
+      "symbol": "BTCUSDT",
+      "domain_valid": true
+    },
+    {
+      "name": "present-unicode",
+      "protobuf_hex": "0a16636f6e73756d65722d6761702d6e6f746963652e763112147375622d627463757364742d73706f742d3030311880c8d3d3e1c185ba17206428c8013001380240014a07e5b881555344545001",
+      "symbol_present": true,
+      "symbol": "币USDT",
+      "domain_valid": true
+    },
+    {
+      "name": "present-empty",
+      "protobuf_hex": "0a16636f6e73756d65722d6761702d6e6f746963652e763112147375622d627463757364742d73706f742d3030311880c8d3d3e1c185ba17206428c8013001380240014a005001",
+      "symbol_present": true,
+      "symbol": "",
+      "domain_valid": false
+    }
+  ]
+}

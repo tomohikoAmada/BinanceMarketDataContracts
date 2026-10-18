@@ -13,6 +13,8 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from binance_market_data_contracts.common import (
+    INT32_MAX,
+    UINT64_MAX,
     ContractModel,
     NonEmptyText,
     PriceString,
@@ -44,12 +46,12 @@ class ExchangeDepthSnapshot(ContractModel):
     producer: NonEmptyText
     producer_version: NonEmptyText
     request_id: RequestId
-    last_update_id: int = Field(..., ge=0)
+    last_update_id: int = Field(..., ge=0, le=UINT64_MAX)
     bids: tuple[PriceLevel, ...] = ()
     asks: tuple[PriceLevel, ...] = ()
-    exchange_transaction_time_ms: int | None = Field(default=None, ge=0)
-    receive_time_utc_ns: int | None = Field(default=None, ge=0)
-    receive_monotonic_ns: int | None = Field(default=None, ge=0)
+    exchange_transaction_time_ms: int | None = Field(default=None, ge=0, le=UINT64_MAX)
+    receive_time_utc_ns: int | None = Field(default=None, ge=0, le=UINT64_MAX)
+    receive_monotonic_ns: int | None = Field(default=None, ge=0, le=UINT64_MAX)
     quality_flags: tuple[QualityFlag, ...] = ()
 
     @model_validator(mode="after")
@@ -63,9 +65,9 @@ class GapDescriptor(ContractModel):
     """Structured description of a sequence gap."""
 
     stream: Stream
-    detected_at_utc_ns: int = Field(..., ge=0)
-    previous_sequence: int | None = Field(default=None, ge=0)
-    next_sequence: int | None = Field(default=None, ge=0)
+    detected_at_utc_ns: int = Field(..., ge=0, le=UINT64_MAX)
+    previous_sequence: int | None = Field(default=None, ge=0, le=UINT64_MAX)
+    next_sequence: int | None = Field(default=None, ge=0, le=UINT64_MAX)
     reason_code: ReasonCode | None = None
     recovery_state: ResyncState | None = None
 
@@ -80,12 +82,12 @@ class LocalOrderBookSnapshot(ContractModel):
     producer: NonEmptyText
     producer_version: NonEmptyText
     source: SnapshotSource
-    last_update_id: int = Field(..., ge=0)
+    last_update_id: int = Field(..., ge=0, le=UINT64_MAX)
     bids: tuple[PriceLevel, ...] = ()
     asks: tuple[PriceLevel, ...] = ()
-    depth_limit: int | None = Field(default=None, gt=0)
-    generated_time_utc_ns: int = Field(..., ge=0)
-    generated_monotonic_ns: int | None = Field(default=None, ge=0)
+    depth_limit: int | None = Field(default=None, gt=0, le=INT32_MAX)
+    generated_time_utc_ns: int = Field(..., ge=0, le=UINT64_MAX)
+    generated_monotonic_ns: int | None = Field(default=None, ge=0, le=UINT64_MAX)
     synchronized: bool
     last_gap: GapDescriptor | None = None
     quality_flags: tuple[QualityFlag, ...] = ()

@@ -1211,7 +1211,7 @@ def consumer_gap_notice_from_pb(cgn: pb_gw.ConsumerGapNotice) -> ConsumerGapNoti
         reason=_consumer_gap_reason_from_pb(cgn.reason),
         recovery_action=_recovery_action_from_pb(cgn.recovery_action),
         market=_market_from_pb(cgn.market, "ConsumerGapNotice.market") if cgn.HasField("market") else None,
-        symbol=Symbol(cgn.symbol) if cgn.HasField("symbol") and cgn.symbol else None,
+        symbol=Symbol(cgn.symbol) if cgn.HasField("symbol") else None,
         stream=_stream_from_pb(cgn.stream, "ConsumerGapNotice.stream") if cgn.HasField("stream") else None,
     )
 

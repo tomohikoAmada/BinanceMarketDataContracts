@@ -9,8 +9,10 @@ This package provides two contract strata:
 
 ## Status
 
-All contracts are **PROPOSED** or **DRAFT**. DRAFT contracts are **not frozen** — fields, semantics, and
-structure may change. No contract has been formally ACCEPTED yet.
+All contracts remain **PROPOSED** or **DRAFT**; none is formally ACCEPTED.
+C1 fixes the currently used internal v1 subset at explicit source/package pins
+([consumer capabilities](docs/contracts/current-capabilities.md)). This bounded
+internal agreement does not freeze or promise every unused DRAFT model.
 
 The C-M4-001 architecture is **APPROVED** and ADR-0009 is **ACCEPTED** after an independent
 architecture review with zero blocking findings. The implementation is **COMPLETE / MERGED**;
@@ -56,17 +58,16 @@ separate C++ gRPC service/stub artifact consumed by Gateway.
 
 ## Current cross-repository Gateway orientation
 
-The separate Gateway repository has completed G0-G11, post-G11 runtime
-productization, recovery observability, performance instrumentation, and the
-accepted post-G11 performance baseline. Its ordinary daemon is the fixed
-two-product `bmd-gatewayd` for Spot BTCUSDT and USD-M perpetual BTCUSDT, with
-`SubscribeOrderBook`, `SubscribeEvents`, and `GetGatewayStatus` implemented.
-Contracts remains the owner of the public schemas and C++ artifacts; it has not
-implemented those Gateway features. Contracts also declares `SubscribeMarketState`,
-which the current Gateway service does not implement. That is nonblocking future
-contract/implementation surface reconciliation debt, not a DOC-ALIGN-01 schema
-change. Domain and Wire contracts remain PROPOSED or DRAFT, and formal package
-revision/publication remains separately gated.
+Gateway now supports startup JSON configuration (`bmd-gatewayd --config PATH`)
+for 1..8 isolated products, with `SubscribeOrderBook`, `SubscribeEvents` and
+`GetGatewayStatus`. Spot supports depth/aggTrade/bookTicker; USD-M supports
+only depth. The current used internal v1 subset, exact dependency combination
+and migration rules are fixed in [the C1 consumer page](docs/contracts/current-capabilities.md).
+`SubscribeMarketState` remains UNIMPLEMENTED. Gateway v0.3 G0/G1 are complete;
+four-product production/CI and VPS/API/performance acceptance (G2/G3) remain open.
+Eight products is a resource bound, not measured capacity. Contracts owns the
+schemas/packages; Domain/Wire registry statuses stay PROPOSED/DRAFT and package
+publication remains separate.
 
 ## Installation
 
@@ -328,6 +329,11 @@ Golden fixtures live in `fixtures/valid/` and `fixtures/invalid/`.
 See `fixtures/manifest.json` for the machine-readable index with validation scope
 and expected error metadata.
 
+Contracts C0 fixes current-consumer integer representability and optional Symbol
+presence. See [field changes, reusable producer fixtures and migration requirements](docs/C0_IMPLEMENTATION.md)
+for USD-M depth `T` semantics and the boundary between binary protobuf and strict
+Domain/JSON compatibility. No wire schema or contract status is changed.
+
 ## Tests
 
 ```bash
@@ -337,7 +343,9 @@ pytest -q
 ## Version policy
 
 Contracts follow `<contract-name>.v<major>` versioning.
-Compatible additions (optional fields, new quality flags) do not bump major.
+Compatible optional wire additions do not bump major. Binary unknown-enum
+preservation does not imply strict Domain/JSON support for new quality flags;
+see `docs/contracts/compatibility_policy.md`.
 Field removal, renaming, unit changes, or semantic changes are BREAKING.
 
 Every registered contract explicitly requires `schema_version` in serialized form.

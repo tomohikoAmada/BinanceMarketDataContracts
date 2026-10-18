@@ -12,7 +12,13 @@ from typing import Final, Literal
 
 from pydantic import Field, model_validator
 
-from binance_market_data_contracts.common import NON_EMPTY_TEXT_PATTERN, ContractModel, NonEmptyText
+from binance_market_data_contracts.common import (
+    INT32_MAX,
+    NON_EMPTY_TEXT_PATTERN,
+    UINT64_MAX,
+    ContractModel,
+    NonEmptyText,
+)
 from binance_market_data_contracts.enums import (
     ConsumerGapReason,
     DeliveryMode,
@@ -105,7 +111,7 @@ class OrderBookSubscriptionRequest(ContractModel):
     venue: Venue
     market: Market
     symbol: Symbol
-    depth_limit: int | None = Field(default=None, gt=0)
+    depth_limit: int | None = Field(default=None, gt=0, le=INT32_MAX)
     initial_snapshot_mode: Literal[InitialSnapshotMode.REQUIRED]
     supported_snapshot_schema_versions: tuple[str, ...] = Field(..., min_length=1)
     supported_update_schema_versions: tuple[str, ...] = Field(..., min_length=1)
@@ -159,7 +165,7 @@ class SubscriptionAccepted(ContractModel):
     subscription_id: SubscriptionId
     schema_version: Literal["subscription-accepted.v1"]
     gateway_instance_id: GatewayInstanceId
-    accepted_time_utc_ns: int = Field(..., ge=0)
+    accepted_time_utc_ns: int = Field(..., ge=0, le=UINT64_MAX)
     negotiated_payload_schema_versions: tuple[str, ...] = Field(..., min_length=1)
 
     @model_validator(mode="after")
@@ -173,9 +179,9 @@ class ConsumerGapNotice(ContractModel):
 
     schema_version: Literal["consumer-gap-notice.v1"]
     subscription_id: SubscriptionId
-    detected_time_utc_ns: int = Field(..., ge=0)
-    last_delivered_session_sequence: int | None = Field(default=None, gt=0)
-    next_available_session_sequence: int | None = Field(default=None, gt=0)
+    detected_time_utc_ns: int = Field(..., ge=0, le=UINT64_MAX)
+    last_delivered_session_sequence: int | None = Field(default=None, gt=0, le=UINT64_MAX)
+    next_available_session_sequence: int | None = Field(default=None, gt=0, le=UINT64_MAX)
     reason: ConsumerGapReason
     recovery_action: RecoveryAction
     market: Market | None = None
@@ -212,7 +218,7 @@ class StreamStatus(ContractModel):
     schema_version: Literal["stream-status.v1"]
     subscription_id: SubscriptionId
     state: StreamLifecycleState
-    observed_time_utc_ns: int = Field(..., ge=0)
+    observed_time_utc_ns: int = Field(..., ge=0, le=UINT64_MAX)
     reason_code: ReasonCode | None = None
     message: NonEmptyText | None = None
 
@@ -235,10 +241,10 @@ class GatewayEnvelopeMetadata(ContractModel):
     protocol_version: Literal["gateway-stream.v1"]
     gateway_instance_id: GatewayInstanceId
     subscription_id: SubscriptionId
-    connection_generation: int | None = Field(default=None, ge=1)
-    session_sequence: int = Field(..., ge=1)
-    publish_time_utc_ns: int = Field(..., ge=0)
-    publish_monotonic_ns: int | None = Field(default=None, ge=0)
+    connection_generation: int | None = Field(default=None, ge=1, le=UINT64_MAX)
+    session_sequence: int = Field(..., ge=1, le=UINT64_MAX)
+    publish_time_utc_ns: int = Field(..., ge=0, le=UINT64_MAX)
+    publish_monotonic_ns: int | None = Field(default=None, ge=0, le=UINT64_MAX)
 
 
 def _validate_stream_item_identity(
@@ -407,9 +413,9 @@ class MarketRuntimeStatus(ContractModel):
     market: Market
     symbol: Symbol
     state: StreamLifecycleState
-    last_event_utc_ns: int | None = Field(default=None, ge=0)
-    connection_generation: int | None = Field(default=None, ge=1)
-    active_subscription_count: int = Field(default=0, ge=0)
+    last_event_utc_ns: int | None = Field(default=None, ge=0, le=UINT64_MAX)
+    connection_generation: int | None = Field(default=None, ge=1, le=UINT64_MAX)
+    active_subscription_count: int = Field(default=0, ge=0, le=UINT64_MAX)
 
 
 class GatewayStatusSnapshot(ContractModel):
@@ -417,7 +423,7 @@ class GatewayStatusSnapshot(ContractModel):
 
     schema_version: Literal["gateway-status-snapshot.v1"]
     gateway_instance_id: GatewayInstanceId
-    observed_time_utc_ns: int = Field(..., ge=0)
-    uptime_seconds: int = Field(..., ge=0)
+    observed_time_utc_ns: int = Field(..., ge=0, le=UINT64_MAX)
+    uptime_seconds: int = Field(..., ge=0, le=UINT64_MAX)
     markets: tuple[MarketRuntimeStatus, ...] = ()
-    total_active_subscriptions: int = Field(default=0, ge=0)
+    total_active_subscriptions: int = Field(default=0, ge=0, le=UINT64_MAX)
