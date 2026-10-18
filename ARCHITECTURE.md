@@ -68,6 +68,7 @@ A contract is promoted from PROPOSED to ACCEPTED when:
 - `docs/adr/ADR-0009-cpp-protobuf-package.md` (ACCEPTED)
 - `docs/adr/ADR-0010-separate-cpp-grpc-artifact.md` (ACCEPTED)
 - `docs/adr/ADR-0011-opaque-utf8-symbol-identity.md` (ACCEPTED)
+- `docs/adr/ADR-0012-current-consumer-wire-correctness.md` (PROPOSED; C0 implementation authorized by v0.3 plan)
 
 ## C-M4-001 C++ package design
 

@@ -3,6 +3,12 @@
 All contracts with status, producer, and consumer information from the current registry/documented
 contract set.
 
+The v0.3 [C0 implementation](../C0_IMPLEMENTATION.md) limits correctness changes
+to the currently used five market/book models, the three implemented RPCs'
+existing lifecycle/status surface and shared helpers. Registry names, versions
+and statuses are unchanged; candidate relationships below are not evidence that
+Recorder currently imports Contracts.
+
 ## Interpretation note
 
 This inventory records **contract surfaces and candidate producer/consumer relationships**. It does

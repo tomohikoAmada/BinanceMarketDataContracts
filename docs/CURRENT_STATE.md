@@ -17,6 +17,19 @@ package workflows, schema/package compatibility, and explicit domain/wire adapte
 own exchange sequence classification, Projection lifecycle semantics, Recorder reconnect behavior,
 or Gateway runtime.
 
+## Contracts C0 local implementation — 2026-10-12
+
+- Based on checked-out / live GitHub main `8701c330911c0f1c0b38207281dea426c2dee434`;
+  baseline CI run `33970928350` succeeded. This is not candidate CI evidence.
+- Current consumer integer fields align with existing uint64/int32 bounds;
+  present-empty ConsumerGapNotice Symbol is rejected without losing presence.
+- Shared source-time fixtures specify USD-M depth `T` → transaction time.
+  Recorder/Gateway producer migration remains in their own repositories.
+- See [C0 field changes, fixtures, evidence and migration](C0_IMPLEMENTATION.md)
+  and [ADR-0012](adr/ADR-0012-current-consumer-wire-correctness.md).
+- No wire descriptor/RPC/enum/version/status changes, unused-contract expansion,
+  Conan lock changes or public release. C0 does not depend on formal publication.
+
 ## Source-of-Truth Order
 
 For implemented facts, use checked-out code, tests, build configuration, Git history, and current

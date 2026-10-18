@@ -5,6 +5,7 @@
   "description": "Confirms a subscription was accepted by the Gateway.",
   "properties": {
     "accepted_time_utc_ns": {
+      "maximum": 18446744073709551615,
       "minimum": 0,
       "type": "integer"
     },

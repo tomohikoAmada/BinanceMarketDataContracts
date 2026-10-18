@@ -49,6 +49,30 @@
 8. Computed times must be distinguished from observed times
 9. Every time field documents where/when it was captured
 
+## USD-M depth producer mapping (C0)
+
+For USD-M Diff. Book Depth Streams, `E` is event time and `T` is transaction time.
+Producers map `E` to `exchange_event_time_ms` and `T` to
+`exchange_transaction_time_ms`; `exchange_trade_time_ms` remains absent.
+For the REST Order Book response, `T` is also transaction time; the existing
+`ExchangeDepthSnapshot.exchange_transaction_time_ms` field is correct. No new
+schema field is needed. Trade streams retain their trade-time mapping.
+
+An absent optional time remains `None`/absent on protobuf. Present zero remains
+present zero, and must not be used as an absence sentinel. Do not substitute `E`,
+receive time or trade time for a missing `T`. Raw protocol acceptance (including
+whether a missing `T` is malformed) remains the producer's responsibility.
+Current C0 time fields are integers in `[0, 18446744073709551615]` to match `uint64`.
+
+Verified against official Binance documentation on 2026-10-12:
+
+- [USD-M public WebSocket streams, Diff. Book Depth Streams](https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#diff-book-depth-streams)
+- [USD-M REST market data, Order Book](https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/market-data#order-book)
+
+Shared producer test inputs and exact cross-repository changes are in
+[C0 implementation and migration](../C0_IMPLEMENTATION.md). Contracts round-trips
+cannot detect an upstream source-field misassignment without that source oracle.
+
 ## Capture points
 
 | Field | Captured at | Description |

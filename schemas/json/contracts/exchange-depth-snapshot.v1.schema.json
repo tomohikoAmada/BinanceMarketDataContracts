@@ -83,6 +83,7 @@
     "exchange_transaction_time_ms": {
       "anyOf": [
         {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "type": "integer"
         },
@@ -93,6 +94,7 @@
       "default": null
     },
     "last_update_id": {
+      "maximum": 18446744073709551615,
       "minimum": 0,
       "type": "integer"
     },
@@ -121,6 +123,7 @@
     "receive_monotonic_ns": {
       "anyOf": [
         {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "type": "integer"
         },
@@ -133,6 +136,7 @@
     "receive_time_utc_ns": {
       "anyOf": [
         {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "type": "integer"
         },

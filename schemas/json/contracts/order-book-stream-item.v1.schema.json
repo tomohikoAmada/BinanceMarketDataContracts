@@ -5,6 +5,7 @@
       "description": "Informs the consumer that a gap has been detected in their stream.",
       "properties": {
         "detected_time_utc_ns": {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "title": "Detected Time Utc Ns",
           "type": "integer"
@@ -13,6 +14,7 @@
           "anyOf": [
             {
               "exclusiveMinimum": 0,
+              "maximum": 18446744073709551615,
               "type": "integer"
             },
             {
@@ -37,6 +39,7 @@
           "anyOf": [
             {
               "exclusiveMinimum": 0,
+              "maximum": 18446744073709551615,
               "type": "integer"
             },
             {
@@ -133,11 +136,13 @@
           "type": "array"
         },
         "final_update_id": {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "title": "Final Update Id",
           "type": "integer"
         },
         "first_update_id": {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "title": "First Update Id",
           "type": "integer"
@@ -148,6 +153,7 @@
         "previous_final_update_id": {
           "anyOf": [
             {
+              "maximum": 18446744073709551615,
               "minimum": 0,
               "type": "integer"
             },
@@ -181,6 +187,7 @@
         "exchange_event_time_ms": {
           "anyOf": [
             {
+              "maximum": 18446744073709551615,
               "minimum": 0,
               "type": "integer"
             },
@@ -194,6 +201,7 @@
         "exchange_trade_time_ms": {
           "anyOf": [
             {
+              "maximum": 18446744073709551615,
               "minimum": 0,
               "type": "integer"
             },
@@ -207,6 +215,7 @@
         "exchange_transaction_time_ms": {
           "anyOf": [
             {
+              "maximum": 18446744073709551615,
               "minimum": 0,
               "type": "integer"
             },
@@ -245,6 +254,7 @@
         "receive_monotonic_ns": {
           "anyOf": [
             {
+              "maximum": 18446744073709551615,
               "minimum": 0,
               "type": "integer"
             },
@@ -258,6 +268,7 @@
         "receive_time_utc_ns": {
           "anyOf": [
             {
+              "maximum": 18446744073709551615,
               "minimum": 0,
               "type": "integer"
             },
@@ -306,6 +317,7 @@
       "description": "Structured description of a sequence gap.",
       "properties": {
         "detected_at_utc_ns": {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "title": "Detected At Utc Ns",
           "type": "integer"
@@ -313,6 +325,7 @@
         "next_sequence": {
           "anyOf": [
             {
+              "maximum": 18446744073709551615,
               "minimum": 0,
               "type": "integer"
             },
@@ -326,6 +339,7 @@
         "previous_sequence": {
           "anyOf": [
             {
+              "maximum": 18446744073709551615,
               "minimum": 0,
               "type": "integer"
             },
@@ -376,6 +390,7 @@
         "connection_generation": {
           "anyOf": [
             {
+              "maximum": 18446744073709551615,
               "minimum": 1,
               "type": "integer"
             },
@@ -401,6 +416,7 @@
         "publish_monotonic_ns": {
           "anyOf": [
             {
+              "maximum": 18446744073709551615,
               "minimum": 0,
               "type": "integer"
             },
@@ -412,11 +428,13 @@
           "title": "Publish Monotonic Ns"
         },
         "publish_time_utc_ns": {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "title": "Publish Time Utc Ns",
           "type": "integer"
         },
         "session_sequence": {
+          "maximum": 18446744073709551615,
           "minimum": 1,
           "title": "Session Sequence",
           "type": "integer"
@@ -463,6 +481,7 @@
           "anyOf": [
             {
               "exclusiveMinimum": 0,
+              "maximum": 2147483647,
               "type": "integer"
             },
             {
@@ -475,6 +494,7 @@
         "generated_monotonic_ns": {
           "anyOf": [
             {
+              "maximum": 18446744073709551615,
               "minimum": 0,
               "type": "integer"
             },
@@ -486,6 +506,7 @@
           "title": "Generated Monotonic Ns"
         },
         "generated_time_utc_ns": {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "title": "Generated Time Utc Ns",
           "type": "integer"
@@ -502,6 +523,7 @@
           "default": null
         },
         "last_update_id": {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "title": "Last Update Id",
           "type": "integer"
@@ -720,6 +742,7 @@
           "title": "Message"
         },
         "observed_time_utc_ns": {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "title": "Observed Time Utc Ns",
           "type": "integer"
@@ -765,6 +788,7 @@
       "description": "Confirms a subscription was accepted by the Gateway.",
       "properties": {
         "accepted_time_utc_ns": {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "title": "Accepted Time Utc Ns",
           "type": "integer"

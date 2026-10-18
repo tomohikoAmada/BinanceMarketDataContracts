@@ -328,6 +328,11 @@ Golden fixtures live in `fixtures/valid/` and `fixtures/invalid/`.
 See `fixtures/manifest.json` for the machine-readable index with validation scope
 and expected error metadata.
 
+Contracts C0 fixes current-consumer integer representability and optional Symbol
+presence. See [field changes, reusable producer fixtures and migration requirements](docs/C0_IMPLEMENTATION.md)
+for USD-M depth `T` semantics and the boundary between binary protobuf and strict
+Domain/JSON compatibility. No wire schema or contract status is changed.
+
 ## Tests
 
 ```bash
@@ -337,7 +342,9 @@ pytest -q
 ## Version policy
 
 Contracts follow `<contract-name>.v<major>` versioning.
-Compatible additions (optional fields, new quality flags) do not bump major.
+Compatible optional wire additions do not bump major. Binary unknown-enum
+preservation does not imply strict Domain/JSON support for new quality flags;
+see `docs/contracts/compatibility_policy.md`.
 Field removal, renaming, unit changes, or semantic changes are BREAKING.
 
 Every registered contract explicitly requires `schema_version` in serialized form.

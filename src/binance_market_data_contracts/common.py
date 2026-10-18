@@ -29,6 +29,10 @@ SIGNED_DECIMAL_PATTERN = (
 NON_EMPTY_TEXT_PATTERN = r"^\S(?:.*\S)?$"
 IDENTIFIER_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$"
 
+# Wire representability limits, applied only to the current C0 consumer surface.
+UINT64_MAX = (1 << 64) - 1
+INT32_MAX = (1 << 31) - 1
+
 
 def _validate_price_positive(v: str) -> str:
     try:

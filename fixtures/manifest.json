@@ -706,6 +706,94 @@
       "validation_scope": "BOTH",
       "expected_error_code": null,
       "expected_error_path": null
+    },
+    {
+      "path": "valid/depth-update.v1.uint64-max.json",
+      "contract_name": "depth-update.v1",
+      "schema_version": "depth-update.v1",
+      "python_type": "DepthUpdate",
+      "valid": true,
+      "scenario": "All DepthUpdate uint64 fields at maximum, with optional presence",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "invalid/depth-update.v1.uint64-overflow.json",
+      "contract_name": "depth-update.v1",
+      "schema_version": "depth-update.v1",
+      "python_type": "DepthUpdate",
+      "valid": false,
+      "scenario": "Depth final update ID exceeds uint64",
+      "validation_scope": "BOTH",
+      "expected_error_code": "less_than_equal",
+      "expected_error_path": "final_update_id"
+    },
+    {
+      "path": "valid/local-order-book-snapshot.v1.int32-max.json",
+      "contract_name": "local-order-book-snapshot.v1",
+      "schema_version": "local-order-book-snapshot.v1",
+      "python_type": "LocalOrderBookSnapshot",
+      "valid": true,
+      "scenario": "Local book uint64 maximum and positive int32 depth limit maximum",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "invalid/local-order-book-snapshot.v1.int32-overflow.json",
+      "contract_name": "local-order-book-snapshot.v1",
+      "schema_version": "local-order-book-snapshot.v1",
+      "python_type": "LocalOrderBookSnapshot",
+      "valid": false,
+      "scenario": "Local book depth limit exceeds int32",
+      "validation_scope": "BOTH",
+      "expected_error_code": "less_than_equal",
+      "expected_error_path": "depth_limit"
+    },
+    {
+      "path": "valid/order-book-subscription-request.v1.int32-max.json",
+      "contract_name": "order-book-subscription-request.v1",
+      "schema_version": "order-book-subscription-request.v1",
+      "python_type": "OrderBookSubscriptionRequest",
+      "valid": true,
+      "scenario": "Order book request positive int32 maximum",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "invalid/order-book-subscription-request.v1.int32-overflow.json",
+      "contract_name": "order-book-subscription-request.v1",
+      "schema_version": "order-book-subscription-request.v1",
+      "python_type": "OrderBookSubscriptionRequest",
+      "valid": false,
+      "scenario": "Order book request depth limit exceeds int32",
+      "validation_scope": "BOTH",
+      "expected_error_code": "less_than_equal",
+      "expected_error_path": "depth_limit"
+    },
+    {
+      "path": "invalid/consumer-gap-notice.v1.empty-symbol.json",
+      "contract_name": "consumer-gap-notice.v1",
+      "schema_version": "consumer-gap-notice.v1",
+      "python_type": "ConsumerGapNotice",
+      "valid": false,
+      "scenario": "Present empty Symbol is invalid; absence remains valid",
+      "validation_scope": "BOTH",
+      "expected_error_code": "string_too_short",
+      "expected_error_path": "symbol"
+    },
+    {
+      "path": "invalid/depth-update.v1.negative-transaction-time.json",
+      "contract_name": "depth-update.v1",
+      "schema_version": "depth-update.v1",
+      "python_type": "DepthUpdate",
+      "valid": false,
+      "scenario": "Negative transaction time is invalid",
+      "validation_scope": "BOTH",
+      "expected_error_code": "greater_than_equal",
+      "expected_error_path": "metadata.exchange_transaction_time_ms"
     }
   ]
 }

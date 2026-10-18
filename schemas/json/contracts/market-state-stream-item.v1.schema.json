@@ -5,6 +5,7 @@
       "description": "Informs the consumer that a gap has been detected in their stream.",
       "properties": {
         "detected_time_utc_ns": {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "title": "Detected Time Utc Ns",
           "type": "integer"
@@ -13,6 +14,7 @@
           "anyOf": [
             {
               "exclusiveMinimum": 0,
+              "maximum": 18446744073709551615,
               "type": "integer"
             },
             {
@@ -37,6 +39,7 @@
           "anyOf": [
             {
               "exclusiveMinimum": 0,
+              "maximum": 18446744073709551615,
               "type": "integer"
             },
             {
@@ -119,6 +122,7 @@
         "connection_generation": {
           "anyOf": [
             {
+              "maximum": 18446744073709551615,
               "minimum": 1,
               "type": "integer"
             },
@@ -144,6 +148,7 @@
         "publish_monotonic_ns": {
           "anyOf": [
             {
+              "maximum": 18446744073709551615,
               "minimum": 0,
               "type": "integer"
             },
@@ -155,11 +160,13 @@
           "title": "Publish Monotonic Ns"
         },
         "publish_time_utc_ns": {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "title": "Publish Time Utc Ns",
           "type": "integer"
         },
         "session_sequence": {
+          "maximum": 18446744073709551615,
           "minimum": 1,
           "title": "Session Sequence",
           "type": "integer"
@@ -580,6 +587,7 @@
           "title": "Message"
         },
         "observed_time_utc_ns": {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "title": "Observed Time Utc Ns",
           "type": "integer"
@@ -625,6 +633,7 @@
       "description": "Confirms a subscription was accepted by the Gateway.",
       "properties": {
         "accepted_time_utc_ns": {
+          "maximum": 18446744073709551615,
           "minimum": 0,
           "title": "Accepted Time Utc Ns",
           "type": "integer"
