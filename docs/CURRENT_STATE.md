@@ -1,164 +1,64 @@
-CURRENT-STATE ORIENTATION ONLY.
-This file summarizes repository state for humans and AI reviewers.
-It does not override accepted ADRs or semantic design documents.
-When this file and Git/GitHub/code disagree, verify Git/GitHub/code and update this file.
+CURRENT-STATE ORIENTATION ONLY. Verify actual source, Git/GitHub and CI when
+freshness matters. Accepted ADRs and semantic designs remain authoritative.
 
 # Current State
 
-## Purpose of This File
+Updated 2026-10-18; all six sibling Milestone Plan documents were read.
 
-This is the current orientation index for a fresh human or AI reviewer. It separates current
-repository facts from historical design, planning, and review evidence.
+## Current v0.3 milestones
 
-## Repository Role
+| Stage | State | Evidence |
+| --- | --- | --- |
+| C0 correctness | Existing local implementation preserved as source `db8156f1e16ba7a4a5ee8d5b26316139b7e218f3`; independently reviewed; all 675 tests passed with C1 | [C0 fields/fixtures/migration](C0_IMPLEMENTATION.md), [ADR-0012](adr/ADR-0012-current-consumer-wire-correctness.md) |
+| C1 used internal v1 contract | Implemented, fixed-dependency offline verified and independently reviewed; PR/CI delivery pending | [Consumer page](contracts/current-capabilities.md), [C1 evidence](C1_EVIDENCE.md) |
+| C2 conditional simplification | Not triggered; no evidenced maintenance/performance reason for changes in this task | Sibling Contracts milestone plan |
 
-Contracts owns public Pydantic domain contracts, Protobuf wire schemas, generated artifacts and
-package workflows, schema/package compatibility, and explicit domain/wire adapters. It does not
-own exchange sequence classification, Projection lifecycle semantics, Recorder reconnect behavior,
-or Gateway runtime.
+## Repository role and implemented boundaries
 
-## Contracts C0 local implementation — 2026-10-12
+Contracts owns public Pydantic Domain models, Protobuf wire/service schemas,
+generated Python/JSON artifacts, explicit adapters, fixtures and package
+compatibility. It owns no network client/server, persistence or Projection
+sequence algorithm. Recorder currently uses independent Raw/Normalize/Replay
+types. Projection Core stays independent; its optional ProtoAdapter consumes
+Contracts messages. Gateway owns runtime, transport and gRPC serving.
 
-- Based on checked-out / live GitHub main `8701c330911c0f1c0b38207281dea426c2dee434`;
-  baseline CI run `33970928350` succeeded. This is not candidate CI evidence.
-- Current consumer integer fields align with existing uint64/int32 bounds;
-  present-empty ConsumerGapNotice Symbol is rejected without losing presence.
-- Shared source-time fixtures specify USD-M depth `T` → transaction time.
-  Recorder/Gateway producer migration remains in their own repositories.
-- See [C0 field changes, fixtures, evidence and migration](C0_IMPLEMENTATION.md)
-  and [ADR-0012](adr/ADR-0012-current-consumer-wire-correctness.md).
-- No wire descriptor/RPC/enum/version/status changes, unused-contract expansion,
-  Conan lock changes or public release. C0 does not depend on formal publication.
+C0 bounds current-consumer integers by existing uint64/int32 types and rejects
+present-empty optional Symbol while preserving absence/zero. USD-M depth T is
+transaction-time per shared fixture; producer migrations remain producer-owned.
+Gateway v0.3 G1 has implemented and tested that mapping plus Applied Depth time.
+Recorder production qualification remains in Recorder and is not revalidated here.
 
-## Source-of-Truth Order
+C1 fixes five used market/book models, eight RPC-related models and existing
+StreamStatus/helpers at the [documented internal combination](contracts/current-capabilities.md).
+Gateway now configures 1..8 products; three RPCs are implemented, Spot supports
+three event streams and USD-M only depth. SubscribeMarketState is UNIMPLEMENTED.
+Gateway G0/G1 are complete; G2/G3/four-product delivery/VPS/API/performance are open.
 
-For implemented facts, use checked-out code, tests, build configuration, Git history, and current
-GitHub state. Accepted ADRs and accepted semantic designs govern deliberate semantics. This file is
-orientation only.
+## Package and compatibility facts
 
-## Synchronization Baseline
-
-- This synchronization was prepared against Contracts main commit
-  `67ee1bf69fad980d114cfa278c3a6ffe310a4d7a`.
-- The corresponding baseline main CI run `31173390048` completed
-  successfully.
-- Repository tip, open PR, and active branch state are dynamic; verify live
-  Git/GitHub when freshness matters.
-
-## Active Candidate / Pull Request
-
-- The C-M4-001 implementation candidate is merged; no remaining C-M4-001
-  implementation candidate exists.
-- Repository-wide open pull requests and active branches are dynamic GitHub
-  state and must be checked live. This orientation file itself may be read
-  from a later documentation synchronization candidate.
-
-## Deployed State
-
-N/A. The C++ package is not published or deployed. The repository contains the package source and
-build/package workflow only.
-
-## Implemented
-
-- C-M4-001 is implemented, accepted, and merged to `main`.
-- Package coordinate: `binance-market-data-contracts-cpp/0.1.0`.
-- Installed target: `BinanceMarketDataContracts::Protobuf`.
-- Seven non-service Protobuf message sources are generated at build time; generated C++ files are
-  build outputs, not primary committed sources.
-- ADR-0010 corrects the M6 C++ package boundary. The optional frozen
-  `BinanceMarketDataContracts::Grpc` target is supplied by the separate candidate coordinate
-  `binance-market-data-contracts-grpc-cpp/0.1.0` and CMake package
-  `BinanceMarketDataContractsGrpc`.
-- `binance-market-data-contracts-cpp/0.1.0` is again a true message-only artifact: its Conan host
-  and build graphs contain no gRPC, and it generates/installs only the seven non-service messages.
-- The gRPC artifact generates/installs only `gateway_service.pb.*` and
-  `gateway_service.grpc.pb.*`, publicly links the exact base artifact and `gRPC::grpc++`, and owns
-  no generated message symbols.
-- `Symbol` is an opaque, non-empty Unicode-scalar identity. It preserves code points and case,
-  rejects U+0000..U+0020 and U+007F, and has no contract-level maximum length (ADR-0011).
-- Formal Schema Fingerprint Algorithm Version 1 digest:
+- Historical C-M4-001 implementation/re-review is complete and merged; see
+  [implementation evidence](C-M4-001_IMPLEMENTATION_EVIDENCE.md).
+- Message-only `binance-market-data-contracts-cpp/0.1.0` exports
+  `BinanceMarketDataContracts::Protobuf`; no gRPC in its host/build graph.
+- Separate `binance-market-data-contracts-grpc-cpp/0.1.0` exports
+  `BinanceMarketDataContracts::Grpc`, links the exact message artifact and
+  owns only generated service/stub symbols. Exact RREVs/source/PREVs: C1 evidence.
+- Schema Fingerprint Algorithm Version 1 digest stays
   `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`.
+- Domain/Wire statuses and schema versions remain unchanged (23 contracts,
+  19 wire mappings, PROPOSED/DRAFT). Internal C1 support is narrower than
+  schema representability; unused models are not promised or expanded.
+- Formal Package Revision stays NOT_FORMALLY_ASSIGNED; publication is separate
+  and is not needed for internal C1. No new RPC/descriptor/enum/Conan-lock change.
+- Binary protobuf compatibility differs from strict Domain/JSON/adapter support;
+  see [compatibility policy](contracts/compatibility_policy.md).
 
-## Not Implemented
+## Review and history
 
-- Formal Contracts Package Revision assignment; it remains `NOT_FORMALLY_ASSIGNED` and is gated on
-  release.
-- Package publication/release.
-- Gateway runtime or gRPC server in this repository; the separate Gateway
-  repository owns that runtime and this repository provides its optional
-  Contracts-owned gRPC service/stub package surface.
-- Formal acceptance of the Domain and Wire Contracts; they remain PROPOSED or DRAFT unless a
-  separate contract authority says otherwise.
-- Publication of the new gRPC artifact or formal assignment of its package revision.
+Current branch/PR/CI delivery is recorded in [C1 evidence](C1_EVIDENCE.md), rather
+than inferred from historical CI. Historical baseline `8701c330` and earlier
+C-M4-001/Gateway dependency proofs retain their original meaning; C1 does not
+repeat cold third-party builds or reopen completed proof stages.
 
-## Current Blockers
-
-- Release/publication is not authorized until release identities, including Package Revision, are
-  intentionally assigned.
-- Contract semantic acceptance remains separate from C-M4-001 package implementation acceptance.
-
-## Accepted Semantic Authorities
-
-Accepted ADRs and accepted semantic designs remain authoritative, especially ADR-0007 for the
-contract strata, ADR-0009 for Contracts-owned C++ Protobuf package ownership, and ADR-0010 for the
-separate gRPC artifact boundary, and ADR-0011 for opaque UTF-8 symbol identity. This file does not
-promote any PROPOSED/DRAFT contract or redefine another repository's semantics.
-
-## Known Semantic Conflicts
-
-- Contracts owns neither Spot bootstrap policy nor Recorder R-034. Projection owns its accepted
-  Spot bootstrap rule; Recorder's local L+1 behavior remains an open Recorder-local conflict.
-
-## Cross-Repository Relationships
-
-- Recorder owns acquisition, immutable Raw, capture/provenance, Catalog, archive, normalization,
-  replay/source evidence, and operational integrity.
-- Contracts owns the schemas/package consumed by Projection's optional adapter.
-- Projection owns deterministic projection semantics, fixed-point interpretation, order book,
-  market-specific sequencing, lifecycle, and M5 validation.
-- Contracts schemas may be consumed by Projection's optional adapter; Contracts does not redefine
-  Projection M3 sequence semantics.
-- Projection M4 is complete in `BinanceMarketDataProjection`; Gateway runtime
-  is implemented in its separate repository and remains outside Contracts.
-
-## Validation / CI Evidence
-
-The baseline main CI run `31173390048` completed successfully for the
-synchronization baseline commit `67ee1bf69fad980d114cfa278c3a6ffe310a4d7a`.
-The accepted C-M4-001 implementation re-review recorded CI `31167981350` as
-15/15 PASS; that is historical review evidence, not a current PR state.
-
-## Next repository boundary
-
-The ADR-0010 artifact split is complete and the two exact coordinates are
-available to Gateway. Release/publication remains separately gated. Do not
-implement Gateway runtime or redefine Projection sequence semantics in this
-repository.
-
-## Current cross-repository Gateway orientation
-
-The separate Gateway repository has completed G0-G11, post-G11 runtime
-productization, recovery observability, performance instrumentation, and the
-accepted post-G11 performance baseline. Its ordinary `bmd-gatewayd` is the
-fixed two-product daemon for Spot BTCUSDT and USD-M perpetual BTCUSDT, with
-`SubscribeOrderBook`, `SubscribeEvents`, and `GetGatewayStatus` implemented.
-Contracts does not claim ownership or implementation of those features.
-Contracts declares `SubscribeMarketState`, while current Gateway does not
-implement it; this is nonblocking future contract/implementation surface
-reconciliation debt, and baseline closure is not blocked. Domain and Wire
-contracts remain PROPOSED/DRAFT, and formal package revision/publication remains
-separately gated.
-
-## AI / Reviewer Reading Order
-
-Read `docs/CURRENT_STATE.md`, `AGENTS.md`, `README.md`, `ARCHITECTURE.md`, the relevant milestone or
-design document, accepted ADRs, actual code/tests, and then verify GitHub PR and exact-head CI state.
-Do not trust this file alone for an independent review.
-
-## Historical Documents
-
-`docs/C-M4-001_IMPLEMENTATION_PLAN.md` and
-`docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md` are preserved historical planning/design snapshots.
-`docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md` preserves candidate and review evidence with a current
-status header. ADR-0009 preserves its accepted architectural decision and historical acceptance
-record; it is not rewritten by this synchronization.
+Read this file, AGENTS.md, README, ARCHITECTURE, relevant current plan/accepted
+ADRs, code/tests, and exact PR/CI. Historical C-M4-001 plans remain historical.

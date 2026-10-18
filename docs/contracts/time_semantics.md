@@ -83,3 +83,13 @@ cannot detect an upstream source-field misassignment without that source oracle.
 | `generated_time_utc_ns` | Producer | When a derived snapshot was computed |
 | `observed_time_utc_ns` | Health/Telemetry | When an observation was recorded |
 | `detected_at_utc_ns` | Health | When a condition was detected |
+
+## Current Gateway Status time (C1)
+
+From Gateway v0.3 G1, `MarketRuntimeStatus.last_event_utc_ns` means the current
+valid source generation's last Projection-Applied Depth receive UTC, replacing
+historical any-stream activity. Trade/ticker do not refresh it; invalid book,
+Gap/recovery, missing time/provenance or generation mismatch yield absence.
+Present zero is distinct from absence. Clients must handle wall-clock rollback
+and future values as unknown age; there is no freshness SLA or quiet-market
+resynchronization policy. See [consumer capabilities](current-capabilities.md).

@@ -9,6 +9,14 @@ existing lifecycle/status surface and shared helpers. Registry names, versions
 and statuses are unchanged; candidate relationships below are not evidence that
 Recorder currently imports Contracts.
 
+## Current runtime subset (C1)
+
+[The consumer capability page](current-capabilities.md) lists the five used
+market/book models, eight RPC-related models, existing StreamStatus/helpers,
+three supported RPCs, exact internal dependency versions and upgrade rules.
+The relationships below remain design candidates; they do not widen that
+runtime support or imply a Recorder dependency.
+
 ## Interpretation note
 
 This inventory records **contract surfaces and candidate producer/consumer relationships**. It does

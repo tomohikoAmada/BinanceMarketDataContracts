@@ -65,7 +65,9 @@ DRAFT → PROPOSED → ACCEPTED → DEPRECATED → REMOVED
 ### DRAFT
 - Under active development
 - May change without notice
-- NOT for production use
+- No general production support promise. The [C1 internal subset](current-capabilities.md)
+  is consumed only at its fixed versions and documented runtime support; this
+  does not promote or freeze every DRAFT contract.
 
 ### PROPOSED
 - Submitted for review
