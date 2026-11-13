@@ -868,6 +868,12 @@ def _instrument_reference_to_pb(value: InstrumentReference) -> pb_reference.Inst
 
 
 def reference_observation_from_pb(value: pb_reference.ReferenceObservation) -> ReferenceObservation:
+    _require_exact_string(
+        contract="ReferenceObservation",
+        field="schema_version",
+        actual=value.schema_version,
+        expected="reference-observation.v1",
+    )
     kwargs: dict[str, Any] = {
         "schema_version": "reference-observation.v1",
         "venue": _venue_from_pb(value.venue, "ReferenceObservation.venue"),
