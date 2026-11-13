@@ -18,6 +18,7 @@ from binance_market_data.common.v1 import identifiers_pb2 as pb_id
 from binance_market_data.common.v1 import metadata_pb2 as pb_meta
 from binance_market_data.gateway.v1 import gateway_messages_pb2 as pb_gw
 from binance_market_data.market.v1 import market_events_pb2 as pb_events
+from binance_market_data.market.v1 import reference_data_pb2 as pb_reference
 from binance_market_data.projection.v1 import snapshots_pb2 as pb_snap
 from binance_market_data.telemetry.v1 import telemetry_pb2 as pb_telemetry
 from binance_market_data_contracts.enums import (
@@ -30,6 +31,8 @@ from binance_market_data_contracts.enums import (
     QualityFlag,
     ReasonCode,
     RecoveryAction,
+    ReferenceObservationStatus,
+    ReferenceSourceKind,
     ResyncState,
     SnapshotSource,
     Stream,
@@ -43,14 +46,21 @@ from binance_market_data_contracts.gateway import (
     GatewayEventEnvelope,
     GatewayStatusRequest,
     GatewayStatusSnapshot,
+    InstrumentFilter,
+    InstrumentReference,
+    LongShortRatio,
     MarketRuntimeStatus,
     MarketStateStreamItem,
     MarketStateSubscriptionRequest,
+    OpenInterest,
     OrderBookStreamItem,
     OrderBookSubscriptionRequest,
+    RateLimit,
+    ReferenceObservation,
     StreamSelector,
     StreamStatus,
     SubscriptionAccepted,
+    TakerBuySellVolume,
 )
 from binance_market_data_contracts.identifiers import (
     ConnectionId,
@@ -68,6 +78,10 @@ from binance_market_data_contracts.market_events import (
     BookTickerMetadata,
     DepthUpdate,
     DepthUpdateMetadata,
+    Liquidation,
+    LiquidationMetadata,
+    MarkPrice,
+    MarkPriceMetadata,
     PriceLevel,
 )
 from binance_market_data_contracts.snapshots import (
@@ -207,6 +221,9 @@ _STREAM_PB_TO_PY: Mapping[int, Stream] = {
     pb_enums.Stream.STREAM_AGG_TRADE: Stream.AGG_TRADE,
     pb_enums.Stream.STREAM_BOOK_TICKER: Stream.BOOK_TICKER,
     pb_enums.Stream.STREAM_DEPTH_SNAPSHOT: Stream.DEPTH_SNAPSHOT,
+    pb_enums.Stream.STREAM_MARK_PRICE: Stream.MARK_PRICE,
+    pb_enums.Stream.STREAM_LIQUIDATION: Stream.LIQUIDATION,
+    pb_enums.Stream.STREAM_REFERENCE_DATA: Stream.REFERENCE_DATA,
 }
 
 _STREAM_PY_TO_PB: Mapping[Stream, int] = {v: k for k, v in _STREAM_PB_TO_PY.items()}
@@ -226,6 +243,66 @@ def _stream_from_pb(v: int, context: str = "WireContract.stream") -> Stream:
 
 def _stream_to_pb(v: Stream) -> Any:
     return _STREAM_PY_TO_PB[v]
+
+
+_REFERENCE_SOURCE_PB_TO_PY: Mapping[int, ReferenceSourceKind] = {
+    pb_enums.ReferenceSourceKind.REFERENCE_SOURCE_KIND_OPEN_INTEREST: (ReferenceSourceKind.OPEN_INTEREST),
+    pb_enums.ReferenceSourceKind.REFERENCE_SOURCE_KIND_TOP_LONG_SHORT_ACCOUNT_RATIO: (
+        ReferenceSourceKind.TOP_LONG_SHORT_ACCOUNT_RATIO
+    ),
+    pb_enums.ReferenceSourceKind.REFERENCE_SOURCE_KIND_TOP_LONG_SHORT_POSITION_RATIO: (
+        ReferenceSourceKind.TOP_LONG_SHORT_POSITION_RATIO
+    ),
+    pb_enums.ReferenceSourceKind.REFERENCE_SOURCE_KIND_GLOBAL_LONG_SHORT_ACCOUNT_RATIO: (
+        ReferenceSourceKind.GLOBAL_LONG_SHORT_ACCOUNT_RATIO
+    ),
+    pb_enums.ReferenceSourceKind.REFERENCE_SOURCE_KIND_TAKER_BUY_SELL_VOLUME: (
+        ReferenceSourceKind.TAKER_BUY_SELL_VOLUME
+    ),
+    pb_enums.ReferenceSourceKind.REFERENCE_SOURCE_KIND_INSTRUMENT: (ReferenceSourceKind.INSTRUMENT),
+    pb_enums.ReferenceSourceKind.REFERENCE_SOURCE_KIND_DEPTH_BASELINE: (ReferenceSourceKind.DEPTH_BASELINE),
+}
+_REFERENCE_SOURCE_PY_TO_PB = {v: k for k, v in _REFERENCE_SOURCE_PB_TO_PY.items()}
+
+
+def _reference_source_from_pb(v: int, context: str = "ReferenceObservation.source_kind") -> ReferenceSourceKind:
+    result = _mapped_enum_from_pb(
+        value=v,
+        mapping=_REFERENCE_SOURCE_PB_TO_PY,
+        enum_name="ReferenceSourceKind",
+        context=context,
+        unspecified_value=pb_enums.ReferenceSourceKind.REFERENCE_SOURCE_KIND_UNSPECIFIED,
+    )
+    assert result is not None
+    return result
+
+
+def _reference_source_to_pb(v: ReferenceSourceKind) -> Any:
+    return _REFERENCE_SOURCE_PY_TO_PB[v]
+
+
+_REFERENCE_STATUS_PB_TO_PY: Mapping[int, ReferenceObservationStatus] = {
+    pb_enums.ReferenceObservationStatus.REFERENCE_OBSERVATION_STATUS_VALID: ReferenceObservationStatus.VALID,
+    pb_enums.ReferenceObservationStatus.REFERENCE_OBSERVATION_STATUS_EMPTY: ReferenceObservationStatus.EMPTY,
+    pb_enums.ReferenceObservationStatus.REFERENCE_OBSERVATION_STATUS_ERROR: ReferenceObservationStatus.ERROR,
+}
+_REFERENCE_STATUS_PY_TO_PB = {v: k for k, v in _REFERENCE_STATUS_PB_TO_PY.items()}
+
+
+def _reference_status_from_pb(v: int, context: str = "ReferenceObservation.status") -> ReferenceObservationStatus:
+    result = _mapped_enum_from_pb(
+        value=v,
+        mapping=_REFERENCE_STATUS_PB_TO_PY,
+        enum_name="ReferenceObservationStatus",
+        context=context,
+        unspecified_value=pb_enums.ReferenceObservationStatus.REFERENCE_OBSERVATION_STATUS_UNSPECIFIED,
+    )
+    assert result is not None
+    return result
+
+
+def _reference_status_to_pb(v: ReferenceObservationStatus) -> Any:
+    return _REFERENCE_STATUS_PY_TO_PB[v]
 
 
 _QUALITY_FLAG_PB_TO_PY: Mapping[int, QualityFlag] = {
@@ -423,7 +500,9 @@ def _event_metadata_from_pb(m: pb_meta.EventMetadata, contract: str) -> dict[str
     }
 
 
-def _event_metadata_to_pb(m: AggTradeMetadata | DepthUpdateMetadata | BookTickerMetadata) -> pb_meta.EventMetadata:
+def _event_metadata_to_pb(
+    m: AggTradeMetadata | DepthUpdateMetadata | BookTickerMetadata | MarkPriceMetadata | LiquidationMetadata,
+) -> pb_meta.EventMetadata:
     mdl = pb_meta.EventMetadata()
     mdl.venue = _venue_to_pb(m.venue)
     mdl.market = _market_to_pb(m.market)
@@ -508,6 +587,7 @@ def agg_trade_from_pb(at: pb_events.AggTrade) -> AggTrade:
         last_trade_id=at.last_trade_id,
         trade_time_ms=at.trade_time_ms,
         buyer_is_maker=at.buyer_is_maker,
+        normal_quantity=at.normal_quantity if at.HasField("normal_quantity") else None,
     )
 
 
@@ -521,6 +601,8 @@ def agg_trade_to_pb(at: AggTrade) -> pb_events.AggTrade:
     pb.last_trade_id = at.last_trade_id
     pb.trade_time_ms = at.trade_time_ms
     pb.buyer_is_maker = at.buyer_is_maker
+    if at.normal_quantity is not None:
+        pb.normal_quantity = at.normal_quantity
     return pb
 
 
@@ -562,6 +644,87 @@ def book_ticker_to_pb(bt: BookTicker) -> pb_events.BookTicker:
 
 
 # ---------------------------------------------------------------------------
+# MarkPrice / Liquidation adapters
+# ---------------------------------------------------------------------------
+
+
+def mark_price_from_pb(mp: pb_events.MarkPrice) -> MarkPrice:
+    stream = _stream_from_pb(mp.metadata.stream, "MarkPrice.metadata.stream")
+    if stream != Stream.MARK_PRICE:
+        raise UnexpectedWireValueError("MarkPrice", "stream", "MARK_PRICE", stream.value)
+    _require_exact_string(
+        contract="MarkPrice", field="schema_version", actual=mp.metadata.schema_version, expected="mark-price.v1"
+    )
+    meta = _event_metadata_from_pb(mp.metadata, "MarkPrice")
+    meta["stream"] = stream
+    meta["schema_version"] = mp.metadata.schema_version
+    return MarkPrice(
+        metadata=MarkPriceMetadata(**meta),
+        mark_price=mp.mark_price,
+        index_price=mp.index_price,
+        estimated_settle_price=mp.estimated_settle_price,
+        funding_rate=mp.funding_rate,
+        next_funding_time_ms=mp.next_funding_time_ms,
+        mark_price_moving_average=mp.mark_price_moving_average if mp.HasField("mark_price_moving_average") else None,
+    )
+
+
+def mark_price_to_pb(mp: MarkPrice) -> pb_events.MarkPrice:
+    pb = pb_events.MarkPrice()
+    pb.metadata.CopyFrom(_event_metadata_to_pb(mp.metadata))
+    pb.mark_price = mp.mark_price
+    pb.index_price = mp.index_price
+    pb.estimated_settle_price = mp.estimated_settle_price
+    pb.funding_rate = mp.funding_rate
+    pb.next_funding_time_ms = mp.next_funding_time_ms
+    if mp.mark_price_moving_average is not None:
+        pb.mark_price_moving_average = mp.mark_price_moving_average
+    return pb
+
+
+def liquidation_from_pb(lq: pb_events.Liquidation) -> Liquidation:
+    stream = _stream_from_pb(lq.metadata.stream, "Liquidation.metadata.stream")
+    if stream != Stream.LIQUIDATION:
+        raise UnexpectedWireValueError("Liquidation", "stream", "LIQUIDATION", stream.value)
+    _require_exact_string(
+        contract="Liquidation", field="schema_version", actual=lq.metadata.schema_version, expected="liquidation.v1"
+    )
+    meta = _event_metadata_from_pb(lq.metadata, "Liquidation")
+    meta["stream"] = stream
+    meta["schema_version"] = lq.metadata.schema_version
+    return Liquidation(
+        metadata=LiquidationMetadata(**meta),
+        side=lq.side,
+        order_type=lq.order_type,
+        time_in_force=lq.time_in_force,
+        original_quantity=lq.original_quantity,
+        price=lq.price,
+        average_price=lq.average_price if lq.HasField("average_price") else None,
+        order_status=lq.order_status,
+        last_filled_quantity=lq.last_filled_quantity,
+        accumulated_filled_quantity=lq.accumulated_filled_quantity,
+        order_trade_time_ms=lq.order_trade_time_ms,
+    )
+
+
+def liquidation_to_pb(lq: Liquidation) -> pb_events.Liquidation:
+    pb = pb_events.Liquidation()
+    pb.metadata.CopyFrom(_event_metadata_to_pb(lq.metadata))
+    pb.side = lq.side
+    pb.order_type = lq.order_type
+    pb.time_in_force = lq.time_in_force
+    pb.original_quantity = lq.original_quantity
+    pb.price = lq.price
+    if lq.average_price is not None:
+        pb.average_price = lq.average_price
+    pb.order_status = lq.order_status
+    pb.last_filled_quantity = lq.last_filled_quantity
+    pb.accumulated_filled_quantity = lq.accumulated_filled_quantity
+    pb.order_trade_time_ms = lq.order_trade_time_ms
+    return pb
+
+
+# ---------------------------------------------------------------------------
 # ExchangeDepthSnapshot adapters
 # ---------------------------------------------------------------------------
 
@@ -587,6 +750,7 @@ def exchange_depth_snapshot_from_pb(es: pb_events.ExchangeDepthSnapshot) -> Exch
         exchange_transaction_time_ms=es.exchange_transaction_time_ms
         if es.HasField("exchange_transaction_time_ms")
         else None,
+        exchange_event_time_ms=es.exchange_event_time_ms if es.HasField("exchange_event_time_ms") else None,
         receive_time_utc_ns=es.receive_time_utc_ns if es.HasField("receive_time_utc_ns") else None,
         receive_monotonic_ns=es.receive_monotonic_ns if es.HasField("receive_monotonic_ns") else None,
         quality_flags=_quality_from_pb(list(es.quality_flags), "ExchangeDepthSnapshot.quality_flags"),
@@ -607,12 +771,199 @@ def exchange_depth_snapshot_to_pb(es: ExchangeDepthSnapshot) -> pb_events.Exchan
     pb.asks.extend(price_level_to_pb(a) for a in es.asks)
     if es.exchange_transaction_time_ms is not None:
         pb.exchange_transaction_time_ms = es.exchange_transaction_time_ms
+    if es.exchange_event_time_ms is not None:
+        pb.exchange_event_time_ms = es.exchange_event_time_ms
     if es.receive_time_utc_ns is not None:
         pb.receive_time_utc_ns = es.receive_time_utc_ns
     if es.receive_monotonic_ns is not None:
         pb.receive_monotonic_ns = es.receive_monotonic_ns
     pb.quality_flags.extend(_quality_to_pb(es.quality_flags))
     return pb
+
+
+# ---------------------------------------------------------------------------
+# ReferenceData adapters
+# ---------------------------------------------------------------------------
+
+
+def _instrument_filter_from_pb(value: pb_reference.InstrumentFilter) -> InstrumentFilter:
+    return InstrumentFilter(
+        filter_type=value.filter_type,
+        price=value.price if value.HasField("price") else None,
+        quantity=value.quantity if value.HasField("quantity") else None,
+        notional=value.notional if value.HasField("notional") else None,
+        limit=value.limit if value.HasField("limit") else None,
+    )
+
+
+def _instrument_filter_to_pb(value: InstrumentFilter) -> pb_reference.InstrumentFilter:
+    pb = pb_reference.InstrumentFilter(filter_type=value.filter_type)
+    if value.price is not None:
+        pb.price = value.price
+    if value.quantity is not None:
+        pb.quantity = value.quantity
+    if value.notional is not None:
+        pb.notional = value.notional
+    if value.limit is not None:
+        pb.limit = value.limit
+    return pb
+
+
+def _rate_limit_from_pb(value: pb_reference.RateLimit) -> RateLimit:
+    return RateLimit(
+        rate_limit_type=value.rate_limit_type,
+        interval=value.interval,
+        interval_num=value.interval_num,
+        limit=value.limit,
+    )
+
+
+def _rate_limit_to_pb(value: RateLimit) -> pb_reference.RateLimit:
+    return pb_reference.RateLimit(
+        rate_limit_type=value.rate_limit_type,
+        interval=value.interval,
+        interval_num=value.interval_num,
+        limit=value.limit,
+    )
+
+
+def _instrument_reference_from_pb(value: pb_reference.InstrumentReference) -> InstrumentReference:
+    return InstrumentReference(
+        symbol_present=value.symbol_present,
+        contract_type=value.contract_type,
+        trading_status=value.trading_status,
+        base_asset=value.base_asset,
+        quote_asset=value.quote_asset,
+        margin_asset=value.margin_asset,
+        price_precision=value.price_precision,
+        quantity_precision=value.quantity_precision,
+        onboard_time_ms=value.onboard_time_ms if value.HasField("onboard_time_ms") else None,
+        delivery_time_ms=value.delivery_time_ms if value.HasField("delivery_time_ms") else None,
+        filters=tuple(_instrument_filter_from_pb(item) for item in value.filters),
+        rate_limits=tuple(_rate_limit_from_pb(item) for item in value.rate_limits),
+        server_time_ms=value.server_time_ms if value.HasField("server_time_ms") else None,
+    )
+
+
+def _instrument_reference_to_pb(value: InstrumentReference) -> pb_reference.InstrumentReference:
+    pb = pb_reference.InstrumentReference(
+        symbol_present=value.symbol_present,
+        contract_type=value.contract_type,
+        trading_status=value.trading_status,
+        base_asset=value.base_asset,
+        quote_asset=value.quote_asset,
+        margin_asset=value.margin_asset,
+        price_precision=value.price_precision,
+        quantity_precision=value.quantity_precision,
+    )
+    if value.onboard_time_ms is not None:
+        pb.onboard_time_ms = value.onboard_time_ms
+    if value.delivery_time_ms is not None:
+        pb.delivery_time_ms = value.delivery_time_ms
+    pb.filters.extend(_instrument_filter_to_pb(item) for item in value.filters)
+    pb.rate_limits.extend(_rate_limit_to_pb(item) for item in value.rate_limits)
+    if value.server_time_ms is not None:
+        pb.server_time_ms = value.server_time_ms
+    return pb
+
+
+def reference_observation_from_pb(value: pb_reference.ReferenceObservation) -> ReferenceObservation:
+    kwargs: dict[str, Any] = {
+        "schema_version": "reference-observation.v1",
+        "venue": _venue_from_pb(value.venue, "ReferenceObservation.venue"),
+        "market": _market_from_pb(value.market, "ReferenceObservation.market"),
+        "symbol": Symbol(value.symbol),
+        "request_id": RequestId(value.request_id),
+        "source_kind": _reference_source_from_pb(value.source_kind),
+        "receive_time_utc_ns": value.receive_time_utc_ns,
+        "source_time_ms": value.source_time_ms if value.HasField("source_time_ms") else None,
+        "status": _reference_status_from_pb(value.status),
+        "error_code": value.error_code if value.HasField("error_code") else None,
+    }
+    which = value.WhichOneof("payload")
+    if which == "open_interest":
+        item = value.open_interest
+        kwargs["open_interest"] = OpenInterest(
+            open_interest=item.open_interest,
+            source_time_ms=item.source_time_ms if item.HasField("source_time_ms") else None,
+        )
+    elif which in {
+        "top_long_short_account_ratio",
+        "top_long_short_position_ratio",
+        "global_long_short_account_ratio",
+    }:
+        item = getattr(value, which)
+        kwargs[which] = LongShortRatio(
+            long_short_ratio=item.long_short_ratio,
+            long_account=item.long_account,
+            short_account=item.short_account,
+            source_time_ms=item.source_time_ms if item.HasField("source_time_ms") else None,
+            period=item.period,
+        )
+    elif which == "taker_buy_sell_volume":
+        item = value.taker_buy_sell_volume
+        kwargs["taker_buy_sell_volume"] = TakerBuySellVolume(
+            buy_sell_ratio=item.buy_sell_ratio,
+            buy_volume=item.buy_volume,
+            sell_volume=item.sell_volume,
+            source_time_ms=item.source_time_ms if item.HasField("source_time_ms") else None,
+            period=item.period,
+        )
+    elif which == "instrument":
+        kwargs["instrument"] = _instrument_reference_from_pb(value.instrument)
+    elif which == "depth_baseline":
+        kwargs["depth_baseline"] = exchange_depth_snapshot_from_pb(value.depth_baseline)
+    return ReferenceObservation(**kwargs)
+
+
+def reference_observation_to_pb(value: ReferenceObservation) -> pb_reference.ReferenceObservation:
+    pb = pb_reference.ReferenceObservation(
+        venue=_venue_to_pb(value.venue),
+        market=_market_to_pb(value.market),
+        symbol=value.symbol,
+        request_id=value.request_id,
+        source_kind=_reference_source_to_pb(value.source_kind),
+        receive_time_utc_ns=value.receive_time_utc_ns,
+        status=_reference_status_to_pb(value.status),
+        schema_version=value.schema_version,
+    )
+    if value.source_time_ms is not None:
+        pb.source_time_ms = value.source_time_ms
+    if value.error_code is not None:
+        pb.error_code = value.error_code
+    if value.open_interest is not None:
+        item = value.open_interest
+        pb.open_interest.open_interest = item.open_interest
+        if item.source_time_ms is not None:
+            pb.open_interest.source_time_ms = item.source_time_ms
+    elif value.top_long_short_account_ratio is not None:
+        _copy_long_short(value.top_long_short_account_ratio, pb.top_long_short_account_ratio)
+    elif value.top_long_short_position_ratio is not None:
+        _copy_long_short(value.top_long_short_position_ratio, pb.top_long_short_position_ratio)
+    elif value.global_long_short_account_ratio is not None:
+        _copy_long_short(value.global_long_short_account_ratio, pb.global_long_short_account_ratio)
+    elif value.taker_buy_sell_volume is not None:
+        item = value.taker_buy_sell_volume
+        pb.taker_buy_sell_volume.buy_sell_ratio = item.buy_sell_ratio
+        pb.taker_buy_sell_volume.buy_volume = item.buy_volume
+        pb.taker_buy_sell_volume.sell_volume = item.sell_volume
+        pb.taker_buy_sell_volume.period = item.period
+        if item.source_time_ms is not None:
+            pb.taker_buy_sell_volume.source_time_ms = item.source_time_ms
+    elif value.instrument is not None:
+        pb.instrument.CopyFrom(_instrument_reference_to_pb(value.instrument))
+    elif value.depth_baseline is not None:
+        pb.depth_baseline.CopyFrom(exchange_depth_snapshot_to_pb(value.depth_baseline))
+    return pb
+
+
+def _copy_long_short(value: LongShortRatio, target: Any) -> None:
+    target.long_short_ratio = value.long_short_ratio
+    target.long_account = value.long_account
+    target.short_account = value.short_account
+    target.period = value.period
+    if value.source_time_ms is not None:
+        target.source_time_ms = value.source_time_ms
 
 
 # ---------------------------------------------------------------------------
@@ -1214,6 +1565,9 @@ def stream_status_from_pb(ss: pb_gw.StreamStatus) -> StreamStatus:
         if ss.HasField("reason_code")
         else None,
         message=ss.message if ss.HasField("message") else None,
+        reference_source_kind=_reference_source_from_pb(ss.reference_source_kind)
+        if ss.HasField("reference_source_kind")
+        else None,
     )
 
 
@@ -1227,6 +1581,8 @@ def stream_status_to_pb(ss: StreamStatus) -> pb_gw.StreamStatus:
         pb.reason_code = _reason_code_to_pb(ss.reason_code)
     if ss.message is not None:
         pb.message = ss.message
+    if ss.reference_source_kind is not None:
+        pb.reference_source_kind = _reference_source_to_pb(ss.reference_source_kind)
     return pb
 
 
@@ -1248,6 +1604,12 @@ def gateway_event_envelope_from_pb(env: pb_gw.GatewayEventEnvelope) -> GatewayEv
         kwargs["agg_trade"] = agg_trade_from_pb(env.agg_trade)
     elif which == "book_ticker":
         kwargs["book_ticker"] = book_ticker_from_pb(env.book_ticker)
+    elif which == "mark_price":
+        kwargs["mark_price"] = mark_price_from_pb(env.mark_price)
+    elif which == "liquidation":
+        kwargs["liquidation"] = liquidation_from_pb(env.liquidation)
+    elif which == "reference_observation":
+        kwargs["reference_observation"] = reference_observation_from_pb(env.reference_observation)
     elif which == "consumer_gap":
         kwargs["consumer_gap"] = consumer_gap_notice_from_pb(env.consumer_gap)
     elif which == "stream_status":
@@ -1268,6 +1630,12 @@ def gateway_event_envelope_to_pb(env: GatewayEventEnvelope) -> pb_gw.GatewayEven
         pb.agg_trade.CopyFrom(agg_trade_to_pb(env.agg_trade))
     elif env.book_ticker is not None:
         pb.book_ticker.CopyFrom(book_ticker_to_pb(env.book_ticker))
+    elif env.mark_price is not None:
+        pb.mark_price.CopyFrom(mark_price_to_pb(env.mark_price))
+    elif env.liquidation is not None:
+        pb.liquidation.CopyFrom(liquidation_to_pb(env.liquidation))
+    elif env.reference_observation is not None:
+        pb.reference_observation.CopyFrom(reference_observation_to_pb(env.reference_observation))
     elif env.consumer_gap is not None:
         pb.consumer_gap.CopyFrom(consumer_gap_notice_to_pb(env.consumer_gap))
     elif env.stream_status is not None:

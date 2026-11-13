@@ -29,6 +29,20 @@
         "metadata": {
           "$ref": "#/$defs/AggTradeMetadata"
         },
+        "normal_quantity": {
+          "anyOf": [
+            {
+              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "USD-M normal order quantity (nq), absent when unavailable",
+          "title": "Normal Quantity"
+        },
         "price": {
           "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
           "title": "Price",
@@ -702,6 +716,148 @@
       "title": "DepthUpdateMetadata",
       "type": "object"
     },
+    "ExchangeDepthSnapshot": {
+      "additionalProperties": false,
+      "description": "REST depth snapshot from Binance.",
+      "properties": {
+        "asks": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PriceLevel"
+          },
+          "title": "Asks",
+          "type": "array"
+        },
+        "bids": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PriceLevel"
+          },
+          "title": "Bids",
+          "type": "array"
+        },
+        "exchange_event_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange Event Time Ms"
+        },
+        "exchange_transaction_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange Transaction Time Ms"
+        },
+        "last_update_id": {
+          "maximum": 18446744073709551615,
+          "minimum": 0,
+          "title": "Last Update Id",
+          "type": "integer"
+        },
+        "market": {
+          "$ref": "#/$defs/Market"
+        },
+        "producer": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Producer",
+          "type": "string"
+        },
+        "producer_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Producer Version",
+          "type": "string"
+        },
+        "quality_flags": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/QualityFlag"
+          },
+          "title": "Quality Flags",
+          "type": "array"
+        },
+        "receive_monotonic_ns": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receive Monotonic Ns"
+        },
+        "receive_time_utc_ns": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receive Time Utc Ns"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "exchange-depth-snapshot.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "symbol": {
+          "minLength": 1,
+          "pattern": "^(?![\\s\\S]*[\\u0000-\\u0020\\u007F])[\\s\\S]+$",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "venue": {
+          "$ref": "#/$defs/Venue"
+        }
+      },
+      "required": [
+        "venue",
+        "market",
+        "symbol",
+        "schema_version",
+        "producer",
+        "producer_version",
+        "request_id",
+        "last_update_id"
+      ],
+      "title": "ExchangeDepthSnapshot",
+      "type": "object"
+    },
     "GatewayEnvelopeMetadata": {
       "additionalProperties": false,
       "description": "Canonical M6 Gateway delivery metadata.",
@@ -776,6 +932,674 @@
       "title": "GatewayEnvelopeMetadata",
       "type": "object"
     },
+    "InstrumentFilter": {
+      "additionalProperties": false,
+      "properties": {
+        "filter_type": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Filter Type",
+          "type": "string"
+        },
+        "limit": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Limit"
+        },
+        "notional": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notional"
+        },
+        "price": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Price"
+        },
+        "quantity": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quantity"
+        }
+      },
+      "required": [
+        "filter_type"
+      ],
+      "title": "InstrumentFilter",
+      "type": "object"
+    },
+    "InstrumentReference": {
+      "additionalProperties": false,
+      "properties": {
+        "base_asset": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Base Asset",
+          "type": "string"
+        },
+        "contract_type": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Contract Type",
+          "type": "string"
+        },
+        "delivery_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Delivery Time Ms"
+        },
+        "filters": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/InstrumentFilter"
+          },
+          "title": "Filters",
+          "type": "array"
+        },
+        "margin_asset": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Margin Asset",
+          "type": "string"
+        },
+        "onboard_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Onboard Time Ms"
+        },
+        "price_precision": {
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Price Precision",
+          "type": "integer"
+        },
+        "quantity_precision": {
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Quantity Precision",
+          "type": "integer"
+        },
+        "quote_asset": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Quote Asset",
+          "type": "string"
+        },
+        "rate_limits": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RateLimit"
+          },
+          "title": "Rate Limits",
+          "type": "array"
+        },
+        "server_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Server Time Ms"
+        },
+        "symbol_present": {
+          "title": "Symbol Present",
+          "type": "boolean"
+        },
+        "trading_status": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Trading Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "symbol_present",
+        "contract_type",
+        "trading_status",
+        "base_asset",
+        "quote_asset",
+        "margin_asset",
+        "price_precision",
+        "quantity_precision"
+      ],
+      "title": "InstrumentReference",
+      "type": "object"
+    },
+    "Liquidation": {
+      "additionalProperties": false,
+      "description": "USD-M forceOrder sample; not a complete liquidation list.",
+      "properties": {
+        "accumulated_filled_quantity": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Accumulated Filled Quantity",
+          "type": "string"
+        },
+        "average_price": {
+          "anyOf": [
+            {
+              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Average Price"
+        },
+        "last_filled_quantity": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Last Filled Quantity",
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/$defs/LiquidationMetadata"
+        },
+        "order_status": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Order Status",
+          "type": "string"
+        },
+        "order_trade_time_ms": {
+          "maximum": 18446744073709551615,
+          "minimum": 0,
+          "title": "Order Trade Time Ms",
+          "type": "integer"
+        },
+        "order_type": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Order Type",
+          "type": "string"
+        },
+        "original_quantity": {
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
+          "title": "Original Quantity",
+          "type": "string"
+        },
+        "price": {
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
+          "title": "Price",
+          "type": "string"
+        },
+        "side": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Side",
+          "type": "string"
+        },
+        "time_in_force": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Time In Force",
+          "type": "string"
+        }
+      },
+      "required": [
+        "metadata",
+        "side",
+        "order_type",
+        "time_in_force",
+        "original_quantity",
+        "price",
+        "order_status",
+        "last_filled_quantity",
+        "accumulated_filled_quantity",
+        "order_trade_time_ms"
+      ],
+      "title": "Liquidation",
+      "type": "object"
+    },
+    "LiquidationMetadata": {
+      "additionalProperties": false,
+      "description": "Metadata for USD-M forceOrder/liquidation samples.",
+      "properties": {
+        "connection_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "title": "Connection Id",
+          "type": "string"
+        },
+        "exchange_event_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange Event Time Ms"
+        },
+        "exchange_trade_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange Trade Time Ms"
+        },
+        "exchange_transaction_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange Transaction Time Ms"
+        },
+        "market": {
+          "$ref": "#/$defs/Market"
+        },
+        "producer": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Producer",
+          "type": "string"
+        },
+        "producer_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Producer Version",
+          "type": "string"
+        },
+        "quality_flags": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/QualityFlag"
+          },
+          "title": "Quality Flags",
+          "type": "array"
+        },
+        "receive_monotonic_ns": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receive Monotonic Ns"
+        },
+        "receive_time_utc_ns": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receive Time Utc Ns"
+        },
+        "schema_version": {
+          "const": "liquidation.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "stream": {
+          "const": "LIQUIDATION",
+          "title": "Stream",
+          "type": "string"
+        },
+        "symbol": {
+          "minLength": 1,
+          "pattern": "^(?![\\s\\S]*[\\u0000-\\u0020\\u007F])[\\s\\S]+$",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "venue": {
+          "$ref": "#/$defs/Venue"
+        }
+      },
+      "required": [
+        "venue",
+        "market",
+        "symbol",
+        "producer",
+        "producer_version",
+        "connection_id",
+        "stream",
+        "schema_version"
+      ],
+      "title": "LiquidationMetadata",
+      "type": "object"
+    },
+    "LongShortRatio": {
+      "additionalProperties": false,
+      "properties": {
+        "long_account": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Long Account",
+          "type": "string"
+        },
+        "long_short_ratio": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Long Short Ratio",
+          "type": "string"
+        },
+        "period": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Period",
+          "type": "string"
+        },
+        "short_account": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Short Account",
+          "type": "string"
+        },
+        "source_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Time Ms"
+        }
+      },
+      "required": [
+        "long_short_ratio",
+        "long_account",
+        "short_account",
+        "period"
+      ],
+      "title": "LongShortRatio",
+      "type": "object"
+    },
+    "MarkPrice": {
+      "additionalProperties": false,
+      "description": "USD-M mark-price update; T is next funding time, not transaction time.",
+      "properties": {
+        "estimated_settle_price": {
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
+          "title": "Estimated Settle Price",
+          "type": "string"
+        },
+        "funding_rate": {
+          "pattern": "^(?:0(?:\\.[0-9]+)?|[1-9][0-9]*(?:\\.[0-9]+)?|-[1-9][0-9]*(?:\\.[0-9]+)?|-0\\.[0-9]*[1-9][0-9]*)$",
+          "title": "Funding Rate",
+          "type": "string"
+        },
+        "index_price": {
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
+          "title": "Index Price",
+          "type": "string"
+        },
+        "mark_price": {
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
+          "title": "Mark Price",
+          "type": "string"
+        },
+        "mark_price_moving_average": {
+          "anyOf": [
+            {
+              "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mark Price Moving Average"
+        },
+        "metadata": {
+          "$ref": "#/$defs/MarkPriceMetadata"
+        },
+        "next_funding_time_ms": {
+          "maximum": 18446744073709551615,
+          "minimum": 0,
+          "title": "Next Funding Time Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "metadata",
+        "mark_price",
+        "index_price",
+        "estimated_settle_price",
+        "funding_rate",
+        "next_funding_time_ms"
+      ],
+      "title": "MarkPrice",
+      "type": "object"
+    },
+    "MarkPriceMetadata": {
+      "additionalProperties": false,
+      "description": "Metadata for USD-M MarkPrice events.",
+      "properties": {
+        "connection_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "title": "Connection Id",
+          "type": "string"
+        },
+        "exchange_event_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange Event Time Ms"
+        },
+        "exchange_trade_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange Trade Time Ms"
+        },
+        "exchange_transaction_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange Transaction Time Ms"
+        },
+        "market": {
+          "$ref": "#/$defs/Market"
+        },
+        "producer": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Producer",
+          "type": "string"
+        },
+        "producer_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Producer Version",
+          "type": "string"
+        },
+        "quality_flags": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/QualityFlag"
+          },
+          "title": "Quality Flags",
+          "type": "array"
+        },
+        "receive_monotonic_ns": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receive Monotonic Ns"
+        },
+        "receive_time_utc_ns": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receive Time Utc Ns"
+        },
+        "schema_version": {
+          "const": "mark-price.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "stream": {
+          "const": "MARK_PRICE",
+          "title": "Stream",
+          "type": "string"
+        },
+        "symbol": {
+          "minLength": 1,
+          "pattern": "^(?![\\s\\S]*[\\u0000-\\u0020\\u007F])[\\s\\S]+$",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "venue": {
+          "$ref": "#/$defs/Venue"
+        }
+      },
+      "required": [
+        "venue",
+        "market",
+        "symbol",
+        "producer",
+        "producer_version",
+        "connection_id",
+        "stream",
+        "schema_version"
+      ],
+      "title": "MarkPriceMetadata",
+      "type": "object"
+    },
     "Market": {
       "enum": [
         "SPOT",
@@ -783,6 +1607,35 @@
       ],
       "title": "Market",
       "type": "string"
+    },
+    "OpenInterest": {
+      "additionalProperties": false,
+      "properties": {
+        "open_interest": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Open Interest",
+          "type": "string"
+        },
+        "source_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Time Ms"
+        }
+      },
+      "required": [
+        "open_interest"
+      ],
+      "title": "OpenInterest",
+      "type": "object"
     },
     "PriceLevel": {
       "additionalProperties": false,
@@ -829,6 +1682,45 @@
       "title": "QualityFlag",
       "type": "string"
     },
+    "RateLimit": {
+      "additionalProperties": false,
+      "properties": {
+        "interval": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Interval",
+          "type": "string"
+        },
+        "interval_num": {
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Interval Num",
+          "type": "integer"
+        },
+        "limit": {
+          "maximum": 18446744073709551615,
+          "minimum": 0,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "rate_limit_type": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Rate Limit Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rate_limit_type",
+        "interval",
+        "interval_num",
+        "limit"
+      ],
+      "title": "RateLimit",
+      "type": "object"
+    },
     "ReasonCode": {
       "description": "Reason codes explain Health state judgments — why a state was chosen.",
       "enum": [
@@ -865,12 +1757,197 @@
       "title": "RecoveryAction",
       "type": "string"
     },
+    "ReferenceObservation": {
+      "additionalProperties": false,
+      "description": "One typed low-frequency REST observation.",
+      "properties": {
+        "depth_baseline": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExchangeDepthSnapshot"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^\\S(?:.*\\S)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Code"
+        },
+        "global_long_short_account_ratio": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LongShortRatio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "instrument": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/InstrumentReference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "market": {
+          "$ref": "#/$defs/Market"
+        },
+        "open_interest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OpenInterest"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "receive_time_utc_ns": {
+          "maximum": 18446744073709551615,
+          "minimum": 0,
+          "title": "Receive Time Utc Ns",
+          "type": "integer"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "reference-observation.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_kind": {
+          "$ref": "#/$defs/ReferenceSourceKind"
+        },
+        "source_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Time Ms"
+        },
+        "status": {
+          "$ref": "#/$defs/ReferenceObservationStatus"
+        },
+        "symbol": {
+          "minLength": 1,
+          "pattern": "^(?![\\s\\S]*[\\u0000-\\u0020\\u007F])[\\s\\S]+$",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "taker_buy_sell_volume": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TakerBuySellVolume"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "top_long_short_account_ratio": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LongShortRatio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "top_long_short_position_ratio": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LongShortRatio"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "venue": {
+          "$ref": "#/$defs/Venue"
+        }
+      },
+      "required": [
+        "schema_version",
+        "venue",
+        "market",
+        "symbol",
+        "request_id",
+        "source_kind",
+        "receive_time_utc_ns",
+        "status"
+      ],
+      "title": "ReferenceObservation",
+      "type": "object"
+    },
+    "ReferenceObservationStatus": {
+      "enum": [
+        "VALID",
+        "EMPTY",
+        "ERROR"
+      ],
+      "title": "ReferenceObservationStatus",
+      "type": "string"
+    },
+    "ReferenceSourceKind": {
+      "enum": [
+        "OPEN_INTEREST",
+        "TOP_LONG_SHORT_ACCOUNT_RATIO",
+        "TOP_LONG_SHORT_POSITION_RATIO",
+        "GLOBAL_LONG_SHORT_ACCOUNT_RATIO",
+        "TAKER_BUY_SELL_VOLUME",
+        "INSTRUMENT",
+        "DEPTH_BASELINE"
+      ],
+      "title": "ReferenceSourceKind",
+      "type": "string"
+    },
     "Stream": {
       "enum": [
         "DIFF_DEPTH",
         "AGG_TRADE",
         "BOOK_TICKER",
-        "DEPTH_SNAPSHOT"
+        "DEPTH_SNAPSHOT",
+        "MARK_PRICE",
+        "LIQUIDATION",
+        "REFERENCE_DATA"
       ],
       "title": "Stream",
       "type": "string"
@@ -917,6 +1994,17 @@
           "anyOf": [
             {
               "$ref": "#/$defs/ReasonCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "reference_source_kind": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReferenceSourceKind"
             },
             {
               "type": "null"
@@ -1005,6 +2093,55 @@
       "title": "SubscriptionAccepted",
       "type": "object"
     },
+    "TakerBuySellVolume": {
+      "additionalProperties": false,
+      "properties": {
+        "buy_sell_ratio": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Buy Sell Ratio",
+          "type": "string"
+        },
+        "buy_volume": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Buy Volume",
+          "type": "string"
+        },
+        "period": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Period",
+          "type": "string"
+        },
+        "sell_volume": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Sell Volume",
+          "type": "string"
+        },
+        "source_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Time Ms"
+        }
+      },
+      "required": [
+        "buy_sell_ratio",
+        "buy_volume",
+        "sell_volume",
+        "period"
+      ],
+      "title": "TakerBuySellVolume",
+      "type": "object"
+    },
     "Venue": {
       "enum": [
         "BINANCE"
@@ -1058,6 +2195,39 @@
       "anyOf": [
         {
           "$ref": "#/$defs/DepthUpdate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "liquidation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Liquidation"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "mark_price": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MarkPrice"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "reference_observation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ReferenceObservation"
         },
         {
           "type": "null"

@@ -20,6 +20,7 @@ from binance_market_data_contracts.common import (
     PositiveQuantityString,
     PriceString,
     QuantityString,
+    SignedDecimalString,
 )
 from binance_market_data_contracts.enums import Market, QualityFlag, Stream, Venue
 from binance_market_data_contracts.identifiers import ConnectionId, Symbol
@@ -61,6 +62,20 @@ class BookTickerMetadata(_BaseEventMetadata):
 
     stream: Literal[Stream.BOOK_TICKER]
     schema_version: Literal["book-ticker.v1"]
+
+
+class MarkPriceMetadata(_BaseEventMetadata):
+    """Metadata for USD-M MarkPrice events."""
+
+    stream: Literal[Stream.MARK_PRICE]
+    schema_version: Literal["mark-price.v1"]
+
+
+class LiquidationMetadata(_BaseEventMetadata):
+    """Metadata for USD-M forceOrder/liquidation samples."""
+
+    stream: Literal[Stream.LIQUIDATION]
+    schema_version: Literal["liquidation.v1"]
 
 
 class PriceLevel(ContractModel):
@@ -112,6 +127,10 @@ class AggTrade(ContractModel):
     last_trade_id: int = Field(..., ge=0, le=UINT64_MAX)
     trade_time_ms: int = Field(..., ge=0, le=UINT64_MAX)
     buyer_is_maker: bool
+    normal_quantity: QuantityString | None = Field(
+        default=None,
+        description="USD-M normal order quantity (nq), absent when unavailable",
+    )
 
     @model_validator(mode="after")
     def _validate_trade_ids(self) -> AggTrade:
@@ -133,3 +152,31 @@ class BookTicker(ContractModel):
     best_bid_quantity: QuantityString
     best_ask_price: PriceString
     best_ask_quantity: QuantityString
+
+
+class MarkPrice(ContractModel):
+    """USD-M mark-price update; T is next funding time, not transaction time."""
+
+    metadata: MarkPriceMetadata
+    mark_price: PriceString
+    index_price: PriceString
+    estimated_settle_price: PriceString
+    funding_rate: SignedDecimalString
+    next_funding_time_ms: int = Field(..., ge=0, le=UINT64_MAX)
+    mark_price_moving_average: PriceString | None = None
+
+
+class Liquidation(ContractModel):
+    """USD-M forceOrder sample; not a complete liquidation list."""
+
+    metadata: LiquidationMetadata
+    side: NonEmptyText
+    order_type: NonEmptyText
+    time_in_force: NonEmptyText
+    original_quantity: PositiveQuantityString
+    price: PriceString
+    average_price: QuantityString | None = None
+    order_status: NonEmptyText
+    last_filled_quantity: QuantityString
+    accumulated_filled_quantity: QuantityString
+    order_trade_time_ms: int = Field(..., ge=0, le=UINT64_MAX)

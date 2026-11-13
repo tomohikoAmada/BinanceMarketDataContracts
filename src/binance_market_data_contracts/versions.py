@@ -75,7 +75,14 @@ def get_draft_contracts() -> dict[str, ContractEntry]:
 
 # -- Core Market Contracts (PROPOSED) --
 
-from binance_market_data_contracts.market_events import AggTrade, BookTicker, DepthUpdate  # noqa: E402
+from binance_market_data_contracts.gateway import ReferenceObservation  # noqa: E402
+from binance_market_data_contracts.market_events import (  # noqa: E402
+    AggTrade,
+    BookTicker,
+    DepthUpdate,
+    Liquidation,
+    MarkPrice,
+)
 from binance_market_data_contracts.snapshots import (  # noqa: E402
     DataHealthSnapshot,
     ExchangeDepthSnapshot,
@@ -103,6 +110,27 @@ _register(
     BookTicker,
     producers=("recorder-adapter", "gateway-adapter"),
     consumers=("projection", "health", "history-replay", "live-strategy"),
+)
+_register(
+    "mark-price.v1",
+    ContractStatus.PROPOSED,
+    MarkPrice,
+    producers=("recorder-adapter", "gateway-adapter"),
+    consumers=("health", "history-replay", "live-strategy"),
+)
+_register(
+    "liquidation.v1",
+    ContractStatus.PROPOSED,
+    Liquidation,
+    producers=("recorder-adapter", "gateway-adapter"),
+    consumers=("history-replay", "live-strategy"),
+)
+_register(
+    "reference-observation.v1",
+    ContractStatus.PROPOSED,
+    ReferenceObservation,
+    producers=("gateway-adapter",),
+    consumers=("health", "history-replay", "live-strategy"),
 )
 _register(
     "exchange-depth-snapshot.v1",
@@ -278,6 +306,30 @@ WIRE_CONTRACT_REGISTRY: dict[str, WireContractEntry] = {
         status=ContractStatus.PROPOSED,
         producers=("recorder-adapter", "gateway-adapter"),
         consumers=("projection", "health", "history-replay", "live-strategy"),
+    ),
+    "mark-price.v1": WireContractEntry(
+        schema_version="mark-price.v1",
+        pydantic_type=MarkPrice,
+        proto_full_name="binance_market_data.market.v1.MarkPrice",
+        status=ContractStatus.PROPOSED,
+        producers=("recorder-adapter", "gateway-adapter"),
+        consumers=("health", "history-replay", "live-strategy"),
+    ),
+    "liquidation.v1": WireContractEntry(
+        schema_version="liquidation.v1",
+        pydantic_type=Liquidation,
+        proto_full_name="binance_market_data.market.v1.Liquidation",
+        status=ContractStatus.PROPOSED,
+        producers=("recorder-adapter", "gateway-adapter"),
+        consumers=("history-replay", "live-strategy"),
+    ),
+    "reference-observation.v1": WireContractEntry(
+        schema_version="reference-observation.v1",
+        pydantic_type=ReferenceObservation,
+        proto_full_name="binance_market_data.market.v1.ReferenceObservation",
+        status=ContractStatus.PROPOSED,
+        producers=("gateway-adapter",),
+        consumers=("health", "history-replay", "live-strategy"),
     ),
     "exchange-depth-snapshot.v1": WireContractEntry(
         schema_version="exchange-depth-snapshot.v1",

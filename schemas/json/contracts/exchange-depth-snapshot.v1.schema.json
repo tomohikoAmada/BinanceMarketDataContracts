@@ -80,6 +80,19 @@
       },
       "type": "array"
     },
+    "exchange_event_time_ms": {
+      "anyOf": [
+        {
+          "maximum": 18446744073709551615,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "exchange_transaction_time_ms": {
       "anyOf": [
         {

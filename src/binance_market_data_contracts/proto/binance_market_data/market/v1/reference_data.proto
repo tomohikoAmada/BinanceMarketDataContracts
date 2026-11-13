@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package binance_market_data.market.v1;
+
+import "binance_market_data/common/v1/enums.proto";
+import "binance_market_data/market/v1/market_events.proto";
+
+option go_package = "github.com/tomohikoAmada/BinanceMarketDataContracts/gen/go/market/v1;marketv1";
+
+// ReferenceObservation is one typed low-frequency REST observation.  The
+// source kind identifies the metric family; payload oneof keeps the business
+// shape strongly typed rather than using Struct/Any/JSON.
+message ReferenceObservation {
+  binance_market_data.common.v1.Venue venue = 1;
+  binance_market_data.common.v1.Market market = 2;
+  string symbol = 3;
+  string request_id = 4;
+  binance_market_data.common.v1.ReferenceSourceKind source_kind = 5;
+  uint64 receive_time_utc_ns = 6;
+  optional uint64 source_time_ms = 7;
+  binance_market_data.common.v1.ReferenceObservationStatus status = 8;
+  optional string error_code = 9;
+  string schema_version = 10; // "reference-observation.v1"
+
+  oneof payload {
+    OpenInterest open_interest = 20;
+    LongShortRatio top_long_short_account_ratio = 21;
+    LongShortRatio top_long_short_position_ratio = 22;
+    LongShortRatio global_long_short_account_ratio = 23;
+    TakerBuySellVolume taker_buy_sell_volume = 24;
+    InstrumentReference instrument = 25;
+    ExchangeDepthSnapshot depth_baseline = 26;
+  }
+}
+
+message OpenInterest {
+  string open_interest = 1;
+  optional uint64 source_time_ms = 2;
+}
+
+message LongShortRatio {
+  string long_short_ratio = 1;
+  string long_account = 2;
+  string short_account = 3;
+  optional uint64 source_time_ms = 4;
+  string period = 5;
+}
+
+message TakerBuySellVolume {
+  string buy_sell_ratio = 1;
+  string buy_volume = 2;
+  string sell_volume = 3;
+  optional uint64 source_time_ms = 4;
+  string period = 5;
+}
+
+message InstrumentFilter {
+  string filter_type = 1;
+  optional string price = 2;
+  optional string quantity = 3;
+  optional string notional = 4;
+  optional uint64 limit = 5;
+}
+
+message RateLimit {
+  string rate_limit_type = 1;
+  string interval = 2;
+  uint32 interval_num = 3;
+  uint64 limit = 4;
+}
+
+message InstrumentReference {
+  bool symbol_present = 1;
+  string contract_type = 2;
+  string trading_status = 3;
+  string base_asset = 4;
+  string quote_asset = 5;
+  string margin_asset = 6;
+  int32 price_precision = 7;
+  int32 quantity_precision = 8;
+  optional uint64 onboard_time_ms = 9;
+  optional uint64 delivery_time_ms = 10;
+  repeated InstrumentFilter filters = 11;
+  repeated RateLimit rate_limits = 12;
+  optional uint64 server_time_ms = 13;
+}

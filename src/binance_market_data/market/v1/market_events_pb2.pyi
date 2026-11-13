@@ -25,7 +25,7 @@ class DepthUpdate(_message.Message):
     def __init__(self, metadata: _Optional[_Union[_metadata_pb2.EventMetadata, _Mapping]] = ..., first_update_id: _Optional[int] = ..., final_update_id: _Optional[int] = ..., previous_final_update_id: _Optional[int] = ..., bids: _Optional[_Iterable[_Union[_metadata_pb2.PriceLevel, _Mapping]]] = ..., asks: _Optional[_Iterable[_Union[_metadata_pb2.PriceLevel, _Mapping]]] = ...) -> None: ...
 
 class AggTrade(_message.Message):
-    __slots__ = ("metadata", "aggregate_trade_id", "price", "quantity", "first_trade_id", "last_trade_id", "trade_time_ms", "buyer_is_maker")
+    __slots__ = ("metadata", "aggregate_trade_id", "price", "quantity", "first_trade_id", "last_trade_id", "trade_time_ms", "buyer_is_maker", "normal_quantity")
     METADATA_FIELD_NUMBER: _ClassVar[int]
     AGGREGATE_TRADE_ID_FIELD_NUMBER: _ClassVar[int]
     PRICE_FIELD_NUMBER: _ClassVar[int]
@@ -34,6 +34,7 @@ class AggTrade(_message.Message):
     LAST_TRADE_ID_FIELD_NUMBER: _ClassVar[int]
     TRADE_TIME_MS_FIELD_NUMBER: _ClassVar[int]
     BUYER_IS_MAKER_FIELD_NUMBER: _ClassVar[int]
+    NORMAL_QUANTITY_FIELD_NUMBER: _ClassVar[int]
     metadata: _metadata_pb2.EventMetadata
     aggregate_trade_id: int
     price: str
@@ -42,7 +43,52 @@ class AggTrade(_message.Message):
     last_trade_id: int
     trade_time_ms: int
     buyer_is_maker: bool
-    def __init__(self, metadata: _Optional[_Union[_metadata_pb2.EventMetadata, _Mapping]] = ..., aggregate_trade_id: _Optional[int] = ..., price: _Optional[str] = ..., quantity: _Optional[str] = ..., first_trade_id: _Optional[int] = ..., last_trade_id: _Optional[int] = ..., trade_time_ms: _Optional[int] = ..., buyer_is_maker: _Optional[bool] = ...) -> None: ...
+    normal_quantity: str
+    def __init__(self, metadata: _Optional[_Union[_metadata_pb2.EventMetadata, _Mapping]] = ..., aggregate_trade_id: _Optional[int] = ..., price: _Optional[str] = ..., quantity: _Optional[str] = ..., first_trade_id: _Optional[int] = ..., last_trade_id: _Optional[int] = ..., trade_time_ms: _Optional[int] = ..., buyer_is_maker: _Optional[bool] = ..., normal_quantity: _Optional[str] = ...) -> None: ...
+
+class MarkPrice(_message.Message):
+    __slots__ = ("metadata", "mark_price", "index_price", "estimated_settle_price", "funding_rate", "next_funding_time_ms", "mark_price_moving_average")
+    METADATA_FIELD_NUMBER: _ClassVar[int]
+    MARK_PRICE_FIELD_NUMBER: _ClassVar[int]
+    INDEX_PRICE_FIELD_NUMBER: _ClassVar[int]
+    ESTIMATED_SETTLE_PRICE_FIELD_NUMBER: _ClassVar[int]
+    FUNDING_RATE_FIELD_NUMBER: _ClassVar[int]
+    NEXT_FUNDING_TIME_MS_FIELD_NUMBER: _ClassVar[int]
+    MARK_PRICE_MOVING_AVERAGE_FIELD_NUMBER: _ClassVar[int]
+    metadata: _metadata_pb2.EventMetadata
+    mark_price: str
+    index_price: str
+    estimated_settle_price: str
+    funding_rate: str
+    next_funding_time_ms: int
+    mark_price_moving_average: str
+    def __init__(self, metadata: _Optional[_Union[_metadata_pb2.EventMetadata, _Mapping]] = ..., mark_price: _Optional[str] = ..., index_price: _Optional[str] = ..., estimated_settle_price: _Optional[str] = ..., funding_rate: _Optional[str] = ..., next_funding_time_ms: _Optional[int] = ..., mark_price_moving_average: _Optional[str] = ...) -> None: ...
+
+class Liquidation(_message.Message):
+    __slots__ = ("metadata", "side", "order_type", "time_in_force", "original_quantity", "price", "average_price", "order_status", "last_filled_quantity", "accumulated_filled_quantity", "order_trade_time_ms")
+    METADATA_FIELD_NUMBER: _ClassVar[int]
+    SIDE_FIELD_NUMBER: _ClassVar[int]
+    ORDER_TYPE_FIELD_NUMBER: _ClassVar[int]
+    TIME_IN_FORCE_FIELD_NUMBER: _ClassVar[int]
+    ORIGINAL_QUANTITY_FIELD_NUMBER: _ClassVar[int]
+    PRICE_FIELD_NUMBER: _ClassVar[int]
+    AVERAGE_PRICE_FIELD_NUMBER: _ClassVar[int]
+    ORDER_STATUS_FIELD_NUMBER: _ClassVar[int]
+    LAST_FILLED_QUANTITY_FIELD_NUMBER: _ClassVar[int]
+    ACCUMULATED_FILLED_QUANTITY_FIELD_NUMBER: _ClassVar[int]
+    ORDER_TRADE_TIME_MS_FIELD_NUMBER: _ClassVar[int]
+    metadata: _metadata_pb2.EventMetadata
+    side: str
+    order_type: str
+    time_in_force: str
+    original_quantity: str
+    price: str
+    average_price: str
+    order_status: str
+    last_filled_quantity: str
+    accumulated_filled_quantity: str
+    order_trade_time_ms: int
+    def __init__(self, metadata: _Optional[_Union[_metadata_pb2.EventMetadata, _Mapping]] = ..., side: _Optional[str] = ..., order_type: _Optional[str] = ..., time_in_force: _Optional[str] = ..., original_quantity: _Optional[str] = ..., price: _Optional[str] = ..., average_price: _Optional[str] = ..., order_status: _Optional[str] = ..., last_filled_quantity: _Optional[str] = ..., accumulated_filled_quantity: _Optional[str] = ..., order_trade_time_ms: _Optional[int] = ...) -> None: ...
 
 class BookTicker(_message.Message):
     __slots__ = ("metadata", "update_id", "best_bid_price", "best_bid_quantity", "best_ask_price", "best_ask_quantity")
@@ -61,7 +107,7 @@ class BookTicker(_message.Message):
     def __init__(self, metadata: _Optional[_Union[_metadata_pb2.EventMetadata, _Mapping]] = ..., update_id: _Optional[int] = ..., best_bid_price: _Optional[str] = ..., best_bid_quantity: _Optional[str] = ..., best_ask_price: _Optional[str] = ..., best_ask_quantity: _Optional[str] = ...) -> None: ...
 
 class ExchangeDepthSnapshot(_message.Message):
-    __slots__ = ("venue", "market", "symbol", "schema_version", "producer", "producer_version", "request_id", "last_update_id", "bids", "asks", "exchange_transaction_time_ms", "receive_time_utc_ns", "receive_monotonic_ns", "quality_flags")
+    __slots__ = ("venue", "market", "symbol", "schema_version", "producer", "producer_version", "request_id", "last_update_id", "bids", "asks", "exchange_transaction_time_ms", "receive_time_utc_ns", "receive_monotonic_ns", "quality_flags", "exchange_event_time_ms")
     VENUE_FIELD_NUMBER: _ClassVar[int]
     MARKET_FIELD_NUMBER: _ClassVar[int]
     SYMBOL_FIELD_NUMBER: _ClassVar[int]
@@ -76,6 +122,7 @@ class ExchangeDepthSnapshot(_message.Message):
     RECEIVE_TIME_UTC_NS_FIELD_NUMBER: _ClassVar[int]
     RECEIVE_MONOTONIC_NS_FIELD_NUMBER: _ClassVar[int]
     QUALITY_FLAGS_FIELD_NUMBER: _ClassVar[int]
+    EXCHANGE_EVENT_TIME_MS_FIELD_NUMBER: _ClassVar[int]
     venue: _enums_pb2.Venue
     market: _enums_pb2.Market
     symbol: str
@@ -90,4 +137,5 @@ class ExchangeDepthSnapshot(_message.Message):
     receive_time_utc_ns: int
     receive_monotonic_ns: int
     quality_flags: _containers.RepeatedScalarFieldContainer[_enums_pb2.QualityFlag]
-    def __init__(self, venue: _Optional[_Union[_enums_pb2.Venue, str]] = ..., market: _Optional[_Union[_enums_pb2.Market, str]] = ..., symbol: _Optional[str] = ..., schema_version: _Optional[str] = ..., producer: _Optional[str] = ..., producer_version: _Optional[str] = ..., request_id: _Optional[str] = ..., last_update_id: _Optional[int] = ..., bids: _Optional[_Iterable[_Union[_metadata_pb2.PriceLevel, _Mapping]]] = ..., asks: _Optional[_Iterable[_Union[_metadata_pb2.PriceLevel, _Mapping]]] = ..., exchange_transaction_time_ms: _Optional[int] = ..., receive_time_utc_ns: _Optional[int] = ..., receive_monotonic_ns: _Optional[int] = ..., quality_flags: _Optional[_Iterable[_Union[_enums_pb2.QualityFlag, str]]] = ...) -> None: ...
+    exchange_event_time_ms: int
+    def __init__(self, venue: _Optional[_Union[_enums_pb2.Venue, str]] = ..., market: _Optional[_Union[_enums_pb2.Market, str]] = ..., symbol: _Optional[str] = ..., schema_version: _Optional[str] = ..., producer: _Optional[str] = ..., producer_version: _Optional[str] = ..., request_id: _Optional[str] = ..., last_update_id: _Optional[int] = ..., bids: _Optional[_Iterable[_Union[_metadata_pb2.PriceLevel, _Mapping]]] = ..., asks: _Optional[_Iterable[_Union[_metadata_pb2.PriceLevel, _Mapping]]] = ..., exchange_transaction_time_ms: _Optional[int] = ..., receive_time_utc_ns: _Optional[int] = ..., receive_monotonic_ns: _Optional[int] = ..., quality_flags: _Optional[_Iterable[_Union[_enums_pb2.QualityFlag, str]]] = ..., exchange_event_time_ms: _Optional[int] = ...) -> None: ...

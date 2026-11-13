@@ -794,6 +794,72 @@
       "validation_scope": "BOTH",
       "expected_error_code": "greater_than_equal",
       "expected_error_path": "metadata.exchange_transaction_time_ms"
+    },
+    {
+      "path": "valid/mark-price.v1.json",
+      "contract_name": "mark-price.v1",
+      "schema_version": "mark-price.v1",
+      "python_type": "MarkPrice",
+      "valid": true,
+      "scenario": "USD-M mark price update with funding rate",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "invalid/mark-price.v1.missing-metadata.json",
+      "contract_name": "mark-price.v1",
+      "schema_version": "mark-price.v1",
+      "python_type": "MarkPrice",
+      "valid": false,
+      "scenario": "Missing required metadata",
+      "validation_scope": "BOTH",
+      "expected_error_code": "missing",
+      "expected_error_path": "metadata"
+    },
+    {
+      "path": "valid/liquidation.v1.json",
+      "contract_name": "liquidation.v1",
+      "schema_version": "liquidation.v1",
+      "python_type": "Liquidation",
+      "valid": true,
+      "scenario": "USD-M forceOrder liquidation sample",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "invalid/liquidation.v1.missing-metadata.json",
+      "contract_name": "liquidation.v1",
+      "schema_version": "liquidation.v1",
+      "python_type": "Liquidation",
+      "valid": false,
+      "scenario": "Missing required metadata",
+      "validation_scope": "BOTH",
+      "expected_error_code": "missing",
+      "expected_error_path": "metadata"
+    },
+    {
+      "path": "valid/reference-observation.v1.json",
+      "contract_name": "reference-observation.v1",
+      "schema_version": "reference-observation.v1",
+      "python_type": "ReferenceObservation",
+      "valid": true,
+      "scenario": "USD-M open interest observation",
+      "validation_scope": "BOTH",
+      "expected_error_code": null,
+      "expected_error_path": null
+    },
+    {
+      "path": "invalid/reference-observation.v1.payload-mismatch.json",
+      "contract_name": "reference-observation.v1",
+      "schema_version": "reference-observation.v1",
+      "python_type": "ReferenceObservation",
+      "valid": false,
+      "scenario": "source_kind OPEN_INTEREST with instrument payload",
+      "validation_scope": "PYDANTIC_ONLY",
+      "expected_error_code": "value_error",
+      "expected_error_path": "$"
     }
   ]
 }

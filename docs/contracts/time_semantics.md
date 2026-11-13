@@ -58,6 +58,21 @@ For the REST Order Book response, `T` is also transaction time; the existing
 `ExchangeDepthSnapshot.exchange_transaction_time_ms` field is correct. No new
 schema field is needed. Trade streams retain their trade-time mapping.
 
+## USD-M mark-price and liquidation mapping (C2)
+
+MarkPrice payload `E` is `metadata.exchange_event_time_ms`; `T` is the **next
+funding time** and maps only to `next_funding_time_ms`. It is not transaction
+time. `funding_rate` is signed.
+
+Liquidation/forceOrder payload `E` is `metadata.exchange_event_time_ms`; `T` is
+the order trade time and maps to `order_trade_time_ms`. The stream is a
+per-order sample, not a complete liquidation list.
+
+REST reference observations carry the response receive time in
+`receive_time_utc_ns`; a source-provided observation time maps to
+`source_time_ms` when present. `ExchangeDepthSnapshot.exchange_event_time_ms`
+is optional and distinct from `exchange_transaction_time_ms`.
+
 An absent optional time remains `None`/absent on protobuf. Present zero remains
 present zero, and must not be used as an absence sentinel. Do not substitute `E`,
 receive time or trade time for a missing `T`. Raw protocol acceptance (including

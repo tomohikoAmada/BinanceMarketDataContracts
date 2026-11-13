@@ -51,6 +51,8 @@ def _get_enum_descriptor(full_name: str):
         "binance_market_data.common.v1.RecoveryAction",
         "binance_market_data.common.v1.StreamLifecycleState",
         "binance_market_data.common.v1.HealthState",
+        "binance_market_data.common.v1.ReferenceSourceKind",
+        "binance_market_data.common.v1.ReferenceObservationStatus",
     ],
 )
 def test_enum_zero_is_unspecified(enum_full_name):
@@ -76,7 +78,10 @@ PRICE_QUANTITY_MESSAGES = [
     "binance_market_data.market.v1.DepthUpdate",
     "binance_market_data.market.v1.AggTrade",
     "binance_market_data.market.v1.BookTicker",
+    "binance_market_data.market.v1.MarkPrice",
+    "binance_market_data.market.v1.Liquidation",
     "binance_market_data.market.v1.ExchangeDepthSnapshot",
+    "binance_market_data.market.v1.ReferenceObservation",
 ]
 
 
@@ -99,6 +104,9 @@ ALL_MESSAGE_NAMES_TO_CHECK = [
     "binance_market_data.market.v1.DepthUpdate",
     "binance_market_data.market.v1.AggTrade",
     "binance_market_data.market.v1.BookTicker",
+    "binance_market_data.market.v1.MarkPrice",
+    "binance_market_data.market.v1.Liquidation",
+    "binance_market_data.market.v1.ReferenceObservation",
     "binance_market_data.market.v1.ExchangeDepthSnapshot",
     "binance_market_data.projection.v1.LocalOrderBookSnapshot",
     "binance_market_data.projection.v1.MarketStateSnapshot",
@@ -159,3 +167,55 @@ def test_market_runtime_status_generation_is_optional():
     generation = message.fields_by_name["connection_generation"]
     assert generation.number == 6
     assert generation.has_presence
+
+
+def test_c2_usdm_fields_are_additive_and_optional():
+    agg_trade = _get_message_descriptor("binance_market_data.market.v1.AggTrade")
+    normal_quantity = agg_trade.fields_by_name["normal_quantity"]
+    assert normal_quantity.number == 9
+    assert normal_quantity.has_presence
+
+    mark_price = _get_message_descriptor("binance_market_data.market.v1.MarkPrice")
+    assert mark_price.fields_by_name["next_funding_time_ms"].number == 6
+    assert mark_price.fields_by_name["mark_price_moving_average"].has_presence
+
+    snapshot = _get_message_descriptor("binance_market_data.market.v1.ExchangeDepthSnapshot")
+    event_time = snapshot.fields_by_name["exchange_event_time_ms"]
+    assert event_time.number == 15
+    assert event_time.has_presence
+
+    stream_status = _get_message_descriptor("binance_market_data.gateway.v1.StreamStatus")
+    source_kind = stream_status.fields_by_name["reference_source_kind"]
+    assert source_kind.number == 7
+    assert source_kind.has_presence
+
+
+def test_c2_gateway_oneof_carries_usdm_events():
+    envelope = _get_message_descriptor("binance_market_data.gateway.v1.GatewayEventEnvelope")
+    expected = {
+        "mark_price": ("binance_market_data.market.v1.MarkPrice", 16),
+        "liquidation": ("binance_market_data.market.v1.Liquidation", 17),
+        "reference_observation": ("binance_market_data.market.v1.ReferenceObservation", 18),
+    }
+    for name, (full_name, number) in expected.items():
+        field = envelope.fields_by_name[name]
+        assert field.number == number
+        assert field.message_type.full_name == full_name
+        assert field.containing_oneof.name == "payload"
+
+
+def test_reference_observation_payload_is_typed_oneof():
+    message = _get_message_descriptor("binance_market_data.market.v1.ReferenceObservation")
+    expected = {
+        "open_interest": 20,
+        "top_long_short_account_ratio": 21,
+        "top_long_short_position_ratio": 22,
+        "global_long_short_account_ratio": 23,
+        "taker_buy_sell_volume": 24,
+        "instrument": 25,
+        "depth_baseline": 26,
+    }
+    for name, number in expected.items():
+        field = message.fields_by_name[name]
+        assert field.number == number
+        assert field.containing_oneof.name == "payload"

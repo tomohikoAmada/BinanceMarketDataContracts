@@ -264,7 +264,10 @@
         "DIFF_DEPTH",
         "AGG_TRADE",
         "BOOK_TICKER",
-        "DEPTH_SNAPSHOT"
+        "DEPTH_SNAPSHOT",
+        "MARK_PRICE",
+        "LIQUIDATION",
+        "REFERENCE_DATA"
       ],
       "title": "Stream",
       "type": "string"

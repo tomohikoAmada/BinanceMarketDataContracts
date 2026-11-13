@@ -1,0 +1,740 @@
+{
+  "$defs": {
+    "ExchangeDepthSnapshot": {
+      "additionalProperties": false,
+      "description": "REST depth snapshot from Binance.",
+      "properties": {
+        "asks": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PriceLevel"
+          },
+          "title": "Asks",
+          "type": "array"
+        },
+        "bids": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PriceLevel"
+          },
+          "title": "Bids",
+          "type": "array"
+        },
+        "exchange_event_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange Event Time Ms"
+        },
+        "exchange_transaction_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange Transaction Time Ms"
+        },
+        "last_update_id": {
+          "maximum": 18446744073709551615,
+          "minimum": 0,
+          "title": "Last Update Id",
+          "type": "integer"
+        },
+        "market": {
+          "$ref": "#/$defs/Market"
+        },
+        "producer": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Producer",
+          "type": "string"
+        },
+        "producer_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Producer Version",
+          "type": "string"
+        },
+        "quality_flags": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/QualityFlag"
+          },
+          "title": "Quality Flags",
+          "type": "array"
+        },
+        "receive_monotonic_ns": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receive Monotonic Ns"
+        },
+        "receive_time_utc_ns": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receive Time Utc Ns"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "exchange-depth-snapshot.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "symbol": {
+          "minLength": 1,
+          "pattern": "^(?![\\s\\S]*[\\u0000-\\u0020\\u007F])[\\s\\S]+$",
+          "title": "Symbol",
+          "type": "string"
+        },
+        "venue": {
+          "$ref": "#/$defs/Venue"
+        }
+      },
+      "required": [
+        "venue",
+        "market",
+        "symbol",
+        "schema_version",
+        "producer",
+        "producer_version",
+        "request_id",
+        "last_update_id"
+      ],
+      "title": "ExchangeDepthSnapshot",
+      "type": "object"
+    },
+    "InstrumentFilter": {
+      "additionalProperties": false,
+      "properties": {
+        "filter_type": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Filter Type",
+          "type": "string"
+        },
+        "limit": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Limit"
+        },
+        "notional": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notional"
+        },
+        "price": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Price"
+        },
+        "quantity": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quantity"
+        }
+      },
+      "required": [
+        "filter_type"
+      ],
+      "title": "InstrumentFilter",
+      "type": "object"
+    },
+    "InstrumentReference": {
+      "additionalProperties": false,
+      "properties": {
+        "base_asset": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Base Asset",
+          "type": "string"
+        },
+        "contract_type": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Contract Type",
+          "type": "string"
+        },
+        "delivery_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Delivery Time Ms"
+        },
+        "filters": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/InstrumentFilter"
+          },
+          "title": "Filters",
+          "type": "array"
+        },
+        "margin_asset": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Margin Asset",
+          "type": "string"
+        },
+        "onboard_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Onboard Time Ms"
+        },
+        "price_precision": {
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Price Precision",
+          "type": "integer"
+        },
+        "quantity_precision": {
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Quantity Precision",
+          "type": "integer"
+        },
+        "quote_asset": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Quote Asset",
+          "type": "string"
+        },
+        "rate_limits": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RateLimit"
+          },
+          "title": "Rate Limits",
+          "type": "array"
+        },
+        "server_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Server Time Ms"
+        },
+        "symbol_present": {
+          "title": "Symbol Present",
+          "type": "boolean"
+        },
+        "trading_status": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Trading Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "symbol_present",
+        "contract_type",
+        "trading_status",
+        "base_asset",
+        "quote_asset",
+        "margin_asset",
+        "price_precision",
+        "quantity_precision"
+      ],
+      "title": "InstrumentReference",
+      "type": "object"
+    },
+    "LongShortRatio": {
+      "additionalProperties": false,
+      "properties": {
+        "long_account": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Long Account",
+          "type": "string"
+        },
+        "long_short_ratio": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Long Short Ratio",
+          "type": "string"
+        },
+        "period": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Period",
+          "type": "string"
+        },
+        "short_account": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Short Account",
+          "type": "string"
+        },
+        "source_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Time Ms"
+        }
+      },
+      "required": [
+        "long_short_ratio",
+        "long_account",
+        "short_account",
+        "period"
+      ],
+      "title": "LongShortRatio",
+      "type": "object"
+    },
+    "Market": {
+      "enum": [
+        "SPOT",
+        "USD_M_PERPETUAL"
+      ],
+      "title": "Market",
+      "type": "string"
+    },
+    "OpenInterest": {
+      "additionalProperties": false,
+      "properties": {
+        "open_interest": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Open Interest",
+          "type": "string"
+        },
+        "source_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Time Ms"
+        }
+      },
+      "required": [
+        "open_interest"
+      ],
+      "title": "OpenInterest",
+      "type": "object"
+    },
+    "PriceLevel": {
+      "additionalProperties": false,
+      "description": "A single price level in the order book.\n\nquantity represents the absolute quantity at this price level after the update.\nquantity == \"0\" means this price level should be removed.",
+      "properties": {
+        "price": {
+          "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
+          "title": "Price",
+          "type": "string"
+        },
+        "quantity": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Quantity",
+          "type": "string"
+        }
+      },
+      "required": [
+        "price",
+        "quantity"
+      ],
+      "title": "PriceLevel",
+      "type": "object"
+    },
+    "QualityFlag": {
+      "description": "Quality flags describe data facts — what is observed about the data.\n\nThese are distinct from ReasonCode which explains Health state judgments.",
+      "enum": [
+        "DUPLICATE",
+        "OUT_OF_ORDER",
+        "SEQUENCE_GAP",
+        "ORDERBOOK_RESYNC",
+        "SNAPSHOT_BRIDGE_PENDING",
+        "SNAPSHOT_TOO_OLD",
+        "BOOTSTRAP_BUFFER_OVERFLOW",
+        "RECOVERED_TAIL",
+        "MALFORMED_PAYLOAD",
+        "EXCHANGE_TIME_MISSING",
+        "RECEIVE_CLOCK_DISCONTINUITY",
+        "SLOW_CONSUMER_GAP",
+        "PRODUCER_RESTART",
+        "OVERLAP",
+        "IDENTITY_CONFLICT",
+        "CROSSED_BOOK"
+      ],
+      "title": "QualityFlag",
+      "type": "string"
+    },
+    "RateLimit": {
+      "additionalProperties": false,
+      "properties": {
+        "interval": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Interval",
+          "type": "string"
+        },
+        "interval_num": {
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Interval Num",
+          "type": "integer"
+        },
+        "limit": {
+          "maximum": 18446744073709551615,
+          "minimum": 0,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "rate_limit_type": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Rate Limit Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rate_limit_type",
+        "interval",
+        "interval_num",
+        "limit"
+      ],
+      "title": "RateLimit",
+      "type": "object"
+    },
+    "ReferenceObservationStatus": {
+      "enum": [
+        "VALID",
+        "EMPTY",
+        "ERROR"
+      ],
+      "title": "ReferenceObservationStatus",
+      "type": "string"
+    },
+    "ReferenceSourceKind": {
+      "enum": [
+        "OPEN_INTEREST",
+        "TOP_LONG_SHORT_ACCOUNT_RATIO",
+        "TOP_LONG_SHORT_POSITION_RATIO",
+        "GLOBAL_LONG_SHORT_ACCOUNT_RATIO",
+        "TAKER_BUY_SELL_VOLUME",
+        "INSTRUMENT",
+        "DEPTH_BASELINE"
+      ],
+      "title": "ReferenceSourceKind",
+      "type": "string"
+    },
+    "TakerBuySellVolume": {
+      "additionalProperties": false,
+      "properties": {
+        "buy_sell_ratio": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Buy Sell Ratio",
+          "type": "string"
+        },
+        "buy_volume": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Buy Volume",
+          "type": "string"
+        },
+        "period": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "title": "Period",
+          "type": "string"
+        },
+        "sell_volume": {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "title": "Sell Volume",
+          "type": "string"
+        },
+        "source_time_ms": {
+          "anyOf": [
+            {
+              "maximum": 18446744073709551615,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Time Ms"
+        }
+      },
+      "required": [
+        "buy_sell_ratio",
+        "buy_volume",
+        "sell_volume",
+        "period"
+      ],
+      "title": "TakerBuySellVolume",
+      "type": "object"
+    },
+    "Venue": {
+      "enum": [
+        "BINANCE"
+      ],
+      "title": "Venue",
+      "type": "string"
+    }
+  },
+  "$id": "urn:binance-market-data-contracts:reference-observation.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One typed low-frequency REST observation.",
+  "properties": {
+    "depth_baseline": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExchangeDepthSnapshot"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "error_code": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^\\S(?:.*\\S)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "global_long_short_account_ratio": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LongShortRatio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "instrument": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/InstrumentReference"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "market": {
+      "$ref": "#/$defs/Market"
+    },
+    "open_interest": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/OpenInterest"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "receive_time_utc_ns": {
+      "maximum": 18446744073709551615,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "request_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "reference-observation.v1",
+      "type": "string"
+    },
+    "source_kind": {
+      "$ref": "#/$defs/ReferenceSourceKind"
+    },
+    "source_time_ms": {
+      "anyOf": [
+        {
+          "maximum": 18446744073709551615,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "status": {
+      "$ref": "#/$defs/ReferenceObservationStatus"
+    },
+    "symbol": {
+      "minLength": 1,
+      "pattern": "^(?![\\s\\S]*[\\u0000-\\u0020\\u007F])[\\s\\S]+$",
+      "type": "string"
+    },
+    "taker_buy_sell_volume": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TakerBuySellVolume"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "top_long_short_account_ratio": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LongShortRatio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "top_long_short_position_ratio": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LongShortRatio"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "venue": {
+      "$ref": "#/$defs/Venue"
+    }
+  },
+  "required": [
+    "schema_version",
+    "venue",
+    "market",
+    "symbol",
+    "request_id",
+    "source_kind",
+    "receive_time_utc_ns",
+    "status"
+  ],
+  "type": "object"
+}

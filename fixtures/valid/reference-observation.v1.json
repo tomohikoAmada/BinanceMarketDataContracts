@@ -1,0 +1,15 @@
+{
+  "schema_version": "reference-observation.v1",
+  "venue": "BINANCE",
+  "market": "USD_M_PERPETUAL",
+  "symbol": "BTCUSDT",
+  "request_id": "req-ref-oi-001",
+  "source_kind": "OPEN_INTEREST",
+  "receive_time_utc_ns": 1690000009000000000,
+  "source_time_ms": 1690000008000,
+  "status": "VALID",
+  "open_interest": {
+    "open_interest": "12345.678",
+    "source_time_ms": 1690000008000
+  }
+}

@@ -15,6 +15,10 @@ All notable changes to this project are documented here. The format follows
 - Contracts-owned C++ message package plus a separate C++ gRPC service/stub
   package, with CMake/Conan consumers and provenance metadata.
 - `GatewayStatusRequest` across registries, adapters, schemas, fixtures and docs.
+- USD-M C2 wire surface: `Stream.MARK_PRICE/LIQUIDATION/REFERENCE_DATA`,
+  `MarkPrice`, `Liquidation`, typed `ReferenceObservation` payloads,
+  `StreamStatus.reference_source_kind`, `AggTrade.normal_quantity`,
+  `ExchangeDepthSnapshot.exchange_event_time_ms`, fixtures and adapters.
 - ADR-0007 through ADR-0012.
 
 ### Changed
@@ -31,6 +35,9 @@ All notable changes to this project are documented here. The format follows
 - Compressed historical C0/C1/C-M4-001 plans and evidence into
   [docs/HISTORY.md](docs/HISTORY.md); current docs no longer pin moving
   cross-repository runtime status.
+- C2 changes the canonical descriptor fingerprint to
+  `a2a93ca5cf4e17c9a64ca0939ad208f1202c1746628eed5260bd0edb81666c86`; C++
+  message/gRPC candidates must be re-exported from this schema.
 
 ### Architecture
 

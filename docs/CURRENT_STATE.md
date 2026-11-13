@@ -3,7 +3,7 @@ freshness matters. Accepted ADRs and semantic designs remain authoritative.
 
 # Current State
 
-Updated 2026-11-10.
+Updated 2026-11-13.
 
 ## Milestones
 
@@ -13,6 +13,7 @@ Updated 2026-11-10.
 | C1 used internal v1 contract | COMPLETE: fixed used subset, dependency pins and offline validation; merged in PR #23 | [Consumer page](contracts/current-capabilities.md), [HISTORY](HISTORY.md) |
 | C1.1 hygiene | COMPLETE: explicit present-empty `StreamStatus.message` is rejected instead of coerced to absence; documentation scans prune `.venv`/cache/build dirs before traversal | `tests/test_wire_adapters.py`, `tests/test_documentation_consistency.py` |
 | C1.2 simplification | COMPLETE: removed redundant Decimal/enum validators, unused `EnvelopeMetadata`, adapter-local enum maps and no-op conversion helpers. No schema/fingerprint change | `common.py`, `gateway.py`, `telemetry.py`, `wire/adapters.py` |
+| C2 USD-M contract extension | IN PROGRESS: MarkPrice, Liquidation, ReferenceObservation, Stream/Reference enums, AggTrade.normal_quantity and REST event-time presence added; fixtures/adapters/regenerated Python included | `market_events.proto`, `reference_data.proto`, `gateway_messages.proto`, `wire/adapters.py` |
 | C2 conditional simplification | Not triggered; no evidenced maintenance/performance reason | Sibling Contracts milestone plan |
 
 ## Repository role
@@ -30,6 +31,8 @@ Gateway owns runtime, transport, configuration limits and gRPC serving.
 
 C1 fixes the used internal v1 subset to five market/book models, eight
 RPC-related models, existing `StreamStatus`/helpers, and three implemented RPCs.
+C2 adds USD-M mark-price, liquidation and typed REST reference-observation
+contracts as PROPOSED; Gateway/Recorder adoption remains downstream work.
 `SubscribeMarketState` remains UNIMPLEMENTED. Domain representability is broader
 than current runtime support; unused models are not promised or expanded. See
 [the consumer page](contracts/current-capabilities.md).
@@ -46,10 +49,10 @@ stage.
 - `binance-market-data-contracts-grpc-cpp/0.1.0` exports
   `BinanceMarketDataContracts::Grpc`, links the exact message artifact and owns
   only generated service/stub symbols.
-- Schema Fingerprint Algorithm Version 1 digest stays
-  `33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`.
-- Domain/Wire statuses and schema versions remain unchanged: 23 contracts,
-  19 wire mappings, PROPOSED/DRAFT.
+- Schema Fingerprint Algorithm Version 1 digest is
+  `a2a93ca5cf4e17c9a64ca0939ad208f1202c1746628eed5260bd0edb81666c86` after the C2 message-field extension.
+- Domain/Wire statuses and schema versions remain PROPOSED/DRAFT: 26 contracts,
+  22 wire mappings.
 - Formal Package Revision stays NOT_FORMALLY_ASSIGNED; publication is separate.
 - Binary protobuf compatibility differs from strict Domain/JSON/adapter support;
   see [compatibility policy](contracts/compatibility_policy.md).

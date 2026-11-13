@@ -22,6 +22,27 @@ class Stream(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     STREAM_AGG_TRADE: _ClassVar[Stream]
     STREAM_BOOK_TICKER: _ClassVar[Stream]
     STREAM_DEPTH_SNAPSHOT: _ClassVar[Stream]
+    STREAM_MARK_PRICE: _ClassVar[Stream]
+    STREAM_LIQUIDATION: _ClassVar[Stream]
+    STREAM_REFERENCE_DATA: _ClassVar[Stream]
+
+class ReferenceSourceKind(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    REFERENCE_SOURCE_KIND_UNSPECIFIED: _ClassVar[ReferenceSourceKind]
+    REFERENCE_SOURCE_KIND_OPEN_INTEREST: _ClassVar[ReferenceSourceKind]
+    REFERENCE_SOURCE_KIND_TOP_LONG_SHORT_ACCOUNT_RATIO: _ClassVar[ReferenceSourceKind]
+    REFERENCE_SOURCE_KIND_TOP_LONG_SHORT_POSITION_RATIO: _ClassVar[ReferenceSourceKind]
+    REFERENCE_SOURCE_KIND_GLOBAL_LONG_SHORT_ACCOUNT_RATIO: _ClassVar[ReferenceSourceKind]
+    REFERENCE_SOURCE_KIND_TAKER_BUY_SELL_VOLUME: _ClassVar[ReferenceSourceKind]
+    REFERENCE_SOURCE_KIND_INSTRUMENT: _ClassVar[ReferenceSourceKind]
+    REFERENCE_SOURCE_KIND_DEPTH_BASELINE: _ClassVar[ReferenceSourceKind]
+
+class ReferenceObservationStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    REFERENCE_OBSERVATION_STATUS_UNSPECIFIED: _ClassVar[ReferenceObservationStatus]
+    REFERENCE_OBSERVATION_STATUS_VALID: _ClassVar[ReferenceObservationStatus]
+    REFERENCE_OBSERVATION_STATUS_EMPTY: _ClassVar[ReferenceObservationStatus]
+    REFERENCE_OBSERVATION_STATUS_ERROR: _ClassVar[ReferenceObservationStatus]
 
 class QualityFlag(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -149,6 +170,21 @@ STREAM_DIFF_DEPTH: Stream
 STREAM_AGG_TRADE: Stream
 STREAM_BOOK_TICKER: Stream
 STREAM_DEPTH_SNAPSHOT: Stream
+STREAM_MARK_PRICE: Stream
+STREAM_LIQUIDATION: Stream
+STREAM_REFERENCE_DATA: Stream
+REFERENCE_SOURCE_KIND_UNSPECIFIED: ReferenceSourceKind
+REFERENCE_SOURCE_KIND_OPEN_INTEREST: ReferenceSourceKind
+REFERENCE_SOURCE_KIND_TOP_LONG_SHORT_ACCOUNT_RATIO: ReferenceSourceKind
+REFERENCE_SOURCE_KIND_TOP_LONG_SHORT_POSITION_RATIO: ReferenceSourceKind
+REFERENCE_SOURCE_KIND_GLOBAL_LONG_SHORT_ACCOUNT_RATIO: ReferenceSourceKind
+REFERENCE_SOURCE_KIND_TAKER_BUY_SELL_VOLUME: ReferenceSourceKind
+REFERENCE_SOURCE_KIND_INSTRUMENT: ReferenceSourceKind
+REFERENCE_SOURCE_KIND_DEPTH_BASELINE: ReferenceSourceKind
+REFERENCE_OBSERVATION_STATUS_UNSPECIFIED: ReferenceObservationStatus
+REFERENCE_OBSERVATION_STATUS_VALID: ReferenceObservationStatus
+REFERENCE_OBSERVATION_STATUS_EMPTY: ReferenceObservationStatus
+REFERENCE_OBSERVATION_STATUS_ERROR: ReferenceObservationStatus
 QUALITY_FLAG_UNSPECIFIED: QualityFlag
 QUALITY_FLAG_DUPLICATE: QualityFlag
 QUALITY_FLAG_OUT_OF_ORDER: QualityFlag

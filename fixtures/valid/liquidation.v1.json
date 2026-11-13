@@ -1,0 +1,23 @@
+{
+  "metadata": {
+    "venue": "BINANCE",
+    "market": "USD_M_PERPETUAL",
+    "symbol": "BTCUSDT",
+    "producer": "recorder",
+    "producer_version": "0.1.0",
+    "connection_id": "conn-usdm-force-001",
+    "stream": "LIQUIDATION",
+    "schema_version": "liquidation.v1",
+    "exchange_event_time_ms": 1690000004000
+  },
+  "side": "SELL",
+  "order_type": "LIMIT",
+  "time_in_force": "IOC",
+  "original_quantity": "1.000",
+  "price": "29500.00",
+  "average_price": "29499.50",
+  "order_status": "FILLED",
+  "last_filled_quantity": "1.000",
+  "accumulated_filled_quantity": "1.000",
+  "order_trade_time_ms": 1690000003950
+}

@@ -149,6 +149,19 @@
       "schema_id": "urn:binance-market-data-contracts:historical-dataset-descriptor.v1",
       "status": "DRAFT"
     },
+    "liquidation.v1": {
+      "consumers": [
+        "history-replay",
+        "live-strategy"
+      ],
+      "filename": "contracts/liquidation.v1.schema.json",
+      "producers": [
+        "recorder-adapter",
+        "gateway-adapter"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:liquidation.v1",
+      "status": "PROPOSED"
+    },
     "local-order-book-snapshot.v1": {
       "consumers": [
         "view",
@@ -160,6 +173,20 @@
         "replay"
       ],
       "schema_id": "urn:binance-market-data-contracts:local-order-book-snapshot.v1",
+      "status": "PROPOSED"
+    },
+    "mark-price.v1": {
+      "consumers": [
+        "health",
+        "history-replay",
+        "live-strategy"
+      ],
+      "filename": "contracts/mark-price.v1.schema.json",
+      "producers": [
+        "recorder-adapter",
+        "gateway-adapter"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:mark-price.v1",
       "status": "PROPOSED"
     },
     "market-state-snapshot.v1": {
@@ -218,6 +245,19 @@
       ],
       "schema_id": "urn:binance-market-data-contracts:order-book-subscription-request.v1",
       "status": "DRAFT"
+    },
+    "reference-observation.v1": {
+      "consumers": [
+        "health",
+        "history-replay",
+        "live-strategy"
+      ],
+      "filename": "contracts/reference-observation.v1.schema.json",
+      "producers": [
+        "gateway-adapter"
+      ],
+      "schema_id": "urn:binance-market-data-contracts:reference-observation.v1",
+      "status": "PROPOSED"
     },
     "replay-query.v1": {
       "consumers": [],

@@ -1,0 +1,20 @@
+{
+  "schema_version": "reference-observation.v1",
+  "venue": "BINANCE",
+  "market": "USD_M_PERPETUAL",
+  "symbol": "BTCUSDT",
+  "request_id": "req-ref-mismatch-001",
+  "source_kind": "OPEN_INTEREST",
+  "receive_time_utc_ns": 1690000009000000000,
+  "status": "VALID",
+  "instrument": {
+    "symbol_present": true,
+    "contract_type": "PERPETUAL",
+    "trading_status": "TRADING",
+    "base_asset": "BTC",
+    "quote_asset": "USDT",
+    "margin_asset": "USDT",
+    "price_precision": 2,
+    "quantity_precision": 3
+  }
+}

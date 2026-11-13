@@ -82,7 +82,7 @@ def test_independent_proto_source_trees_have_one_canonical_digest(tmp_path: Path
     digest_a, canonical_a = fingerprint(load_descriptor(descriptor_a))
     digest_b, canonical_b = fingerprint(load_descriptor(descriptor_b))
     assert canonical_a == canonical_b
-    assert digest_a == digest_b == "33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0"
+    assert digest_a == digest_b == "a2a93ca5cf4e17c9a64ca0939ad208f1202c1746628eed5260bd0edb81666c86"
 
 
 def test_file_traversal_order_is_normalized(descriptor_set: descriptor_pb2.FileDescriptorSet) -> None:

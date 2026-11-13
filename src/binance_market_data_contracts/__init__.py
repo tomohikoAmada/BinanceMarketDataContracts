@@ -27,6 +27,15 @@ from binance_market_data_contracts.enums import (
     Venue,
 )
 from binance_market_data_contracts.errors import ContractError, SchemaVersionError
+from binance_market_data_contracts.gateway import (
+    InstrumentFilter,
+    InstrumentReference,
+    LongShortRatio,
+    OpenInterest,
+    RateLimit,
+    ReferenceObservation,
+    TakerBuySellVolume,
+)
 from binance_market_data_contracts.identifiers import ConnectionId, GatewayInstanceId, RequestId, SubscriptionId, Symbol
 from binance_market_data_contracts.market_events import (
     AggTrade,
@@ -35,6 +44,10 @@ from binance_market_data_contracts.market_events import (
     BookTickerMetadata,
     DepthUpdate,
     DepthUpdateMetadata,
+    Liquidation,
+    LiquidationMetadata,
+    MarkPrice,
+    MarkPriceMetadata,
     PriceLevel,
 )
 from binance_market_data_contracts.snapshots import (
@@ -76,14 +89,24 @@ __all__ = [
     "GatewayInstanceId",
     "HealthState",
     "InitialSnapshotMode",
+    "InstrumentFilter",
+    "InstrumentReference",
     "LatencySummary",
+    "Liquidation",
+    "LiquidationMetadata",
     "LocalOrderBookSnapshot",
+    "LongShortRatio",
+    "MarkPrice",
+    "MarkPriceMetadata",
     "Market",
     "MarketStateSnapshot",
+    "OpenInterest",
     "PriceLevel",
     "QualityFlag",
+    "RateLimit",
     "ReasonCode",
     "RecoveryAction",
+    "ReferenceObservation",
     "ReliabilityState",
     "RequestId",
     "ResyncState",
@@ -93,6 +116,7 @@ __all__ = [
     "StreamLifecycleState",
     "SubscriptionId",
     "Symbol",
+    "TakerBuySellVolume",
     "Venue",
     "WireContractEntry",
     "__version__",

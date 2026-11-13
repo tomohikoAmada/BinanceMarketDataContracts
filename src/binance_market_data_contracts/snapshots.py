@@ -50,6 +50,7 @@ class ExchangeDepthSnapshot(ContractModel):
     bids: tuple[PriceLevel, ...] = ()
     asks: tuple[PriceLevel, ...] = ()
     exchange_transaction_time_ms: int | None = Field(default=None, ge=0, le=UINT64_MAX)
+    exchange_event_time_ms: int | None = Field(default=None, ge=0, le=UINT64_MAX)
     receive_time_utc_ns: int | None = Field(default=None, ge=0, le=UINT64_MAX)
     receive_monotonic_ns: int | None = Field(default=None, ge=0, le=UINT64_MAX)
     quality_flags: tuple[QualityFlag, ...] = ()

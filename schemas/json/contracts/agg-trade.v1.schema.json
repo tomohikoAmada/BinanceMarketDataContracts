@@ -204,6 +204,19 @@
     "metadata": {
       "$ref": "#/$defs/AggTradeMetadata"
     },
+    "normal_quantity": {
+      "anyOf": [
+        {
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "USD-M normal order quantity (nq), absent when unavailable"
+    },
     "price": {
       "pattern": "^(?:[1-9][0-9]*(?:\\.[0-9]+)?|0\\.[0-9]*[1-9][0-9]*)$",
       "type": "string"

@@ -13,7 +13,8 @@ support. Current Gateway ends sessions at full rebootstrap/source replacement.
 
 ### 1.1 CONTIGUOUS_EVENTS
 
-Used by `SubscribeEvents` for DepthUpdate, AggTrade, BookTicker.
+Used by `SubscribeEvents` for DepthUpdate, AggTrade, BookTicker, MarkPrice,
+Liquidation and ReferenceObservation.
 
 - Every event must be delivered. Silent message dropping is forbidden.
 - `session_sequence` is scoped to one accepted subscription. The first emitted
@@ -86,6 +87,11 @@ upstream sequence gap is detected, Gateway restarts, or resume data is evicted:
 3. No further DepthUpdates are sent until a new snapshot is established.
 4. Gateway MUST NOT continue delivering DepthUpdates and claim the book is
    reliable after a known gap.
+
+ReferenceObservation is a low-frequency typed REST item, not a replacement for
+a market-data sequence stream. Its `status` distinguishes `VALID`, `EMPTY` and
+`ERROR`; a VALID item must carry exactly the payload selected by `source_kind`.
+Source-scoped `StreamStatus` items may set `reference_source_kind`.
 
 ## 3. Gap and Recovery Protocol
 

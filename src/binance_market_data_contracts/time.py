@@ -55,6 +55,12 @@ ALLOWED_TIME_FIELD_NAMES: set[str] = {
     "consumer_delivery_lag_ms",
     "oldest_message_age_ms",
     "minimum_publish_interval_ms",
+    "source_time_ms",
+    "order_trade_time_ms",
+    "onboard_time_ms",
+    "delivery_time_ms",
+    "server_time_ms",
+    "time_in_force",
     "connection_generation",
 }
 

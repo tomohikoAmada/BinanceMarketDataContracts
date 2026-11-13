@@ -134,6 +134,7 @@ set(_message_protos
     binance_market_data/common/v1/metadata.proto
     binance_market_data/gateway/v1/gateway_messages.proto
     binance_market_data/market/v1/market_events.proto
+    binance_market_data/market/v1/reference_data.proto
     binance_market_data/projection/v1/snapshots.proto
     binance_market_data/telemetry/v1/telemetry.proto)
 set(_fingerprint_roots
@@ -196,7 +197,7 @@ add_custom_command(
             ${_message_protos}
     WORKING_DIRECTORY "${_proto_root}"
     DEPENDS ${_absolute_protos}
-    COMMENT "Generating the seven Contracts-owned C++ Protobuf message files"
+    COMMENT "Generating the eight Contracts-owned C++ Protobuf message files"
     VERBATIM)
 
 configure_file(

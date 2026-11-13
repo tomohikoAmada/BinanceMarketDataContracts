@@ -33,6 +33,38 @@ message AggTrade {
   // Trade execution time in milliseconds since epoch.
   uint64 trade_time_ms = 7;
   bool buyer_is_maker = 8;
+  // USD-M normal order quantity (nq). Decimal string, >= 0; absent in
+  // historical Spot/USD-M payloads.
+  optional string normal_quantity = 9;
+}
+
+// MarkPrice is a USD-M mark-price update.
+// T/next_funding_time_ms is the next funding time, not transaction time.
+message MarkPrice {
+  binance_market_data.common.v1.EventMetadata metadata = 1;
+  // Decimal strings; funding_rate is signed.
+  string mark_price = 2;
+  string index_price = 3;
+  string estimated_settle_price = 4;
+  string funding_rate = 5;
+  uint64 next_funding_time_ms = 6;
+  // Mark price moving average (ap), optional in historical payloads.
+  optional string mark_price_moving_average = 7;
+}
+
+// Liquidation is a USD-M forceOrder sample (not a complete liquidation list).
+message Liquidation {
+  binance_market_data.common.v1.EventMetadata metadata = 1;
+  string side = 2;
+  string order_type = 3;
+  string time_in_force = 4;
+  string original_quantity = 5;
+  string price = 6;
+  optional string average_price = 7;
+  string order_status = 8;
+  string last_filled_quantity = 9;
+  string accumulated_filled_quantity = 10;
+  uint64 order_trade_time_ms = 11;
 }
 
 // BookTicker represents the best bid and ask with quantities.
@@ -66,4 +98,6 @@ message ExchangeDepthSnapshot {
   optional uint64 receive_time_utc_ns = 12;
   optional uint64 receive_monotonic_ns = 13;
   repeated binance_market_data.common.v1.QualityFlag quality_flags = 14;
+  // Original REST response event time when present.
+  optional uint64 exchange_event_time_ms = 15;
 }

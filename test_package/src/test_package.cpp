@@ -53,7 +53,7 @@ int main() {
 
   using namespace binance_market_data::contracts;
   if (!check(schema_baseline == "01d76a41929f36d89573159f5f458f9f1e378ada", "schema baseline") ||
-      !check(schema_fingerprint == "33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0",
+      !check(schema_fingerprint == "a2a93ca5cf4e17c9a64ca0939ad208f1202c1746628eed5260bd0edb81666c86",
              "schema fingerprint") ||
       !check(schema_fingerprint_algorithm_version == 1, "fingerprint algorithm") ||
       !check(package_version == "0.1.0", "package version") ||

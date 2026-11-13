@@ -14,12 +14,20 @@
 - Unit: Quote currency of the trading pair
 - Constraint: value > 0
 
+`funding_rate` is a signed decimal string (`SignedDecimalString`); zero is
+valid. Mark/index/estimated-settle prices use `PriceString`.
+
 ## Quantity fields
 
 - Named `quantity`, `best_bid_quantity`, `best_ask_quantity`, `open_interest`
 - Type: `QuantityString` (validated decimal string)
 - Unit: Base currency of the trading pair
 - Constraint: value >= 0
+
+`open_interest`, ratio numerators/denominators and taker volumes use decimal
+strings. Ratios and volumes are non-negative; never substitute zero for an
+absent source value. `AggTrade.normal_quantity` is optional and absent when the
+source payload does not provide `nq`.
 
 ## Time fields
 

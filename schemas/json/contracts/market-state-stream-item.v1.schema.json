@@ -544,12 +544,28 @@
       "title": "RecoveryAction",
       "type": "string"
     },
+    "ReferenceSourceKind": {
+      "enum": [
+        "OPEN_INTEREST",
+        "TOP_LONG_SHORT_ACCOUNT_RATIO",
+        "TOP_LONG_SHORT_POSITION_RATIO",
+        "GLOBAL_LONG_SHORT_ACCOUNT_RATIO",
+        "TAKER_BUY_SELL_VOLUME",
+        "INSTRUMENT",
+        "DEPTH_BASELINE"
+      ],
+      "title": "ReferenceSourceKind",
+      "type": "string"
+    },
     "Stream": {
       "enum": [
         "DIFF_DEPTH",
         "AGG_TRADE",
         "BOOK_TICKER",
-        "DEPTH_SNAPSHOT"
+        "DEPTH_SNAPSHOT",
+        "MARK_PRICE",
+        "LIQUIDATION",
+        "REFERENCE_DATA"
       ],
       "title": "Stream",
       "type": "string"
@@ -596,6 +612,17 @@
           "anyOf": [
             {
               "$ref": "#/$defs/ReasonCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "reference_source_kind": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReferenceSourceKind"
             },
             {
               "type": "null"

@@ -136,6 +136,9 @@ event = DepthUpdate(metadata=metadata, first_update_id=1001, final_update_id=100
 | DepthUpdate | PROPOSED | v1 |
 | AggTrade | PROPOSED | v1 |
 | BookTicker | PROPOSED | v1 |
+| MarkPrice | PROPOSED | v1 |
+| Liquidation | PROPOSED | v1 |
+| ReferenceObservation | PROPOSED | v1 |
 | ExchangeDepthSnapshot | PROPOSED | v1 |
 | LocalOrderBookSnapshot | PROPOSED | v1 |
 | MarketStateSnapshot | PROPOSED | v1 |
@@ -165,7 +168,7 @@ is required in `telemetry.v1`; its concrete metric type must match
 
 | RPC | Style | Description |
 |-----|-------|-------------|
-| `SubscribeEvents` | Server Streaming | Contiguous real-time depth, aggTrade and bookTicker events |
+| `SubscribeEvents` | Server Streaming | Contiguous real-time depth, aggTrade, bookTicker, markPrice, liquidation and reference observations |
 | `SubscribeOrderBook` | Server Streaming | Order book snapshot followed by applicable depth updates |
 | `SubscribeMarketState` | Server Streaming | Declared but currently UNIMPLEMENTED by the Gateway runtime |
 | `GetGatewayStatus` | Unary | One-shot Gateway operational status |

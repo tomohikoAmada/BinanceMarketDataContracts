@@ -49,7 +49,15 @@ def test_architecture_contract_names_and_statuses_match_registry() -> None:
 def test_readme_wire_group_statuses_match_registry() -> None:
     expected_groups = {
         "Core Market Wire Contracts": (
-            {"depth-update.v1", "agg-trade.v1", "book-ticker.v1", "exchange-depth-snapshot.v1"}
+            {
+                "depth-update.v1",
+                "agg-trade.v1",
+                "book-ticker.v1",
+                "mark-price.v1",
+                "liquidation.v1",
+                "reference-observation.v1",
+                "exchange-depth-snapshot.v1",
+            }
         ),
         "Projection Wire Contracts": (
             {"local-order-book-snapshot.v1", "market-state-snapshot.v1", "data-health-snapshot.v1"}
@@ -63,6 +71,9 @@ def test_readme_wire_group_statuses_match_registry() -> None:
                     "depth-update.v1",
                     "agg-trade.v1",
                     "book-ticker.v1",
+                    "mark-price.v1",
+                    "liquidation.v1",
+                    "reference-observation.v1",
                     "exchange-depth-snapshot.v1",
                     "local-order-book-snapshot.v1",
                     "market-state-snapshot.v1",

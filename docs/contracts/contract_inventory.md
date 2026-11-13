@@ -9,7 +9,9 @@ The authoritative inventory is the runtime registry in
 C1 fixed the internal runtime subset to the five market/book models
 (`DepthUpdate`, `AggTrade`, `BookTicker`, `ExchangeDepthSnapshot`,
 `LocalOrderBookSnapshot`), eight RPC-related models, existing
-`StreamStatus`/helpers and three implemented RPCs. See
+`StreamStatus`/helpers and three implemented RPCs. C2 extends the schema with
+`MarkPrice`, `Liquidation`, `ReferenceObservation` and their typed payloads;
+these remain PROPOSED until Gateway/Recorder producers and consumers land. See
 [the consumer capability page](current-capabilities.md).
 
 ## Everything else

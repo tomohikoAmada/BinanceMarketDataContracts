@@ -84,8 +84,10 @@ draft/proposed surface. Existing wire field/enum numbers are preserved.
 These are internal immutable identities, not formal Package Revision assignments
 or public releases. C0 does not change C++ export inputs or the descriptor;
 therefore the existing message/gRPC/Projection combination stays pinned. The
-v1 descriptor fingerprint remains
-`33286fb1d624f4dd0c827010e93113f523c7f37dc4f6ae526361d2b0c61626c0`.
+v1 descriptor fingerprint is
+`a2a93ca5cf4e17c9a64ca0939ad208f1202c1746628eed5260bd0edb81666c86` for the C2 candidate. The C++/gRPC/Projection RREVs above were exported
+from the pre-C2 descriptor and therefore do not satisfy this fingerprint; they
+must be re-exported before being used as C2 downstream locks.
 C++20, matching host ABI/build type/linkage and a **single** message artifact
 lineage are required. Targets: `BinanceMarketDataContracts::Protobuf`, separate
 `BinanceMarketDataContracts::Grpc`, `BinanceMarketDataProjection::Core` and

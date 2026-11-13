@@ -2,6 +2,7 @@ from binance_market_data.common.v1 import enums_pb2 as _enums_pb2
 from binance_market_data.common.v1 import identifiers_pb2 as _identifiers_pb2
 from binance_market_data.common.v1 import metadata_pb2 as _metadata_pb2
 from binance_market_data.market.v1 import market_events_pb2 as _market_events_pb2
+from binance_market_data.market.v1 import reference_data_pb2 as _reference_data_pb2
 from binance_market_data.projection.v1 import snapshots_pb2 as _snapshots_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
@@ -110,20 +111,22 @@ class ConsumerGapNotice(_message.Message):
     def __init__(self, schema_version: _Optional[str] = ..., subscription_id: _Optional[str] = ..., detected_time_utc_ns: _Optional[int] = ..., last_delivered_session_sequence: _Optional[int] = ..., next_available_session_sequence: _Optional[int] = ..., reason: _Optional[_Union[_enums_pb2.ConsumerGapReason, str]] = ..., recovery_action: _Optional[_Union[_enums_pb2.RecoveryAction, str]] = ..., market: _Optional[_Union[_enums_pb2.Market, str]] = ..., symbol: _Optional[str] = ..., stream: _Optional[_Union[_enums_pb2.Stream, str]] = ...) -> None: ...
 
 class StreamStatus(_message.Message):
-    __slots__ = ("schema_version", "subscription_id", "state", "observed_time_utc_ns", "reason_code", "message")
+    __slots__ = ("schema_version", "subscription_id", "state", "observed_time_utc_ns", "reason_code", "message", "reference_source_kind")
     SCHEMA_VERSION_FIELD_NUMBER: _ClassVar[int]
     SUBSCRIPTION_ID_FIELD_NUMBER: _ClassVar[int]
     STATE_FIELD_NUMBER: _ClassVar[int]
     OBSERVED_TIME_UTC_NS_FIELD_NUMBER: _ClassVar[int]
     REASON_CODE_FIELD_NUMBER: _ClassVar[int]
     MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    REFERENCE_SOURCE_KIND_FIELD_NUMBER: _ClassVar[int]
     schema_version: str
     subscription_id: str
     state: _enums_pb2.StreamLifecycleState
     observed_time_utc_ns: int
     reason_code: _enums_pb2.ReasonCode
     message: str
-    def __init__(self, schema_version: _Optional[str] = ..., subscription_id: _Optional[str] = ..., state: _Optional[_Union[_enums_pb2.StreamLifecycleState, str]] = ..., observed_time_utc_ns: _Optional[int] = ..., reason_code: _Optional[_Union[_enums_pb2.ReasonCode, str]] = ..., message: _Optional[str] = ...) -> None: ...
+    reference_source_kind: _enums_pb2.ReferenceSourceKind
+    def __init__(self, schema_version: _Optional[str] = ..., subscription_id: _Optional[str] = ..., state: _Optional[_Union[_enums_pb2.StreamLifecycleState, str]] = ..., observed_time_utc_ns: _Optional[int] = ..., reason_code: _Optional[_Union[_enums_pb2.ReasonCode, str]] = ..., message: _Optional[str] = ..., reference_source_kind: _Optional[_Union[_enums_pb2.ReferenceSourceKind, str]] = ...) -> None: ...
 
 class GatewayEnvelopeMetadata(_message.Message):
     __slots__ = ("protocol_version", "gateway_instance_id", "subscription_id", "connection_generation", "session_sequence", "publish_time_utc_ns", "publish_monotonic_ns")
@@ -144,7 +147,7 @@ class GatewayEnvelopeMetadata(_message.Message):
     def __init__(self, protocol_version: _Optional[str] = ..., gateway_instance_id: _Optional[str] = ..., subscription_id: _Optional[str] = ..., connection_generation: _Optional[int] = ..., session_sequence: _Optional[int] = ..., publish_time_utc_ns: _Optional[int] = ..., publish_monotonic_ns: _Optional[int] = ...) -> None: ...
 
 class GatewayEventEnvelope(_message.Message):
-    __slots__ = ("envelope_metadata", "delivery_metadata", "subscription_accepted", "depth_update", "agg_trade", "book_ticker", "consumer_gap", "stream_status")
+    __slots__ = ("envelope_metadata", "delivery_metadata", "subscription_accepted", "depth_update", "agg_trade", "book_ticker", "consumer_gap", "stream_status", "mark_price", "liquidation", "reference_observation")
     ENVELOPE_METADATA_FIELD_NUMBER: _ClassVar[int]
     DELIVERY_METADATA_FIELD_NUMBER: _ClassVar[int]
     SUBSCRIPTION_ACCEPTED_FIELD_NUMBER: _ClassVar[int]
@@ -153,6 +156,9 @@ class GatewayEventEnvelope(_message.Message):
     BOOK_TICKER_FIELD_NUMBER: _ClassVar[int]
     CONSUMER_GAP_FIELD_NUMBER: _ClassVar[int]
     STREAM_STATUS_FIELD_NUMBER: _ClassVar[int]
+    MARK_PRICE_FIELD_NUMBER: _ClassVar[int]
+    LIQUIDATION_FIELD_NUMBER: _ClassVar[int]
+    REFERENCE_OBSERVATION_FIELD_NUMBER: _ClassVar[int]
     envelope_metadata: _metadata_pb2.EnvelopeMetadata
     delivery_metadata: GatewayEnvelopeMetadata
     subscription_accepted: SubscriptionAccepted
@@ -161,7 +167,10 @@ class GatewayEventEnvelope(_message.Message):
     book_ticker: _market_events_pb2.BookTicker
     consumer_gap: ConsumerGapNotice
     stream_status: StreamStatus
-    def __init__(self, envelope_metadata: _Optional[_Union[_metadata_pb2.EnvelopeMetadata, _Mapping]] = ..., delivery_metadata: _Optional[_Union[GatewayEnvelopeMetadata, _Mapping]] = ..., subscription_accepted: _Optional[_Union[SubscriptionAccepted, _Mapping]] = ..., depth_update: _Optional[_Union[_market_events_pb2.DepthUpdate, _Mapping]] = ..., agg_trade: _Optional[_Union[_market_events_pb2.AggTrade, _Mapping]] = ..., book_ticker: _Optional[_Union[_market_events_pb2.BookTicker, _Mapping]] = ..., consumer_gap: _Optional[_Union[ConsumerGapNotice, _Mapping]] = ..., stream_status: _Optional[_Union[StreamStatus, _Mapping]] = ...) -> None: ...
+    mark_price: _market_events_pb2.MarkPrice
+    liquidation: _market_events_pb2.Liquidation
+    reference_observation: _reference_data_pb2.ReferenceObservation
+    def __init__(self, envelope_metadata: _Optional[_Union[_metadata_pb2.EnvelopeMetadata, _Mapping]] = ..., delivery_metadata: _Optional[_Union[GatewayEnvelopeMetadata, _Mapping]] = ..., subscription_accepted: _Optional[_Union[SubscriptionAccepted, _Mapping]] = ..., depth_update: _Optional[_Union[_market_events_pb2.DepthUpdate, _Mapping]] = ..., agg_trade: _Optional[_Union[_market_events_pb2.AggTrade, _Mapping]] = ..., book_ticker: _Optional[_Union[_market_events_pb2.BookTicker, _Mapping]] = ..., consumer_gap: _Optional[_Union[ConsumerGapNotice, _Mapping]] = ..., stream_status: _Optional[_Union[StreamStatus, _Mapping]] = ..., mark_price: _Optional[_Union[_market_events_pb2.MarkPrice, _Mapping]] = ..., liquidation: _Optional[_Union[_market_events_pb2.Liquidation, _Mapping]] = ..., reference_observation: _Optional[_Union[_reference_data_pb2.ReferenceObservation, _Mapping]] = ...) -> None: ...
 
 class OrderBookStreamItem(_message.Message):
     __slots__ = ("envelope_metadata", "delivery_metadata", "subscription_accepted", "snapshot", "depth_update", "consumer_gap", "stream_status")
