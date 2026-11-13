@@ -1,8 +1,9 @@
 # Current internal v1 contract
 
-2026-10-18 · Contracts C1. This page fixes the **used internal subset** at the
-source/package identities below. It does not promote registry statuses, publish
-packages, or promise the unused schema surface. Validation: [C1 evidence](../C1_EVIDENCE.md).
+2026-10-18 · Contracts C1. This page fixes the **used internal subset** and its
+package identities. It does not promote registry statuses, publish packages or
+promise the unused schema surface. Historical validation details:
+[HISTORY](../HISTORY.md).
 
 ## Consumer capability table
 
@@ -13,21 +14,18 @@ packages, or promise the unused schema surface. Validation: [C1 evidence](../C1_
 | `GetGatewayStatus` | Unary observation of every configured product; no selector | `gateway-status-request.v1`; `gateway-status-snapshot.v1` |
 | `SubscribeMarketState` | **UNIMPLEMENTED** (gRPC default); declarations remain for compatibility | No current supported runtime request/payload |
 
-Gateway source `ec7071d0f935b3a0e7d2015327ebaaa9ecef0c72` uses startup JSON
-`bmd-gatewayd --config PATH`, 1..8 isolated products, numeric-loopback insecure
-gRPC, and all-products-Live/Synchronized initial readiness. Exact identity is
-`(venue, market, symbol)`; no case folding. Its route accepts uppercase ASCII
-letters/digits and requires exchange metadata validation. Contracts Symbol is
-broader (opaque Unicode per ADR-0011); Domain validity alone does not imply
-Gateway admission. Likewise Domain permits multiple distinct selectors, while
-this Gateway accepts exactly one. Unsupported/malformed product, stream or
-request returns INVALID_ARGUMENT; missing supported v1 payload negotiation
-returns FAILED_PRECONDITION. Offer the schema versions listed above.
+The Gateway runtime owns its current product-count limit, admission rules and
+milestone status; consult the Gateway repository's `CURRENT_STATE.md` rather than
+copying those moving values here. Contracts states only the stable boundary:
+exact identity is `(venue, market, symbol)` with no case folding; Gateway accepts
+a narrower operational identity subset than opaque Unicode `Symbol`, and the
+Domain permits multiple selectors while the current Gateway accepts one.
+Unsupported or malformed product/stream/request is rejected as
+INVALID_ARGUMENT; missing supported v1 payload negotiation is
+FAILED_PRECONDITION. Offer the schema versions listed above.
 
-Four-product delivery targets Spot BTC/ETH and USD-M BTC/ETH. Eight is a resource
-bound, not measured capacity; Gateway G2/G3 and VPS/API/performance acceptance
-remain open. Recorder uses its own Raw/Normalize/Replay types, with no current
-Contracts runtime import or new adapter obligation.
+Recorder uses its own Raw/Normalize/Replay types, with no current Contracts
+runtime import or new adapter obligation.
 
 ## Used models and semantics
 
@@ -40,7 +38,7 @@ Contracts runtime import or new adapter obligation.
 | `EventSubscriptionRequest`, `OrderBookSubscriptionRequest`, `GatewayStatusRequest` | The three implemented RPC requests; runtime support is the table above, not every value representable in Domain/proto. |
 | `SubscriptionAccepted`, `ConsumerGapNotice` | Accepted session identity/schema negotiation; explicit delivery/continuity loss with required recovery action. Slow clients are isolated and terminated; reconnect requires a new subscription/snapshot, with no resume replay promise. |
 | `GatewayEventEnvelope`, `OrderBookStreamItem` | Exactly one payload. Canonical field 2 `delivery_metadata` only; legacy field 1 is absent. Accepted precedes data; book snapshot precedes updates. |
-| `GatewayStatusSnapshot` | Product lifecycle, counts and optional generation. From Gateway v0.3 G1, `markets[].last_event_utc_ns` is the current valid generation's last **Applied Depth receive UTC**, replacing historical any-stream activity. |
+| `GatewayStatusSnapshot` | Product lifecycle, counts and optional generation. `markets[].last_event_utc_ns` is the current valid generation's last **Applied Depth receive UTC**, not any-stream activity. |
 | `StreamStatus` (existing envelope payload) | Session lifecycle/diagnostic state; not a second recovery policy or a Health service. |
 | Existing helpers | `PriceLevel`; DepthUpdate/AggTrade/BookTicker metadata; `GapDescriptor`; `StreamSelector`; `GatewayEnvelopeMetadata`; `MarketRuntimeStatus`; exact IDs, enums, decimal and time types. These support the rows above, not extra products/RPCs. |
 
@@ -67,7 +65,8 @@ draft/proposed surface. Existing wire field/enum numbers are preserved.
 - Current integer fields fit existing uint64/int32 wire ranges; positive fields
   retain their lower bounds. Prices/quantities never pass through float.
   Optional Symbol absent stays absent; present-empty is invalid. See
-  [C0 field table](../C0_IMPLEMENTATION.md) and [compatibility boundaries](compatibility_policy.md):
+  [ADR-0012](../adr/ADR-0012-current-consumer-wire-correctness.md) and
+  [compatibility boundaries](compatibility_policy.md):
   binary unknown fields/enums may survive binary round-trip; strict Domain/JSON
   and adapters do not promise unknown-field retention or unknown-QualityFlag support.
 
@@ -91,18 +90,19 @@ C++20, matching host ABI/build type/linkage and a **single** message artifact
 lineage are required. Targets: `BinanceMarketDataContracts::Protobuf`, separate
 `BinanceMarketDataContracts::Grpc`, `BinanceMarketDataProjection::Core` and
 `BinanceMarketDataProjection::ProtoAdapter`; Core builds independently without
-Protobuf/gRPC. Concrete macOS package IDs/PREVs and checks are in C1 evidence.
+Protobuf/gRPC. Platform-specific package IDs/PREVs were validation evidence and
+remain in Git history, not as portable identity constants.
 
 Python base requires Pydantic `>=2.10,<3` and protobuf `>=6.33.5,<7`; optional
 wire runtime uses grpcio `>=1.81.1,<2`. These package compatibility ranges are
-not exact environment locks. The tested local versions are recorded in C1
-evidence; Python gRPC and C++ gRPC versions need not be identical.
+not exact environment locks. Python gRPC and C++ gRPC versions need not be
+identical.
 
 For an upgrade: select an immutable source commit/RREV, retain exact base
 message lineage across Projection and gRPC, and use existing Conan locks and
 matching binary profiles (`--build=never` when available). Run Domain/binary
 round-trips, Projection sequence/replay and Gateway production RPC regressions;
 record the new identities/results here. A Domain/docs-only correction with
-unchanged C++ export inputs needs no C++ repin. Never update the separate frozen
-historical G1 smoke pin merely to follow newer main. Wire/semantic changes use
-the existing compatibility/ADR process; unused DRAFT models require no release ceremony.
+unchanged C++ export inputs needs no C++ repin. Do not update historical smoke
+pins merely to follow newer main. Wire/semantic changes use the existing
+compatibility/ADR process; unused DRAFT models require no release ceremony.

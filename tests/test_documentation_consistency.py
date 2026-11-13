@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 
@@ -82,11 +83,12 @@ def test_readme_wire_group_statuses_match_registry() -> None:
 
 def test_repository_sources_do_not_reference_old_generated_path() -> None:
     old_path = "src/binance_market_data_contracts/wire/" + "generated/"
+    excluded = {".git", ".mypy_cache", ".pytest_cache", ".ruff_cache", ".venv", "__pycache__", "build", "dist", "venv"}
     offenders = []
-    excluded = {".git", ".mypy_cache", ".pytest_cache", ".ruff_cache", "__pycache__", "build", "dist", "venv"}
-    for path in ROOT.rglob("*"):
-        if not path.is_file() or excluded.intersection(path.relative_to(ROOT).parts):
-            continue
-        if old_path in path.read_text(encoding="utf-8", errors="ignore"):
-            offenders.append(str(path.relative_to(ROOT)))
+    for dirpath, dirnames, filenames in os.walk(ROOT, topdown=True):
+        dirnames[:] = sorted(name for name in dirnames if name not in excluded)
+        for filename in sorted(filenames):
+            path = Path(dirpath) / filename
+            if old_path in path.read_text(encoding="utf-8", errors="ignore"):
+                offenders.append(str(path.relative_to(ROOT)))
     assert not offenders

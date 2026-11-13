@@ -1,6 +1,7 @@
 """Test Pydantic ↔ Protobuf adapter round-trip and negative cases."""
 
 import pytest
+from pydantic import ValidationError
 
 from binance_market_data.gateway.v1 import gateway_messages_pb2 as pb_gw
 from binance_market_data.telemetry.v1 import telemetry_pb2 as pb_telemetry
@@ -429,6 +430,34 @@ class TestGatewayRoundtrip:
         ss2 = stream_status_from_pb(pb)
         assert ss2.state == StreamLifecycleState.LIVE
         assert ss2.subscription_id == "sub-1"
+        assert ss2.message is None
+
+    def test_stream_status_message_roundtrip(self):
+        ss = StreamStatus(
+            schema_version="stream-status.v1",
+            subscription_id=SubscriptionId("sub-1"),
+            state=StreamLifecycleState.DEGRADED,
+            observed_time_utc_ns=1_690_000_000,
+            message="resubscribing",
+        )
+        pb = stream_status_to_pb(ss)
+        assert pb.HasField("message")
+        parsed = pb_gw.StreamStatus.FromString(pb.SerializeToString())
+        assert stream_status_from_pb(parsed).message == "resubscribing"
+
+    def test_stream_status_explicit_empty_message_is_rejected(self):
+        ss = StreamStatus(
+            schema_version="stream-status.v1",
+            subscription_id=SubscriptionId("sub-1"),
+            state=StreamLifecycleState.LIVE,
+            observed_time_utc_ns=1_690_000_000,
+        )
+        pb = stream_status_to_pb(ss)
+        pb.message = ""
+        assert pb.HasField("message")
+        parsed = pb_gw.StreamStatus.FromString(pb.SerializeToString())
+        with pytest.raises(ValidationError):
+            stream_status_from_pb(parsed)
 
 
 class TestNegativeAdapters:

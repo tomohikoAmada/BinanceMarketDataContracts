@@ -69,8 +69,8 @@ Verified against official Binance documentation on 2026-10-12:
 - [USD-M public WebSocket streams, Diff. Book Depth Streams](https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#diff-book-depth-streams)
 - [USD-M REST market data, Order Book](https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/market-data#order-book)
 
-Shared producer test inputs and exact cross-repository changes are in
-[C0 implementation and migration](../C0_IMPLEMENTATION.md). Contracts round-trips
+Shared producer test inputs and exact cross-repository changes are recorded in
+[HISTORY](../HISTORY.md) and the C0 commit history. Contracts round-trips
 cannot detect an upstream source-field misassignment without that source oracle.
 
 ## Capture points

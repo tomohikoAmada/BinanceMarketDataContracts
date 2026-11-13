@@ -32,7 +32,9 @@ a lossless Domain round-trip or semantic support for new flags. A new QualityFla
 requires coordinated consumer support/negotiation at strict boundaries.
 
 C0 aligns the **currently consumed** PROPOSED/DRAFT integer fields with existing
-`uint64` and positive `int32` wire ranges (see [C0 field table](../C0_IMPLEMENTATION.md)).
+`uint64` and positive `int32` wire ranges (see
+[ADR-0012](../adr/ADR-0012-current-consumer-wire-correctness.md) and
+[HISTORY](../HISTORY.md)).
 Previously valid, representable messages keep their wire format and meaning.
 Previously Domain-accepted overflow values now fail validation; this is a Domain
 admission restriction, not universal backward compatibility. Present-empty optional

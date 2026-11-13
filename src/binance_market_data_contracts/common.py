@@ -5,13 +5,14 @@ All public contracts inherit from ContractModel which enforces:
 - strict=True (no type coercion)
 - extra="forbid" (no unknown fields)
 
-Decimal string types use Pydantic StringConstraints + AfterValidator
-to ensure both Python runtime validation AND rich JSON Schema output.
+Decimal string types use Pydantic StringConstraints for format/range enforcement.
+The signed type adds an AfterValidator for finite/negative-zero guards; the
+unsigned price/quantity types rely on their patterns alone.
 """
 
 from __future__ import annotations
 
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from typing import Annotated
 
 from pydantic import (
@@ -32,36 +33,6 @@ IDENTIFIER_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$"
 # Wire representability limits, applied only to the current C0 consumer surface.
 UINT64_MAX = (1 << 64) - 1
 INT32_MAX = (1 << 31) - 1
-
-
-def _validate_price_positive(v: str) -> str:
-    try:
-        d = Decimal(v)
-    except InvalidOperation as e:
-        raise ValueError(f"Invalid Decimal value: '{v}'") from e
-    if d <= 0:
-        raise ValueError(f"price must be > 0, got '{v}'")
-    return v
-
-
-def _validate_quantity_non_negative(v: str) -> str:
-    try:
-        d = Decimal(v)
-    except InvalidOperation as e:
-        raise ValueError(f"Invalid Decimal value: '{v}'") from e
-    if d < 0:
-        raise ValueError(f"quantity must be >= 0, got '{v}'")
-    return v
-
-
-def _validate_quantity_positive(v: str) -> str:
-    try:
-        d = Decimal(v)
-    except InvalidOperation as e:
-        raise ValueError(f"Invalid Decimal value: '{v}'") from e
-    if d <= 0:
-        raise ValueError(f"quantity must be > 0, got '{v}'")
-    return v
 
 
 def _validate_finite_signed_decimal(v: str) -> str:
@@ -88,9 +59,9 @@ SignedDecimalText = Annotated[
     StringConstraints(pattern=SIGNED_DECIMAL_PATTERN, strip_whitespace=False),
 ]
 
-PriceString = Annotated[PositiveDecimalText, AfterValidator(_validate_price_positive)]
-QuantityString = Annotated[DecimalText, AfterValidator(_validate_quantity_non_negative)]
-PositiveQuantityString = Annotated[PositiveDecimalText, AfterValidator(_validate_quantity_positive)]
+PriceString = PositiveDecimalText
+QuantityString = DecimalText
+PositiveQuantityString = PositiveDecimalText
 SignedDecimalString = Annotated[SignedDecimalText, AfterValidator(_validate_finite_signed_decimal)]
 
 NonEmptyText = Annotated[

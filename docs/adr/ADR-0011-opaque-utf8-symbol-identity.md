@@ -73,13 +73,5 @@ symbol value exactly.
   symbol `１２３４５６` in signed-request examples:
   <https://developers.binance.com/en/docs/products/spot/rest-api.md>
 
-The sources above were acquired for this review at `2026-08-23T07:22:34.921794+00:00`. The local,
-ephemeral acquisition manifest was `/private/tmp/gateway-binance-docs-20260823/manifest.json`:
-
-- WebSocket document: 10,370 bytes, SHA-256
-  `193aa07cd537b2ccc94662474fb3dda3cb774d550b1e117825919d99f91b725f`.
-- REST document: 33,310 bytes, SHA-256
-  `3bfe5526b745c976ae2db7c6bffdee14f10663d5fe326d8aa54c8b5f12968775`.
-
-This manifest records local acquisition evidence only. It is not committed, is not a build input,
-and is not a remotely reproducible dependency of this contract.
+The sources were reviewed on 2026-08-23. Local acquisition manifests and byte hashes were
+ephemeral review aids, not committed build inputs or reproducible dependencies; they are omitted.

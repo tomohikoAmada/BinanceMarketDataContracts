@@ -9,7 +9,10 @@ The rule is:
 
 > The module that owns the conversion semantics owns the adapter.
 
-Contracts owns the public schema/wire meaning. It does not own runtime adapters.
+Contracts owns the public schema/wire meaning and the explicit
+Pydantic ↔ Protobuf representation adapters inside this package. It does not own
+producer/consumer runtime adapters that translate a module's internal
+representation into a public contract.
 
 Typical producer-side flow:
 

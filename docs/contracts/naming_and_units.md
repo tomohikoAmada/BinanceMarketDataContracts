@@ -43,4 +43,6 @@ See `docs/contracts/time_semantics.md`.
 
 - All enum values are UPPER_SNAKE_CASE strings
 - Enum field types use `StrEnum` for JSON compatibility
-- New enum values are compatible additions; removing values is BREAKING
+- Enum-value evolution follows [compatibility policy](compatibility_policy.md): binary
+  transport may preserve unknown values, but strict Domain/JSON consumers must
+  explicitly support a new value before it is usable there

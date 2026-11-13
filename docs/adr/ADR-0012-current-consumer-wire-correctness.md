@@ -21,7 +21,8 @@ presence rule. Producer code also put USD-M depth `T` in trade-time metadata.
 - Apply the existing wire upper bounds to the five used market/book models and
   the numeric Gateway lifecycle/status helpers used by the three implemented
   RPCs. Keep existing lower bounds, strict integer validation and optionality.
-  The exact list is in [C0 field changes](../C0_IMPLEMENTATION.md).
+  The detailed field table and validation record are preserved in
+  [HISTORY](../HISTORY.md) and the C0 commit history.
 - Interpret optional Symbol using `HasField("symbol")` only. An absent Symbol
   remains `None`; a present empty value reaches Domain validation and fails.
 - USD-M Diff Depth `T` maps to the **existing** transaction-time field. This is
@@ -41,10 +42,13 @@ overflow inputs now fail early; present-empty Symbol stops being silently
 normalized. These are explicit admission corrections to PROPOSED/DRAFT contracts,
 not a claim of compatibility with every historically accepted Python input.
 
-Untouched model definitions include MarketStateSnapshot, DataHealthSnapshot,
-MarketStateSubscriptionRequest, telemetry, history/control and legacy
-EnvelopeMetadata. Their exported schemas can reflect corrected shared lifecycle
+Other untouched C0-era model definitions include MarketStateSnapshot,
+DataHealthSnapshot, MarketStateSubscriptionRequest, telemetry and
+history/control. Their exported schemas can reflect corrected shared lifecycle
 definitions where already referenced. No unused model is expanded or accepted.
+A later C1.2 simplification removed the unused legacy Pydantic
+`EnvelopeMetadata` class and its adapters; the protobuf legacy field remains a
+reserved wire shape and is rejected by canonical readers.
 
 Recorder/Gateway must make their own producer corrections and validate against
 the fixtures. Contracts does not modify their repositories or immutable Raw.

@@ -85,12 +85,6 @@ class EventSubscriptionRequest(ContractModel):
         return self
 
     @model_validator(mode="after")
-    def _validate_delivery_mode(self) -> EventSubscriptionRequest:
-        if self.delivery_mode != DeliveryMode.CONTIGUOUS_EVENTS:
-            raise ValueError(f"Event subscription requires CONTIGUOUS_EVENTS, got {self.delivery_mode}")
-        return self
-
-    @model_validator(mode="after")
     def _validate_supported_payload_schema_versions(self) -> EventSubscriptionRequest:
         _validate_schema_version_tuple(self.supported_payload_schema_versions, "supported_payload_schema_versions")
         return self
@@ -117,12 +111,6 @@ class OrderBookSubscriptionRequest(ContractModel):
     supported_update_schema_versions: tuple[str, ...] = Field(..., min_length=1)
 
     @model_validator(mode="after")
-    def _validate_snapshot_mode(self) -> OrderBookSubscriptionRequest:
-        if self.initial_snapshot_mode != InitialSnapshotMode.REQUIRED:
-            raise ValueError(f"Order book V1 requires REQUIRED initial snapshot, got {self.initial_snapshot_mode}")
-        return self
-
-    @model_validator(mode="after")
     def _validate_supported_snapshot_schema_versions(self) -> OrderBookSubscriptionRequest:
         _validate_schema_version_tuple(self.supported_snapshot_schema_versions, "supported_snapshot_schema_versions")
         return self
@@ -145,12 +133,6 @@ class MarketStateSubscriptionRequest(ContractModel):
     depth_limit: int | None = Field(default=None, gt=0)
     minimum_publish_interval_ms: int | None = Field(default=None, ge=0)
     supported_schema_versions: tuple[str, ...] = Field(..., min_length=1)
-
-    @model_validator(mode="after")
-    def _validate_delivery_mode(self) -> MarketStateSubscriptionRequest:
-        if self.delivery_mode != DeliveryMode.LATEST_STATE:
-            raise ValueError(f"Market state subscription requires LATEST_STATE, got {self.delivery_mode}")
-        return self
 
     @model_validator(mode="after")
     def _validate_supported_schema_versions(self) -> MarketStateSubscriptionRequest:
@@ -221,18 +203,6 @@ class StreamStatus(ContractModel):
     observed_time_utc_ns: int = Field(..., ge=0, le=UINT64_MAX)
     reason_code: ReasonCode | None = None
     message: NonEmptyText | None = None
-
-
-class EnvelopeMetadata(ContractModel):
-    """Gateway delivery metadata for each stream item."""
-
-    protocol_version: Literal["gateway-stream.v1"]
-    gateway_instance_id: GatewayInstanceId
-    subscription_id: SubscriptionId
-    connection_generation: int = Field(..., ge=1)
-    session_sequence: int = Field(..., ge=1)
-    publish_time_utc_ns: int = Field(..., ge=0)
-    publish_monotonic_ns: int | None = Field(default=None, ge=0)
 
 
 class GatewayEnvelopeMetadata(ContractModel):

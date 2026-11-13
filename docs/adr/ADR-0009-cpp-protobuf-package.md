@@ -4,6 +4,11 @@
 
 ACCEPTED
 
+Current implementation status (2026-11): C-M4-001 is complete and merged; the
+C++ message package and separate gRPC artifact exist and are unpublished. The
+decision and consequence text below is the 2026-08-07 record; statements there
+about implementation being "not started" are historical, not current.
+
 ## Date
 
 2026-08-07
@@ -40,8 +45,10 @@ The proposed architecture is:
 5. **Consumer-side arbitrary generation is forbidden.** Projection and Hosts consume the
    Contracts-owned generated package and must not regenerate or copy the Contracts schema.
 
-The detailed package, fingerprint, CMake, Conan, compatibility, test, CI, and release design is
-in [`docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md`](../C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md).
+The detailed package, fingerprint, CMake, Conan, compatibility, test, CI, and release design
+was recorded in the historical C-M4-001 design, now summarized in
+[`docs/HISTORY.md`](../HISTORY.md). The merged implementation and accepted decisions remain
+authoritative; the removed planning transcript is available from Git history.
 
 ## Consequences
 
@@ -51,8 +58,9 @@ in [`docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md`](../C-M4-001_CPP_PROTOBUF_PAC
 - C++ package versioning may proceed independently from the current Python distribution version.
 - Static/shared, Protobuf runtime, compiler, and platform support claims require implementation
   and consumer-test evidence before they are declared supported.
-- C-M4-001 remains **OPEN / BLOCKING** until the implementation acceptance gates pass.
-- C-M4-001 Design is **APPROVED** and C-M4-001 Implementation remains **NOT STARTED**.
+- At decision time, C-M4-001 remained **OPEN / BLOCKING** until the implementation acceptance
+  gates passed. Those gates later passed; see [HISTORY](../HISTORY.md).
+- At decision time, C-M4-001 Design was **APPROVED** and implementation had not started.
 
 ## Rejected alternatives
 

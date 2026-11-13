@@ -1,23 +1,25 @@
 # ARCHITECTURE.md — BinanceMarketDataContracts
 
-Entry point for Contracts architectural context. The cross-repository BinanceMarketData top-level
-boundary authority is `BinanceMarketData_Living_Architecture.md`.
+Entry point for Contracts architectural context. The cross-repository top-level
+boundary authority is [BinanceMarketData_Living_Architecture.md](BinanceMarketData_Living_Architecture.md).
 
 ## Module
 
-`BinanceMarketDataContracts` is the public contracts layer for the BinanceMarketData domain.
-It provides versioned data types, generated JSON Schemas, golden fixtures, wire/service contracts,
-and architecture decision records. It has no network, storage, trading-policy, or market-runtime
-ownership.
+`BinanceMarketDataContracts` is the public contracts layer for the
+BinanceMarketData domain. It provides versioned data types, generated JSON
+Schemas, golden fixtures, wire/service contracts, explicit adapters and
+architecture decision records. It owns no network access, persistence, trading
+policy or market runtime.
 
-Contracts is the cross-module language authority, not a framework that every internal Core must
-import. For example, Projection Core remains independent of Protobuf/gRPC; its optional ProtoAdapter
-may consume the Contracts message artifact.
+Contracts is the cross-module language authority, not a framework every internal
+Core must import. For example, Projection Core remains independent of
+Protobuf/gRPC; its optional ProtoAdapter consumes the Contracts message artifact.
 
 ## Contract status
 
-All public Domain/Wire contracts remain **PROPOSED** or **DRAFT** unless explicitly promoted by the
-formal acceptance process. An accepted ADR does not itself promote a contract.
+All public Domain/Wire contracts remain **PROPOSED** or **DRAFT** unless
+explicitly promoted by the formal acceptance process. An accepted ADR does not
+itself promote a contract.
 
 | Contract | Status | Version |
 |----------|--------|---------|
@@ -48,107 +50,93 @@ formal acceptance process. An accepted ADR does not itself promote a contract.
 ## Acceptance criteria
 
 A contract is promoted from PROPOSED to ACCEPTED when:
+
 1. Producer and Consumer are identified.
 2. Schema is frozen.
-3. Valid, invalid, and boundary fixtures are complete.
+3. Valid, invalid and boundary fixtures are complete.
 4. Contract tests pass.
 5. At least one producer adapter and one consumer usage are validated where applicable.
 6. Architecture review is complete.
 
 ## Architecture decision records
 
-- `docs/adr/ADR-0001-recorder-gateway-independent-connections.md` (ACCEPTED)
-- `docs/adr/ADR-0002-python-pydantic-json-schema-first.md` (SUPERSEDED by ADR-0007)
-- `docs/adr/ADR-0003-time-semantics.md` (PROPOSED)
-- `docs/adr/ADR-0004-decimal-string-price-quantity.md` (PROPOSED)
-- `docs/adr/ADR-0005-quality-and-health-semantics.md` (PROPOSED)
-- `docs/adr/ADR-0006-projection-logical-boundary.md` (ACCEPTED)
-- `docs/adr/ADR-0007-pydantic-domain-protobuf-wire-contracts.md` (ACCEPTED)
-- `docs/adr/ADR-0008-gateway-grpc-streaming-protocol.md` (ACCEPTED)
-- `docs/adr/ADR-0009-cpp-protobuf-package.md` (ACCEPTED)
-- `docs/adr/ADR-0010-separate-cpp-grpc-artifact.md` (ACCEPTED)
-- `docs/adr/ADR-0011-opaque-utf8-symbol-identity.md` (ACCEPTED)
-- `docs/adr/ADR-0012-current-consumer-wire-correctness.md` (PROPOSED; C0 implementation authorized by v0.3 plan)
+- [ADR-0001](docs/adr/ADR-0001-recorder-gateway-independent-connections.md) — independent Recorder/Gateway connections (ACCEPTED)
+- [ADR-0002](docs/adr/ADR-0002-python-pydantic-json-schema-first.md) — Pydantic + JSON Schema first (SUPERSEDED by ADR-0007)
+- [ADR-0003](docs/adr/ADR-0003-time-semantics.md) — time semantics (PROPOSED)
+- [ADR-0004](docs/adr/ADR-0004-decimal-string-price-quantity.md) — decimal strings for price/quantity (PROPOSED)
+- [ADR-0005](docs/adr/ADR-0005-quality-and-health-semantics.md) — quality/health separation (PROPOSED)
+- [ADR-0006](docs/adr/ADR-0006-projection-logical-boundary.md) — Projection logical boundary (ACCEPTED)
+- [ADR-0007](docs/adr/ADR-0007-pydantic-domain-protobuf-wire-contracts.md) — Domain/Wire strata (ACCEPTED)
+- [ADR-0008](docs/adr/ADR-0008-gateway-grpc-streaming-protocol.md) — Gateway gRPC streaming (ACCEPTED)
+- [ADR-0009](docs/adr/ADR-0009-cpp-protobuf-package.md) — C++ Protobuf message package (ACCEPTED)
+- [ADR-0010](docs/adr/ADR-0010-separate-cpp-grpc-artifact.md) — separate C++ gRPC artifact (ACCEPTED)
+- [ADR-0011](docs/adr/ADR-0011-opaque-utf8-symbol-identity.md) — opaque UTF-8 symbol identity (ACCEPTED)
+- [ADR-0012](docs/adr/ADR-0012-current-consumer-wire-correctness.md) — C0 representability/presence (PROPOSED; implementation delivered)
 
-## C-M4-001 C++ package design
+## Implemented package boundaries
 
-The approved C-M4-001 architecture defines a Contracts-owned, versioned, installable C++ Protobuf
-message package for Projection's optional wire adapter. It does not change `.proto` field semantics
-or make Projection Core depend on Protobuf/gRPC.
-
-- Design: **APPROVED**
-- ADR-0009: **ACCEPTED**
-- C-M4-001 implementation: **COMPLETE / MERGED**
-- Independent implementation re-review: **APPROVED**
-- Package version candidate: `0.1.0`
-- Package revision: **NOT FORMALLY ASSIGNED — RELEASE GATE**
-- Published: **NO**
-- Message target: `BinanceMarketDataContracts::Protobuf`
-- Separate gRPC artifact: `binance-market-data-contracts-grpc-cpp/0.1.0`, exporting
-  `BinanceMarketDataContracts::Grpc`
-- Projection M4 package integration: **COMPLETE** in the Projection repository
-
-Detailed package evidence remains in:
-
-- `docs/C-M4-001_CPP_PROTOBUF_PACKAGE_DESIGN.md`
-- `docs/C-M4-001_IMPLEMENTATION_EVIDENCE.md`
+- Python Domain contracts, generated JSON Schemas, fixtures and explicit adapters.
+- Python Protobuf/gRPC artifacts generated from the tracked `.proto` sources.
+- `binance-market-data-contracts-cpp/0.1.0`: message-only package exporting
+  `BinanceMarketDataContracts::Protobuf`.
+- `binance-market-data-contracts-grpc-cpp/0.1.0`: separate service/stub package
+  exporting `BinanceMarketDataContracts::Grpc`.
+- No package is published; the formal package revision is unassigned.
+- Delivery identities, support matrix and review evidence are in
+  [docs/HISTORY.md](docs/HISTORY.md).
 
 ## Current cross-repository orientation
 
-The older G8/M6 planning state is historical. Gateway now supports startup JSON configuration (`bmd-gatewayd --config PATH`)
-for 1..8 isolated products, with `SubscribeOrderBook`, `SubscribeEvents` and
-`GetGatewayStatus`. Spot supports depth/aggTrade/bookTicker; USD-M supports
-only depth. The current used internal v1 subset, exact dependency combination
-and migration rules are fixed in [the C1 consumer page](docs/contracts/current-capabilities.md).
-`SubscribeMarketState` remains UNIMPLEMENTED. Gateway v0.3 G0/G1 are complete;
-four-product production/CI and VPS/API/performance acceptance (G2/G3) remain open.
-Eight products is a resource bound, not measured capacity. Contracts owns the
-schemas/packages; Domain/Wire registry statuses stay PROPOSED/DRAFT and package
-publication remains separate.
+The Gateway repository owns runtime configuration limits, product admission,
+recovery and milestone status. Contracts owns the schemas and service contract.
+At the time of writing the Gateway implements `SubscribeOrderBook`,
+`SubscribeEvents` and `GetGatewayStatus`; `SubscribeMarketState` remains
+UNIMPLEMENTED. Domain representability is broader than any current runtime
+support. See [docs/contracts/current-capabilities.md](docs/contracts/current-capabilities.md)
+and the Gateway repository's own `CURRENT_STATE.md` for live limits and status.
+
+Recorder keeps independent Raw/Normalize/Replay types and does not currently
+import Contracts at runtime. Projection Core stays independent; its optional
+ProtoAdapter consumes Contracts messages.
 
 ## Open questions
 
 | ID | Question | Status |
 |----|----------|--------|
 | O-001 | Recorder/Gateway independent connections | DECIDED (ADR-0001) |
-| O-002 | Projection logical independence / deployment | DECIDED (ADR-0006): embedded library in current deployment |
+| O-002 | Projection logical independence / deployment | DECIDED (ADR-0006): embedded library |
 | O-004 | Gateway IPC protocol | DECIDED: gRPC Server Streaming + Protobuf (ADR-0008) |
-| O-005 | Public Schema | DECIDED: Pydantic Domain + Protobuf Wire (ADR-0007) |
-| O-006 | History: library or service | TBD; top-level v0.3 direction is library/CLI first |
-| O-008 | Health SLO thresholds | TBD; Health is currently a capability, not a required standalone service |
-| O-009 | Spot initial depth bridging | SEMANTIC AUTHORITY FROZEN in Projection's accepted Spot successor-coverage/bootstrap rules; reopen only through Projection architecture review |
+| O-005 | Public schema | DECIDED: Pydantic Domain + Protobuf Wire (ADR-0007) |
+| O-006 | History: library or service | TBD; library/CLI first |
+| O-008 | Health SLO thresholds | TBD; Health is a capability, not a required service |
+| O-009 | Spot initial depth bridging | Frozen in Projection's accepted bootstrap rules |
 
-## Derived-product ownership note
+## Derived-product ownership
 
-Legacy contract inventories and early ADR examples may mention microprice, OHLCV, trade tape,
-premium, funding/OI composition or other deterministic products. Those examples do not assign the
-current Projection Core responsibility for all such products.
+Legacy inventories and early ADR examples may mention microprice, OHLCV, trade
+tape, premium, funding/OI composition or other deterministic products. Those
+examples do not assign them to the current Projection Core.
 
-Current top-level rule:
+> Deterministically computable is necessary for a deterministic market-data
+> product, but is not by itself sufficient reason to add it to
+> `BinanceMarketDataProjection` Core.
 
-> Deterministically computable is necessary for a deterministic market-data product, but is not by
-> itself sufficient reason to add that product to `BinanceMarketDataProjection` Core.
+New shared derived-data authorities require explicit design and must preserve
+the MarketData vs FeatureEngineering boundary.
 
-New shared derived-data authorities must be designed explicitly and must preserve the MarketData vs
-FeatureEngineering boundary.
+## Module boundaries and contract semantics
 
-## Module boundaries
+- [docs/architecture/module_boundaries.md](docs/architecture/module_boundaries.md)
+- [docs/architecture/dependency_rules.md](docs/architecture/dependency_rules.md)
+- [docs/architecture/integration_model.md](docs/architecture/integration_model.md)
+- [docs/contracts/](docs/contracts/) — time, quality, decimals, identity and compatibility
 
-See:
-
-- `docs/architecture/module_boundaries.md`
-- `docs/architecture/dependency_rules.md`
-- `docs/architecture/integration_model.md`
-
-## Contract semantics
-
-See `docs/contracts/` for detailed time, quality, decimal/string and compatibility semantics.
-
-Health/status contracts report MarketData facts and assessments; they do not own trading permission.
-`RiskManagement` owns normative trading authorization/policy.
+Health/status contracts report MarketData facts and assessments; they do not own
+trading permission. `RiskManagement` owns normative trading authorization/policy.
 
 ## AI and independent-reviewer reading order
 
-Start with `docs/CURRENT_STATE.md`, then read this file, the top-level living architecture, relevant
-accepted ADRs, and actual code/tests. Verify current GitHub main and PR/CI state independently;
-orientation documents do not override narrower accepted semantic authorities.
+Start with [docs/CURRENT_STATE.md](docs/CURRENT_STATE.md), then this file, the
+top-level living architecture, relevant accepted ADRs, and actual code/tests.
+Verify current GitHub main and PR/CI state independently; orientation documents
+do not override narrower accepted semantic authorities.

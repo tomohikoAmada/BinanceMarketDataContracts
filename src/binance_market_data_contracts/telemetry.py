@@ -66,17 +66,15 @@ class QueueMetrics(ContractModel):
 
     @model_validator(mode="after")
     def _validate_queue(self) -> QueueMetrics:
-        if self.queue_capacity > 0 and self.queue_depth > self.queue_capacity:
+        if self.queue_depth > self.queue_capacity:
             raise ValueError(f"queue_depth ({self.queue_depth}) must not exceed queue_capacity ({self.queue_capacity})")
-        if self.queue_utilization is not None and self.queue_capacity > 0:
+        if self.queue_utilization is not None:
             expected = self.queue_depth / self.queue_capacity
             if abs(self.queue_utilization - expected) > 0.001:
                 raise ValueError(
                     f"queue_utilization ({self.queue_utilization}) inconsistent with "
                     f"depth/capacity ({self.queue_depth}/{self.queue_capacity} = {expected:.4f})"
                 )
-        if self.queue_utilization is not None and self.queue_utilization > 1.0:
-            raise ValueError(f"queue_utilization must be <= 1.0, got {self.queue_utilization}")
         return self
 
 

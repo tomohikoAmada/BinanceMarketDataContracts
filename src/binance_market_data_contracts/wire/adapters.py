@@ -20,7 +20,6 @@ from binance_market_data.gateway.v1 import gateway_messages_pb2 as pb_gw
 from binance_market_data.market.v1 import market_events_pb2 as pb_events
 from binance_market_data.projection.v1 import snapshots_pb2 as pb_snap
 from binance_market_data.telemetry.v1 import telemetry_pb2 as pb_telemetry
-from binance_market_data_contracts.common import PriceString, QuantityString
 from binance_market_data_contracts.enums import (
     ConnectionState,
     ConsumerGapReason,
@@ -39,7 +38,6 @@ from binance_market_data_contracts.enums import (
 )
 from binance_market_data_contracts.gateway import (
     ConsumerGapNotice,
-    EnvelopeMetadata,
     EventSubscriptionRequest,
     GatewayEnvelopeMetadata,
     GatewayEventEnvelope,
@@ -251,6 +249,123 @@ _QUALITY_FLAG_PB_TO_PY: Mapping[int, QualityFlag] = {
 
 _QUALITY_FLAG_PY_TO_PB: Mapping[QualityFlag, int] = {v: k for k, v in _QUALITY_FLAG_PB_TO_PY.items()}
 
+_REASON_CODE_PB_TO_PY: Mapping[int, ReasonCode] = {
+    pb_enums.ReasonCode.REASON_CODE_CONNECTION_LOST: ReasonCode.CONNECTION_LOST,
+    pb_enums.ReasonCode.REASON_CODE_CONNECTION_RESUMED: ReasonCode.CONNECTION_RESUMED,
+    pb_enums.ReasonCode.REASON_CODE_PING_TIMEOUT: ReasonCode.PING_TIMEOUT,
+    pb_enums.ReasonCode.REASON_CODE_LAST_MESSAGE_AGE_HIGH: ReasonCode.LAST_MESSAGE_AGE_HIGH,
+    pb_enums.ReasonCode.REASON_CODE_RECEIVE_LATENCY_HIGH: ReasonCode.RECEIVE_LATENCY_HIGH,
+    pb_enums.ReasonCode.REASON_CODE_PUBLISH_LATENCY_HIGH: ReasonCode.PUBLISH_LATENCY_HIGH,
+    pb_enums.ReasonCode.REASON_CODE_SEQUENCE_GAP_DETECTED: ReasonCode.SEQUENCE_GAP_DETECTED,
+    pb_enums.ReasonCode.REASON_CODE_SEQUENCE_GAP_TOO_LARGE: ReasonCode.SEQUENCE_GAP_TOO_LARGE,
+    pb_enums.ReasonCode.REASON_CODE_RESYNC_IN_PROGRESS: ReasonCode.RESYNC_IN_PROGRESS,
+    pb_enums.ReasonCode.REASON_CODE_RESYNC_FAILED: ReasonCode.RESYNC_FAILED,
+    pb_enums.ReasonCode.REASON_CODE_BOOK_NOT_SYNCHRONIZED: ReasonCode.BOOK_NOT_SYNCHRONIZED,
+    pb_enums.ReasonCode.REASON_CODE_BOOK_CROSSED: ReasonCode.BOOK_CROSSED,
+    pb_enums.ReasonCode.REASON_CODE_BOOK_EMPTY: ReasonCode.BOOK_EMPTY,
+    pb_enums.ReasonCode.REASON_CODE_RECORDER_STALLED: ReasonCode.RECORDER_STALLED,
+    pb_enums.ReasonCode.REASON_CODE_GATEWAY_STALLED: ReasonCode.GATEWAY_STALLED,
+    pb_enums.ReasonCode.REASON_CODE_DIVERGENCE_DETECTED: ReasonCode.DIVERGENCE_DETECTED,
+    pb_enums.ReasonCode.REASON_CODE_DISK_SPACE_LOW: ReasonCode.DISK_SPACE_LOW,
+    pb_enums.ReasonCode.REASON_CODE_QUEUE_BACKLOG: ReasonCode.QUEUE_BACKLOG,
+    pb_enums.ReasonCode.REASON_CODE_ARCHIVE_BACKLOG: ReasonCode.ARCHIVE_BACKLOG,
+    pb_enums.ReasonCode.REASON_CODE_CONFIGURATION_ERROR: ReasonCode.CONFIGURATION_ERROR,
+}
+
+_REASON_CODE_PY_TO_PB: Mapping[ReasonCode, int] = {v: k for k, v in _REASON_CODE_PB_TO_PY.items()}
+
+_RESYNC_STATE_PB_TO_PY: Mapping[int, ResyncState] = {
+    pb_enums.ResyncState.RESYNC_STATE_SYNCHRONIZED: ResyncState.SYNCHRONIZED,
+    pb_enums.ResyncState.RESYNC_STATE_RESYNC_REQUIRED: ResyncState.RESYNC_REQUIRED,
+    pb_enums.ResyncState.RESYNC_STATE_RESYNC_IN_PROGRESS: ResyncState.RESYNC_IN_PROGRESS,
+    pb_enums.ResyncState.RESYNC_STATE_RECOVERED: ResyncState.RECOVERED,
+    pb_enums.ResyncState.RESYNC_STATE_RESYNC_FAILED: ResyncState.RESYNC_FAILED,
+}
+
+_RESYNC_STATE_PY_TO_PB: Mapping[ResyncState, int] = {v: k for k, v in _RESYNC_STATE_PB_TO_PY.items()}
+
+_SNAPSHOT_SOURCE_PB_TO_PY: Mapping[int, SnapshotSource] = {
+    pb_enums.SnapshotSource.SNAPSHOT_SOURCE_GATEWAY_LIVE: SnapshotSource.GATEWAY_LIVE,
+    pb_enums.SnapshotSource.SNAPSHOT_SOURCE_RECORDER_REPLAY: SnapshotSource.RECORDER_REPLAY,
+    pb_enums.SnapshotSource.SNAPSHOT_SOURCE_HISTORY_REPLAY: SnapshotSource.HISTORY_REPLAY,
+}
+
+_SNAPSHOT_SOURCE_PY_TO_PB: Mapping[SnapshotSource, int] = {v: k for k, v in _SNAPSHOT_SOURCE_PB_TO_PY.items()}
+
+_HEALTH_STATE_PB_TO_PY: Mapping[int, HealthState] = {
+    pb_enums.HealthState.HEALTH_STATE_HEALTHY: HealthState.HEALTHY,
+    pb_enums.HealthState.HEALTH_STATE_DEGRADED: HealthState.DEGRADED,
+    pb_enums.HealthState.HEALTH_STATE_UNRELIABLE: HealthState.UNRELIABLE,
+    pb_enums.HealthState.HEALTH_STATE_UNAVAILABLE: HealthState.UNAVAILABLE,
+}
+
+_HEALTH_STATE_PY_TO_PB: Mapping[HealthState, int] = {v: k for k, v in _HEALTH_STATE_PB_TO_PY.items()}
+
+_CONNECTION_STATE_PB_TO_PY: Mapping[int, ConnectionState] = {
+    pb_enums.ConnectionState.CONNECTION_STATE_CONNECTING: ConnectionState.CONNECTING,
+    pb_enums.ConnectionState.CONNECTION_STATE_CONNECTED: ConnectionState.CONNECTED,
+    pb_enums.ConnectionState.CONNECTION_STATE_RECONNECTING: ConnectionState.RECONNECTING,
+    pb_enums.ConnectionState.CONNECTION_STATE_DISCONNECTED: ConnectionState.DISCONNECTED,
+    pb_enums.ConnectionState.CONNECTION_STATE_FAILED: ConnectionState.FAILED,
+}
+
+_CONNECTION_STATE_PY_TO_PB: Mapping[ConnectionState, int] = {v: k for k, v in _CONNECTION_STATE_PB_TO_PY.items()}
+
+_CONSUMER_GAP_REASON_PB_TO_PY: Mapping[int, ConsumerGapReason] = {
+    pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_SLOW_CONSUMER: ConsumerGapReason.SLOW_CONSUMER,
+    pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_RESUME_NOT_AVAILABLE: ConsumerGapReason.RESUME_NOT_AVAILABLE,
+    pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_UPSTREAM_SEQUENCE_GAP: ConsumerGapReason.UPSTREAM_SEQUENCE_GAP,
+    pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_GATEWAY_RESTART: ConsumerGapReason.GATEWAY_RESTART,
+    pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_CONNECTION_GENERATION_CHANGED: (
+        ConsumerGapReason.CONNECTION_GENERATION_CHANGED
+    ),
+    pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_SUBSCRIPTION_RECONFIGURED: (
+        ConsumerGapReason.SUBSCRIPTION_RECONFIGURED
+    ),
+}
+
+_CONSUMER_GAP_REASON_PY_TO_PB: Mapping[ConsumerGapReason, int] = {
+    v: k for k, v in _CONSUMER_GAP_REASON_PB_TO_PY.items()
+}
+
+_RECOVERY_ACTION_PB_TO_PY: Mapping[int, RecoveryAction] = {
+    pb_enums.RecoveryAction.RECOVERY_ACTION_NONE: RecoveryAction.NONE,
+    pb_enums.RecoveryAction.RECOVERY_ACTION_RESUBSCRIBE: RecoveryAction.RESUBSCRIBE,
+    pb_enums.RecoveryAction.RECOVERY_ACTION_REQUEST_NEW_SNAPSHOT: RecoveryAction.REQUEST_NEW_SNAPSHOT,
+}
+
+_RECOVERY_ACTION_PY_TO_PB: Mapping[RecoveryAction, int] = {v: k for k, v in _RECOVERY_ACTION_PB_TO_PY.items()}
+
+_STREAM_LIFECYCLE_STATE_PB_TO_PY: Mapping[int, StreamLifecycleState] = {
+    pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_ACCEPTED: StreamLifecycleState.ACCEPTED,
+    pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_SNAPSHOT_PENDING: StreamLifecycleState.SNAPSHOT_PENDING,
+    pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_LIVE: StreamLifecycleState.LIVE,
+    pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_RESYNC_IN_PROGRESS: StreamLifecycleState.RESYNC_IN_PROGRESS,
+    pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_DEGRADED: StreamLifecycleState.DEGRADED,
+    pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_CLOSING: StreamLifecycleState.CLOSING,
+    pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_CLOSED: StreamLifecycleState.CLOSED,
+}
+
+_STREAM_LIFECYCLE_STATE_PY_TO_PB: Mapping[StreamLifecycleState, int] = {
+    v: k for k, v in _STREAM_LIFECYCLE_STATE_PB_TO_PY.items()
+}
+
+_DELIVERY_MODE_PB_TO_PY: Mapping[int, DeliveryMode] = {
+    pb_enums.DeliveryMode.DELIVERY_MODE_CONTIGUOUS_EVENTS: DeliveryMode.CONTIGUOUS_EVENTS,
+    pb_enums.DeliveryMode.DELIVERY_MODE_LATEST_STATE: DeliveryMode.LATEST_STATE,
+}
+
+_DELIVERY_MODE_PY_TO_PB: Mapping[DeliveryMode, int] = {v: k for k, v in _DELIVERY_MODE_PB_TO_PY.items()}
+
+_INITIAL_SNAPSHOT_MODE_PB_TO_PY: Mapping[int, InitialSnapshotMode] = {
+    pb_enums.InitialSnapshotMode.INITIAL_SNAPSHOT_MODE_NONE: InitialSnapshotMode.NONE,
+    pb_enums.InitialSnapshotMode.INITIAL_SNAPSHOT_MODE_REQUIRED: InitialSnapshotMode.REQUIRED,
+}
+
+_INITIAL_SNAPSHOT_MODE_PY_TO_PB: Mapping[InitialSnapshotMode, int] = {
+    v: k for k, v in _INITIAL_SNAPSHOT_MODE_PB_TO_PY.items()
+}
+
 
 def _quality_from_pb(flags: list[int], context: str = "WireContract.quality_flags") -> tuple[QualityFlag, ...]:
     result: list[QualityFlag] = []
@@ -271,18 +386,13 @@ def _quality_to_pb(flags: tuple[QualityFlag, ...]) -> list[Any]:
     return [_QUALITY_FLAG_PY_TO_PB[f] for f in flags]
 
 
-def _optional_uint64(v: int | None) -> int | None:
-    """Return None if the value represents 'not set', else the value."""
-    return v if v is not None else None
-
-
 # ---------------------------------------------------------------------------
 # PriceLevel adapters
 # ---------------------------------------------------------------------------
 
 
 def price_level_from_pb(pl: pb_meta.PriceLevel) -> PriceLevel:
-    return PriceLevel(price=PriceString(pl.price), quantity=QuantityString(pl.quantity))
+    return PriceLevel(price=pl.price, quantity=pl.quantity)
 
 
 def price_level_to_pb(pl: PriceLevel) -> pb_meta.PriceLevel:
@@ -302,19 +412,13 @@ def _event_metadata_from_pb(m: pb_meta.EventMetadata, contract: str) -> dict[str
         "producer": m.producer,
         "producer_version": m.producer_version,
         "connection_id": ConnectionId(m.connection_id),
-        "exchange_event_time_ms": _optional_uint64(m.exchange_event_time_ms)
-        if m.HasField("exchange_event_time_ms")
-        else None,
-        "exchange_trade_time_ms": _optional_uint64(m.exchange_trade_time_ms)
-        if m.HasField("exchange_trade_time_ms")
-        else None,
-        "exchange_transaction_time_ms": _optional_uint64(m.exchange_transaction_time_ms)
+        "exchange_event_time_ms": m.exchange_event_time_ms if m.HasField("exchange_event_time_ms") else None,
+        "exchange_trade_time_ms": m.exchange_trade_time_ms if m.HasField("exchange_trade_time_ms") else None,
+        "exchange_transaction_time_ms": m.exchange_transaction_time_ms
         if m.HasField("exchange_transaction_time_ms")
         else None,
-        "receive_time_utc_ns": _optional_uint64(m.receive_time_utc_ns) if m.HasField("receive_time_utc_ns") else None,
-        "receive_monotonic_ns": _optional_uint64(m.receive_monotonic_ns)
-        if m.HasField("receive_monotonic_ns")
-        else None,
+        "receive_time_utc_ns": m.receive_time_utc_ns if m.HasField("receive_time_utc_ns") else None,
+        "receive_monotonic_ns": m.receive_monotonic_ns if m.HasField("receive_monotonic_ns") else None,
         "quality_flags": _quality_from_pb(list(m.quality_flags), f"{contract}.metadata.quality_flags"),
     }
 
@@ -362,9 +466,7 @@ def depth_update_from_pb(du: pb_events.DepthUpdate) -> DepthUpdate:
         metadata=DepthUpdateMetadata(**meta),
         first_update_id=du.first_update_id,
         final_update_id=du.final_update_id,
-        previous_final_update_id=_optional_uint64(du.previous_final_update_id)
-        if du.HasField("previous_final_update_id")
-        else None,
+        previous_final_update_id=du.previous_final_update_id if du.HasField("previous_final_update_id") else None,
         bids=tuple(price_level_from_pb(b) for b in du.bids),
         asks=tuple(price_level_from_pb(a) for a in du.asks),
     )
@@ -400,8 +502,8 @@ def agg_trade_from_pb(at: pb_events.AggTrade) -> AggTrade:
     return AggTrade(
         metadata=AggTradeMetadata(**meta),
         aggregate_trade_id=at.aggregate_trade_id,
-        price=PriceString(at.price),
-        quantity=QuantityString(at.quantity),
+        price=at.price,
+        quantity=at.quantity,
         first_trade_id=at.first_trade_id,
         last_trade_id=at.last_trade_id,
         trade_time_ms=at.trade_time_ms,
@@ -439,11 +541,11 @@ def book_ticker_from_pb(bt: pb_events.BookTicker) -> BookTicker:
     meta["schema_version"] = bt.metadata.schema_version
     return BookTicker(
         metadata=BookTickerMetadata(**meta),
-        update_id=_optional_uint64(bt.update_id) if bt.HasField("update_id") else None,
-        best_bid_price=PriceString(bt.best_bid_price),
-        best_bid_quantity=QuantityString(bt.best_bid_quantity),
-        best_ask_price=PriceString(bt.best_ask_price),
-        best_ask_quantity=QuantityString(bt.best_ask_quantity),
+        update_id=bt.update_id if bt.HasField("update_id") else None,
+        best_bid_price=bt.best_bid_price,
+        best_bid_quantity=bt.best_bid_quantity,
+        best_ask_price=bt.best_ask_price,
+        best_ask_quantity=bt.best_ask_quantity,
     )
 
 
@@ -482,11 +584,11 @@ def exchange_depth_snapshot_from_pb(es: pb_events.ExchangeDepthSnapshot) -> Exch
         last_update_id=es.last_update_id,
         bids=tuple(price_level_from_pb(b) for b in es.bids),
         asks=tuple(price_level_from_pb(a) for a in es.asks),
-        exchange_transaction_time_ms=_optional_uint64(es.exchange_transaction_time_ms)
+        exchange_transaction_time_ms=es.exchange_transaction_time_ms
         if es.HasField("exchange_transaction_time_ms")
         else None,
-        receive_time_utc_ns=_optional_uint64(es.receive_time_utc_ns) if es.HasField("receive_time_utc_ns") else None,
-        receive_monotonic_ns=_optional_uint64(es.receive_monotonic_ns) if es.HasField("receive_monotonic_ns") else None,
+        receive_time_utc_ns=es.receive_time_utc_ns if es.HasField("receive_time_utc_ns") else None,
+        receive_monotonic_ns=es.receive_monotonic_ns if es.HasField("receive_monotonic_ns") else None,
         quality_flags=_quality_from_pb(list(es.quality_flags), "ExchangeDepthSnapshot.quality_flags"),
     )
 
@@ -519,31 +621,9 @@ def exchange_depth_snapshot_to_pb(es: ExchangeDepthSnapshot) -> pb_events.Exchan
 
 
 def _reason_code_from_pb(v: int, context: str = "WireContract.reason_code") -> ReasonCode | None:
-    mapping: dict[int, ReasonCode] = {
-        pb_enums.ReasonCode.REASON_CODE_CONNECTION_LOST: ReasonCode.CONNECTION_LOST,
-        pb_enums.ReasonCode.REASON_CODE_CONNECTION_RESUMED: ReasonCode.CONNECTION_RESUMED,
-        pb_enums.ReasonCode.REASON_CODE_PING_TIMEOUT: ReasonCode.PING_TIMEOUT,
-        pb_enums.ReasonCode.REASON_CODE_LAST_MESSAGE_AGE_HIGH: ReasonCode.LAST_MESSAGE_AGE_HIGH,
-        pb_enums.ReasonCode.REASON_CODE_RECEIVE_LATENCY_HIGH: ReasonCode.RECEIVE_LATENCY_HIGH,
-        pb_enums.ReasonCode.REASON_CODE_PUBLISH_LATENCY_HIGH: ReasonCode.PUBLISH_LATENCY_HIGH,
-        pb_enums.ReasonCode.REASON_CODE_SEQUENCE_GAP_DETECTED: ReasonCode.SEQUENCE_GAP_DETECTED,
-        pb_enums.ReasonCode.REASON_CODE_SEQUENCE_GAP_TOO_LARGE: ReasonCode.SEQUENCE_GAP_TOO_LARGE,
-        pb_enums.ReasonCode.REASON_CODE_RESYNC_IN_PROGRESS: ReasonCode.RESYNC_IN_PROGRESS,
-        pb_enums.ReasonCode.REASON_CODE_RESYNC_FAILED: ReasonCode.RESYNC_FAILED,
-        pb_enums.ReasonCode.REASON_CODE_BOOK_NOT_SYNCHRONIZED: ReasonCode.BOOK_NOT_SYNCHRONIZED,
-        pb_enums.ReasonCode.REASON_CODE_BOOK_CROSSED: ReasonCode.BOOK_CROSSED,
-        pb_enums.ReasonCode.REASON_CODE_BOOK_EMPTY: ReasonCode.BOOK_EMPTY,
-        pb_enums.ReasonCode.REASON_CODE_RECORDER_STALLED: ReasonCode.RECORDER_STALLED,
-        pb_enums.ReasonCode.REASON_CODE_GATEWAY_STALLED: ReasonCode.GATEWAY_STALLED,
-        pb_enums.ReasonCode.REASON_CODE_DIVERGENCE_DETECTED: ReasonCode.DIVERGENCE_DETECTED,
-        pb_enums.ReasonCode.REASON_CODE_DISK_SPACE_LOW: ReasonCode.DISK_SPACE_LOW,
-        pb_enums.ReasonCode.REASON_CODE_QUEUE_BACKLOG: ReasonCode.QUEUE_BACKLOG,
-        pb_enums.ReasonCode.REASON_CODE_ARCHIVE_BACKLOG: ReasonCode.ARCHIVE_BACKLOG,
-        pb_enums.ReasonCode.REASON_CODE_CONFIGURATION_ERROR: ReasonCode.CONFIGURATION_ERROR,
-    }
     return _mapped_enum_from_pb(
         value=v,
-        mapping=mapping,
+        mapping=_REASON_CODE_PB_TO_PY,
         enum_name="ReasonCode",
         context=context,
         unspecified_value=pb_enums.ReasonCode.REASON_CODE_UNSPECIFIED,
@@ -554,42 +634,13 @@ def _reason_code_from_pb(v: int, context: str = "WireContract.reason_code") -> R
 def _reason_code_to_pb(v: ReasonCode | None) -> Any:
     if v is None:
         return 0
-    mapping: dict[ReasonCode, int] = {
-        ReasonCode.CONNECTION_LOST: pb_enums.ReasonCode.REASON_CODE_CONNECTION_LOST,
-        ReasonCode.CONNECTION_RESUMED: pb_enums.ReasonCode.REASON_CODE_CONNECTION_RESUMED,
-        ReasonCode.PING_TIMEOUT: pb_enums.ReasonCode.REASON_CODE_PING_TIMEOUT,
-        ReasonCode.LAST_MESSAGE_AGE_HIGH: pb_enums.ReasonCode.REASON_CODE_LAST_MESSAGE_AGE_HIGH,
-        ReasonCode.RECEIVE_LATENCY_HIGH: pb_enums.ReasonCode.REASON_CODE_RECEIVE_LATENCY_HIGH,
-        ReasonCode.PUBLISH_LATENCY_HIGH: pb_enums.ReasonCode.REASON_CODE_PUBLISH_LATENCY_HIGH,
-        ReasonCode.SEQUENCE_GAP_DETECTED: pb_enums.ReasonCode.REASON_CODE_SEQUENCE_GAP_DETECTED,
-        ReasonCode.SEQUENCE_GAP_TOO_LARGE: pb_enums.ReasonCode.REASON_CODE_SEQUENCE_GAP_TOO_LARGE,
-        ReasonCode.RESYNC_IN_PROGRESS: pb_enums.ReasonCode.REASON_CODE_RESYNC_IN_PROGRESS,
-        ReasonCode.RESYNC_FAILED: pb_enums.ReasonCode.REASON_CODE_RESYNC_FAILED,
-        ReasonCode.BOOK_NOT_SYNCHRONIZED: pb_enums.ReasonCode.REASON_CODE_BOOK_NOT_SYNCHRONIZED,
-        ReasonCode.BOOK_CROSSED: pb_enums.ReasonCode.REASON_CODE_BOOK_CROSSED,
-        ReasonCode.BOOK_EMPTY: pb_enums.ReasonCode.REASON_CODE_BOOK_EMPTY,
-        ReasonCode.RECORDER_STALLED: pb_enums.ReasonCode.REASON_CODE_RECORDER_STALLED,
-        ReasonCode.GATEWAY_STALLED: pb_enums.ReasonCode.REASON_CODE_GATEWAY_STALLED,
-        ReasonCode.DIVERGENCE_DETECTED: pb_enums.ReasonCode.REASON_CODE_DIVERGENCE_DETECTED,
-        ReasonCode.DISK_SPACE_LOW: pb_enums.ReasonCode.REASON_CODE_DISK_SPACE_LOW,
-        ReasonCode.QUEUE_BACKLOG: pb_enums.ReasonCode.REASON_CODE_QUEUE_BACKLOG,
-        ReasonCode.ARCHIVE_BACKLOG: pb_enums.ReasonCode.REASON_CODE_ARCHIVE_BACKLOG,
-        ReasonCode.CONFIGURATION_ERROR: pb_enums.ReasonCode.REASON_CODE_CONFIGURATION_ERROR,
-    }
-    return mapping[v]
+    return _REASON_CODE_PY_TO_PB[v]
 
 
 def _resync_state_from_pb(v: int, context: str = "WireContract.resync_state") -> ResyncState | None:
-    mapping: dict[int, ResyncState] = {
-        pb_enums.ResyncState.RESYNC_STATE_SYNCHRONIZED: ResyncState.SYNCHRONIZED,
-        pb_enums.ResyncState.RESYNC_STATE_RESYNC_REQUIRED: ResyncState.RESYNC_REQUIRED,
-        pb_enums.ResyncState.RESYNC_STATE_RESYNC_IN_PROGRESS: ResyncState.RESYNC_IN_PROGRESS,
-        pb_enums.ResyncState.RESYNC_STATE_RECOVERED: ResyncState.RECOVERED,
-        pb_enums.ResyncState.RESYNC_STATE_RESYNC_FAILED: ResyncState.RESYNC_FAILED,
-    }
     return _mapped_enum_from_pb(
         value=v,
-        mapping=mapping,
+        mapping=_RESYNC_STATE_PB_TO_PY,
         enum_name="ResyncState",
         context=context,
         unspecified_value=pb_enums.ResyncState.RESYNC_STATE_UNSPECIFIED,
@@ -600,25 +651,13 @@ def _resync_state_from_pb(v: int, context: str = "WireContract.resync_state") ->
 def _resync_state_to_pb(v: ResyncState | None) -> Any:
     if v is None:
         return 0
-    mapping: dict[ResyncState, int] = {
-        ResyncState.SYNCHRONIZED: pb_enums.ResyncState.RESYNC_STATE_SYNCHRONIZED,
-        ResyncState.RESYNC_REQUIRED: pb_enums.ResyncState.RESYNC_STATE_RESYNC_REQUIRED,
-        ResyncState.RESYNC_IN_PROGRESS: pb_enums.ResyncState.RESYNC_STATE_RESYNC_IN_PROGRESS,
-        ResyncState.RECOVERED: pb_enums.ResyncState.RESYNC_STATE_RECOVERED,
-        ResyncState.RESYNC_FAILED: pb_enums.ResyncState.RESYNC_STATE_RESYNC_FAILED,
-    }
-    return mapping[v]
+    return _RESYNC_STATE_PY_TO_PB[v]
 
 
 def _snapshot_source_from_pb(v: int, context: str = "LocalOrderBookSnapshot.source") -> SnapshotSource:
-    mapping: dict[int, SnapshotSource] = {
-        pb_enums.SnapshotSource.SNAPSHOT_SOURCE_GATEWAY_LIVE: SnapshotSource.GATEWAY_LIVE,
-        pb_enums.SnapshotSource.SNAPSHOT_SOURCE_RECORDER_REPLAY: SnapshotSource.RECORDER_REPLAY,
-        pb_enums.SnapshotSource.SNAPSHOT_SOURCE_HISTORY_REPLAY: SnapshotSource.HISTORY_REPLAY,
-    }
     result = _mapped_enum_from_pb(
         value=v,
-        mapping=mapping,
+        mapping=_SNAPSHOT_SOURCE_PB_TO_PY,
         enum_name="SnapshotSource",
         context=context,
         unspecified_value=pb_enums.SnapshotSource.SNAPSHOT_SOURCE_UNSPECIFIED,
@@ -628,20 +667,15 @@ def _snapshot_source_from_pb(v: int, context: str = "LocalOrderBookSnapshot.sour
 
 
 def _snapshot_source_to_pb(v: SnapshotSource) -> Any:
-    mapping: dict[SnapshotSource, int] = {
-        SnapshotSource.GATEWAY_LIVE: pb_enums.SnapshotSource.SNAPSHOT_SOURCE_GATEWAY_LIVE,
-        SnapshotSource.RECORDER_REPLAY: pb_enums.SnapshotSource.SNAPSHOT_SOURCE_RECORDER_REPLAY,
-        SnapshotSource.HISTORY_REPLAY: pb_enums.SnapshotSource.SNAPSHOT_SOURCE_HISTORY_REPLAY,
-    }
-    return mapping[v]
+    return _SNAPSHOT_SOURCE_PY_TO_PB[v]
 
 
 def gap_descriptor_from_pb(g: pb_snap.GapDescriptor) -> GapDescriptor:
     return GapDescriptor(
         stream=_stream_from_pb(g.stream, "GapDescriptor.stream"),
         detected_at_utc_ns=g.detected_at_utc_ns,
-        previous_sequence=_optional_uint64(g.previous_sequence) if g.HasField("previous_sequence") else None,
-        next_sequence=_optional_uint64(g.next_sequence) if g.HasField("next_sequence") else None,
+        previous_sequence=g.previous_sequence if g.HasField("previous_sequence") else None,
+        next_sequence=g.next_sequence if g.HasField("next_sequence") else None,
         reason_code=_reason_code_from_pb(g.reason_code, "GapDescriptor.reason_code")
         if g.HasField("reason_code")
         else None,
@@ -691,9 +725,7 @@ def local_order_book_snapshot_from_pb(ls: pb_snap.LocalOrderBookSnapshot) -> Loc
         asks=tuple(price_level_from_pb(a) for a in ls.asks),
         depth_limit=ls.depth_limit if ls.HasField("depth_limit") else None,
         generated_time_utc_ns=ls.generated_time_utc_ns,
-        generated_monotonic_ns=_optional_uint64(ls.generated_monotonic_ns)
-        if ls.HasField("generated_monotonic_ns")
-        else None,
+        generated_monotonic_ns=ls.generated_monotonic_ns if ls.HasField("generated_monotonic_ns") else None,
         synchronized=ls.synchronized,
         last_gap=gap_descriptor_from_pb(ls.last_gap) if ls.HasField("last_gap") else None,
         quality_flags=_quality_from_pb(list(ls.quality_flags), "LocalOrderBookSnapshot.quality_flags"),
@@ -743,32 +775,26 @@ def market_state_snapshot_from_pb(ms: pb_snap.MarketStateSnapshot) -> MarketStat
         schema_version="market-state-snapshot.v1",
         producer=ms.producer,
         producer_version=ms.producer_version,
-        best_bid_price=PriceString(ms.best_bid_price) if ms.HasField("best_bid_price") and ms.best_bid_price else None,
-        best_bid_quantity=QuantityString(ms.best_bid_quantity)
-        if ms.HasField("best_bid_quantity") and ms.best_bid_quantity
-        else None,
-        best_ask_price=PriceString(ms.best_ask_price) if ms.HasField("best_ask_price") and ms.best_ask_price else None,
-        best_ask_quantity=QuantityString(ms.best_ask_quantity)
-        if ms.HasField("best_ask_quantity") and ms.best_ask_quantity
-        else None,
-        mid_price=PriceString(ms.mid_price) if ms.HasField("mid_price") and ms.mid_price else None,
-        spread=QuantityString(ms.spread) if ms.HasField("spread") and ms.spread else None,
-        microprice=PriceString(ms.microprice) if ms.HasField("microprice") and ms.microprice else None,
+        best_bid_price=ms.best_bid_price if ms.HasField("best_bid_price") and ms.best_bid_price else None,
+        best_bid_quantity=ms.best_bid_quantity if ms.HasField("best_bid_quantity") and ms.best_bid_quantity else None,
+        best_ask_price=ms.best_ask_price if ms.HasField("best_ask_price") and ms.best_ask_price else None,
+        best_ask_quantity=ms.best_ask_quantity if ms.HasField("best_ask_quantity") and ms.best_ask_quantity else None,
+        mid_price=ms.mid_price if ms.HasField("mid_price") and ms.mid_price else None,
+        spread=ms.spread if ms.HasField("spread") and ms.spread else None,
+        microprice=ms.microprice if ms.HasField("microprice") and ms.microprice else None,
         top_bids=tuple(price_level_from_pb(b) for b in ms.top_bids),
         top_asks=tuple(price_level_from_pb(a) for a in ms.top_asks),
         depth_limit=ms.depth_limit if ms.HasField("depth_limit") else None,
-        mark_price=PriceString(ms.mark_price) if ms.HasField("mark_price") and ms.mark_price else None,
-        index_price=PriceString(ms.index_price) if ms.HasField("index_price") and ms.index_price else None,
+        mark_price=ms.mark_price if ms.HasField("mark_price") and ms.mark_price else None,
+        index_price=ms.index_price if ms.HasField("index_price") and ms.index_price else None,
         funding_rate=ms.funding_rate if ms.HasField("funding_rate") and ms.funding_rate else None,
-        next_funding_time_ms=_optional_uint64(ms.next_funding_time_ms) if ms.HasField("next_funding_time_ms") else None,
-        open_interest=QuantityString(ms.open_interest) if ms.HasField("open_interest") and ms.open_interest else None,
+        next_funding_time_ms=ms.next_funding_time_ms if ms.HasField("next_funding_time_ms") else None,
+        open_interest=ms.open_interest if ms.HasField("open_interest") and ms.open_interest else None,
         generated_time_utc_ns=ms.generated_time_utc_ns,
-        data_freshness_ms=_optional_uint64(ms.data_freshness_ms) if ms.HasField("data_freshness_ms") else None,
+        data_freshness_ms=ms.data_freshness_ms if ms.HasField("data_freshness_ms") else None,
         book_synchronized=ms.book_synchronized if ms.HasField("book_synchronized") else None,
-        source_book_update_id=_optional_uint64(ms.source_book_update_id)
-        if ms.HasField("source_book_update_id")
-        else None,
-        source_trade_id=_optional_uint64(ms.source_trade_id) if ms.HasField("source_trade_id") else None,
+        source_book_update_id=ms.source_book_update_id if ms.HasField("source_book_update_id") else None,
+        source_trade_id=ms.source_trade_id if ms.HasField("source_trade_id") else None,
     )
 
 
@@ -826,15 +852,9 @@ def market_state_snapshot_to_pb(ms: MarketStateSnapshot) -> pb_snap.MarketStateS
 
 
 def _health_state_from_pb(v: int, context: str = "DataHealthSnapshot.state") -> HealthState:
-    mapping: dict[int, HealthState] = {
-        pb_enums.HealthState.HEALTH_STATE_HEALTHY: HealthState.HEALTHY,
-        pb_enums.HealthState.HEALTH_STATE_DEGRADED: HealthState.DEGRADED,
-        pb_enums.HealthState.HEALTH_STATE_UNRELIABLE: HealthState.UNRELIABLE,
-        pb_enums.HealthState.HEALTH_STATE_UNAVAILABLE: HealthState.UNAVAILABLE,
-    }
     result = _mapped_enum_from_pb(
         value=v,
-        mapping=mapping,
+        mapping=_HEALTH_STATE_PB_TO_PY,
         enum_name="HealthState",
         context=context,
         unspecified_value=pb_enums.HealthState.HEALTH_STATE_UNSPECIFIED,
@@ -844,26 +864,13 @@ def _health_state_from_pb(v: int, context: str = "DataHealthSnapshot.state") -> 
 
 
 def _health_state_to_pb(v: HealthState) -> Any:
-    mapping: dict[HealthState, int] = {
-        HealthState.HEALTHY: pb_enums.HealthState.HEALTH_STATE_HEALTHY,
-        HealthState.DEGRADED: pb_enums.HealthState.HEALTH_STATE_DEGRADED,
-        HealthState.UNRELIABLE: pb_enums.HealthState.HEALTH_STATE_UNRELIABLE,
-        HealthState.UNAVAILABLE: pb_enums.HealthState.HEALTH_STATE_UNAVAILABLE,
-    }
-    return mapping[v]
+    return _HEALTH_STATE_PY_TO_PB[v]
 
 
 def _connection_state_from_pb(v: int, context: str = "DataHealthSnapshot.connection_state") -> ConnectionState | None:
-    mapping: dict[int, ConnectionState] = {
-        pb_enums.ConnectionState.CONNECTION_STATE_CONNECTING: ConnectionState.CONNECTING,
-        pb_enums.ConnectionState.CONNECTION_STATE_CONNECTED: ConnectionState.CONNECTED,
-        pb_enums.ConnectionState.CONNECTION_STATE_RECONNECTING: ConnectionState.RECONNECTING,
-        pb_enums.ConnectionState.CONNECTION_STATE_DISCONNECTED: ConnectionState.DISCONNECTED,
-        pb_enums.ConnectionState.CONNECTION_STATE_FAILED: ConnectionState.FAILED,
-    }
     return _mapped_enum_from_pb(
         value=v,
-        mapping=mapping,
+        mapping=_CONNECTION_STATE_PB_TO_PY,
         enum_name="ConnectionState",
         context=context,
         unspecified_value=pb_enums.ConnectionState.CONNECTION_STATE_UNSPECIFIED,
@@ -874,14 +881,7 @@ def _connection_state_from_pb(v: int, context: str = "DataHealthSnapshot.connect
 def _connection_state_to_pb(v: ConnectionState | None) -> Any:
     if v is None:
         return 0
-    mapping: dict[ConnectionState, int] = {
-        ConnectionState.CONNECTING: pb_enums.ConnectionState.CONNECTION_STATE_CONNECTING,
-        ConnectionState.CONNECTED: pb_enums.ConnectionState.CONNECTION_STATE_CONNECTED,
-        ConnectionState.RECONNECTING: pb_enums.ConnectionState.CONNECTION_STATE_RECONNECTING,
-        ConnectionState.DISCONNECTED: pb_enums.ConnectionState.CONNECTION_STATE_DISCONNECTED,
-        ConnectionState.FAILED: pb_enums.ConnectionState.CONNECTION_STATE_FAILED,
-    }
-    return mapping[v]
+    return _CONNECTION_STATE_PY_TO_PB[v]
 
 
 def _latency_summary_from_pb(ls: pb_snap.LatencySummary) -> LatencySummary:
@@ -932,7 +932,7 @@ def data_health_snapshot_from_pb(dhs: pb_snap.DataHealthSnapshot) -> DataHealthS
         connection_state=_connection_state_from_pb(dhs.connection_state, "DataHealthSnapshot.connection_state")
         if dhs.HasField("connection_state")
         else None,
-        last_message_age_ms=_optional_uint64(dhs.last_message_age_ms) if dhs.HasField("last_message_age_ms") else None,
+        last_message_age_ms=dhs.last_message_age_ms if dhs.HasField("last_message_age_ms") else None,
         receive_latency=_latency_summary_from_pb(dhs.receive_latency) if dhs.HasField("receive_latency") else None,
         publish_latency=_latency_summary_from_pb(dhs.publish_latency) if dhs.HasField("publish_latency") else None,
         consumer_delivery_latency=_latency_summary_from_pb(dhs.consumer_delivery_latency)
@@ -1017,36 +1017,8 @@ def stream_selector_to_pb(ss: StreamSelector) -> pb_id.StreamSelector:
 
 
 # ---------------------------------------------------------------------------
-# Gateway: EnvelopeMetadata adapters
+# Gateway: GatewayEnvelopeMetadata adapters
 # ---------------------------------------------------------------------------
-
-
-def envelope_metadata_from_pb(em: pb_meta.EnvelopeMetadata) -> EnvelopeMetadata:
-    _require_exact_string(
-        contract="EnvelopeMetadata", field="protocol_version", actual=em.protocol_version, expected="gateway-stream.v1"
-    )
-    return EnvelopeMetadata(
-        protocol_version="gateway-stream.v1",
-        gateway_instance_id=GatewayInstanceId(em.gateway_instance_id),
-        subscription_id=SubscriptionId(em.subscription_id),
-        connection_generation=em.connection_generation,
-        session_sequence=em.session_sequence,
-        publish_time_utc_ns=em.publish_time_utc_ns,
-        publish_monotonic_ns=_optional_uint64(em.publish_monotonic_ns) if em.HasField("publish_monotonic_ns") else None,
-    )
-
-
-def envelope_metadata_to_pb(em: EnvelopeMetadata) -> pb_meta.EnvelopeMetadata:
-    pb = pb_meta.EnvelopeMetadata()
-    pb.protocol_version = em.protocol_version
-    pb.gateway_instance_id = em.gateway_instance_id
-    pb.subscription_id = em.subscription_id
-    pb.connection_generation = em.connection_generation
-    pb.session_sequence = em.session_sequence
-    pb.publish_time_utc_ns = em.publish_time_utc_ns
-    if em.publish_monotonic_ns is not None:
-        pb.publish_monotonic_ns = em.publish_monotonic_ns
-    return pb
 
 
 def gateway_envelope_metadata_from_pb(em: pb_gw.GatewayEnvelopeMetadata) -> GatewayEnvelopeMetadata:
@@ -1060,12 +1032,10 @@ def gateway_envelope_metadata_from_pb(em: pb_gw.GatewayEnvelopeMetadata) -> Gate
         protocol_version="gateway-stream.v1",
         gateway_instance_id=GatewayInstanceId(em.gateway_instance_id),
         subscription_id=SubscriptionId(em.subscription_id),
-        connection_generation=_optional_uint64(em.connection_generation)
-        if em.HasField("connection_generation")
-        else None,
+        connection_generation=em.connection_generation if em.HasField("connection_generation") else None,
         session_sequence=em.session_sequence,
         publish_time_utc_ns=em.publish_time_utc_ns,
-        publish_monotonic_ns=_optional_uint64(em.publish_monotonic_ns) if em.HasField("publish_monotonic_ns") else None,
+        publish_monotonic_ns=em.publish_monotonic_ns if em.HasField("publish_monotonic_ns") else None,
     )
 
 
@@ -1134,17 +1104,9 @@ def subscription_accepted_to_pb(sa: SubscriptionAccepted) -> pb_gw.SubscriptionA
 
 
 def _consumer_gap_reason_from_pb(v: int, context: str = "ConsumerGapNotice.reason") -> ConsumerGapReason:
-    mapping: dict[int, ConsumerGapReason] = {
-        pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_SLOW_CONSUMER: ConsumerGapReason.SLOW_CONSUMER,
-        pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_RESUME_NOT_AVAILABLE: ConsumerGapReason.RESUME_NOT_AVAILABLE,
-        pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_UPSTREAM_SEQUENCE_GAP: ConsumerGapReason.UPSTREAM_SEQUENCE_GAP,
-        pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_GATEWAY_RESTART: ConsumerGapReason.GATEWAY_RESTART,
-        pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_CONNECTION_GENERATION_CHANGED: ConsumerGapReason.CONNECTION_GENERATION_CHANGED,  # noqa: E501
-        pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_SUBSCRIPTION_RECONFIGURED: ConsumerGapReason.SUBSCRIPTION_RECONFIGURED,  # noqa: E501
-    }
     result = _mapped_enum_from_pb(
         value=v,
-        mapping=mapping,
+        mapping=_CONSUMER_GAP_REASON_PB_TO_PY,
         enum_name="ConsumerGapReason",
         context=context,
         unspecified_value=pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_UNSPECIFIED,
@@ -1154,26 +1116,13 @@ def _consumer_gap_reason_from_pb(v: int, context: str = "ConsumerGapNotice.reaso
 
 
 def _consumer_gap_reason_to_pb(v: ConsumerGapReason) -> Any:
-    mapping: dict[ConsumerGapReason, int] = {
-        ConsumerGapReason.SLOW_CONSUMER: pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_SLOW_CONSUMER,
-        ConsumerGapReason.RESUME_NOT_AVAILABLE: pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_RESUME_NOT_AVAILABLE,
-        ConsumerGapReason.UPSTREAM_SEQUENCE_GAP: pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_UPSTREAM_SEQUENCE_GAP,
-        ConsumerGapReason.GATEWAY_RESTART: pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_GATEWAY_RESTART,
-        ConsumerGapReason.CONNECTION_GENERATION_CHANGED: pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_CONNECTION_GENERATION_CHANGED,  # noqa: E501
-        ConsumerGapReason.SUBSCRIPTION_RECONFIGURED: pb_enums.ConsumerGapReason.CONSUMER_GAP_REASON_SUBSCRIPTION_RECONFIGURED,  # noqa: E501
-    }
-    return mapping[v]
+    return _CONSUMER_GAP_REASON_PY_TO_PB[v]
 
 
 def _recovery_action_from_pb(v: int, context: str = "ConsumerGapNotice.recovery_action") -> RecoveryAction:
-    mapping: dict[int, RecoveryAction] = {
-        pb_enums.RecoveryAction.RECOVERY_ACTION_NONE: RecoveryAction.NONE,
-        pb_enums.RecoveryAction.RECOVERY_ACTION_RESUBSCRIBE: RecoveryAction.RESUBSCRIBE,
-        pb_enums.RecoveryAction.RECOVERY_ACTION_REQUEST_NEW_SNAPSHOT: RecoveryAction.REQUEST_NEW_SNAPSHOT,
-    }
     result = _mapped_enum_from_pb(
         value=v,
-        mapping=mapping,
+        mapping=_RECOVERY_ACTION_PB_TO_PY,
         enum_name="RecoveryAction",
         context=context,
         unspecified_value=pb_enums.RecoveryAction.RECOVERY_ACTION_UNSPECIFIED,
@@ -1183,12 +1132,7 @@ def _recovery_action_from_pb(v: int, context: str = "ConsumerGapNotice.recovery_
 
 
 def _recovery_action_to_pb(v: RecoveryAction) -> Any:
-    mapping: dict[RecoveryAction, int] = {
-        RecoveryAction.NONE: pb_enums.RecoveryAction.RECOVERY_ACTION_NONE,
-        RecoveryAction.RESUBSCRIBE: pb_enums.RecoveryAction.RECOVERY_ACTION_RESUBSCRIBE,
-        RecoveryAction.REQUEST_NEW_SNAPSHOT: pb_enums.RecoveryAction.RECOVERY_ACTION_REQUEST_NEW_SNAPSHOT,
-    }
-    return mapping[v]
+    return _RECOVERY_ACTION_PY_TO_PB[v]
 
 
 def consumer_gap_notice_from_pb(cgn: pb_gw.ConsumerGapNotice) -> ConsumerGapNotice:
@@ -1202,10 +1146,10 @@ def consumer_gap_notice_from_pb(cgn: pb_gw.ConsumerGapNotice) -> ConsumerGapNoti
         schema_version="consumer-gap-notice.v1",
         subscription_id=SubscriptionId(cgn.subscription_id),
         detected_time_utc_ns=cgn.detected_time_utc_ns,
-        last_delivered_session_sequence=_optional_uint64(cgn.last_delivered_session_sequence)
+        last_delivered_session_sequence=cgn.last_delivered_session_sequence
         if cgn.HasField("last_delivered_session_sequence")
         else None,
-        next_available_session_sequence=_optional_uint64(cgn.next_available_session_sequence)
+        next_available_session_sequence=cgn.next_available_session_sequence
         if cgn.HasField("next_available_session_sequence")
         else None,
         reason=_consumer_gap_reason_from_pb(cgn.reason),
@@ -1242,18 +1186,9 @@ def consumer_gap_notice_to_pb(cgn: ConsumerGapNotice) -> pb_gw.ConsumerGapNotice
 
 
 def _stream_lifecycle_state_from_pb(v: int, context: str = "StreamStatus.state") -> StreamLifecycleState:
-    mapping: dict[int, StreamLifecycleState] = {
-        pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_ACCEPTED: StreamLifecycleState.ACCEPTED,
-        pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_SNAPSHOT_PENDING: StreamLifecycleState.SNAPSHOT_PENDING,
-        pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_LIVE: StreamLifecycleState.LIVE,
-        pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_RESYNC_IN_PROGRESS: StreamLifecycleState.RESYNC_IN_PROGRESS,  # noqa: E501
-        pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_DEGRADED: StreamLifecycleState.DEGRADED,
-        pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_CLOSING: StreamLifecycleState.CLOSING,
-        pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_CLOSED: StreamLifecycleState.CLOSED,
-    }
     result = _mapped_enum_from_pb(
         value=v,
-        mapping=mapping,
+        mapping=_STREAM_LIFECYCLE_STATE_PB_TO_PY,
         enum_name="StreamLifecycleState",
         context=context,
         unspecified_value=pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_UNSPECIFIED,
@@ -1263,16 +1198,7 @@ def _stream_lifecycle_state_from_pb(v: int, context: str = "StreamStatus.state")
 
 
 def _stream_lifecycle_state_to_pb(v: StreamLifecycleState) -> Any:
-    mapping: dict[StreamLifecycleState, int] = {
-        StreamLifecycleState.ACCEPTED: pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_ACCEPTED,
-        StreamLifecycleState.SNAPSHOT_PENDING: pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_SNAPSHOT_PENDING,
-        StreamLifecycleState.LIVE: pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_LIVE,
-        StreamLifecycleState.RESYNC_IN_PROGRESS: pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_RESYNC_IN_PROGRESS,  # noqa: E501
-        StreamLifecycleState.DEGRADED: pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_DEGRADED,
-        StreamLifecycleState.CLOSING: pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_CLOSING,
-        StreamLifecycleState.CLOSED: pb_enums.StreamLifecycleState.STREAM_LIFECYCLE_STATE_CLOSED,
-    }
-    return mapping[v]
+    return _STREAM_LIFECYCLE_STATE_PY_TO_PB[v]
 
 
 def stream_status_from_pb(ss: pb_gw.StreamStatus) -> StreamStatus:
@@ -1287,7 +1213,7 @@ def stream_status_from_pb(ss: pb_gw.StreamStatus) -> StreamStatus:
         reason_code=_reason_code_from_pb(ss.reason_code, "StreamStatus.reason_code")
         if ss.HasField("reason_code")
         else None,
-        message=ss.message if ss.HasField("message") and ss.message else None,
+        message=ss.message if ss.HasField("message") else None,
     )
 
 
@@ -1487,13 +1413,9 @@ def gateway_status_snapshot_to_pb(gs: GatewayStatusSnapshot) -> pb_gw.GatewaySta
 
 
 def _delivery_mode_from_pb(v: int, context: str = "SubscriptionRequest.delivery_mode") -> DeliveryMode:
-    mapping: dict[int, DeliveryMode] = {
-        pb_enums.DeliveryMode.DELIVERY_MODE_CONTIGUOUS_EVENTS: DeliveryMode.CONTIGUOUS_EVENTS,
-        pb_enums.DeliveryMode.DELIVERY_MODE_LATEST_STATE: DeliveryMode.LATEST_STATE,
-    }
     result = _mapped_enum_from_pb(
         value=v,
-        mapping=mapping,
+        mapping=_DELIVERY_MODE_PB_TO_PY,
         enum_name="DeliveryMode",
         context=context,
         unspecified_value=pb_enums.DeliveryMode.DELIVERY_MODE_UNSPECIFIED,
@@ -1503,23 +1425,15 @@ def _delivery_mode_from_pb(v: int, context: str = "SubscriptionRequest.delivery_
 
 
 def _delivery_mode_to_pb(v: DeliveryMode) -> Any:
-    mapping: dict[DeliveryMode, int] = {
-        DeliveryMode.CONTIGUOUS_EVENTS: pb_enums.DeliveryMode.DELIVERY_MODE_CONTIGUOUS_EVENTS,
-        DeliveryMode.LATEST_STATE: pb_enums.DeliveryMode.DELIVERY_MODE_LATEST_STATE,
-    }
-    return mapping[v]
+    return _DELIVERY_MODE_PY_TO_PB[v]
 
 
 def _initial_snapshot_mode_from_pb(
     v: int, context: str = "OrderBookSubscriptionRequest.initial_snapshot_mode"
 ) -> InitialSnapshotMode:
-    mapping: dict[int, InitialSnapshotMode] = {
-        pb_enums.InitialSnapshotMode.INITIAL_SNAPSHOT_MODE_NONE: InitialSnapshotMode.NONE,
-        pb_enums.InitialSnapshotMode.INITIAL_SNAPSHOT_MODE_REQUIRED: InitialSnapshotMode.REQUIRED,
-    }
     result = _mapped_enum_from_pb(
         value=v,
-        mapping=mapping,
+        mapping=_INITIAL_SNAPSHOT_MODE_PB_TO_PY,
         enum_name="InitialSnapshotMode",
         context=context,
         unspecified_value=pb_enums.InitialSnapshotMode.INITIAL_SNAPSHOT_MODE_UNSPECIFIED,
@@ -1529,11 +1443,7 @@ def _initial_snapshot_mode_from_pb(
 
 
 def _initial_snapshot_mode_to_pb(v: InitialSnapshotMode) -> Any:
-    mapping: dict[InitialSnapshotMode, int] = {
-        InitialSnapshotMode.NONE: pb_enums.InitialSnapshotMode.INITIAL_SNAPSHOT_MODE_NONE,
-        InitialSnapshotMode.REQUIRED: pb_enums.InitialSnapshotMode.INITIAL_SNAPSHOT_MODE_REQUIRED,
-    }
-    return mapping[v]
+    return _INITIAL_SNAPSHOT_MODE_PY_TO_PB[v]
 
 
 def event_subscription_request_from_pb(req: pb_gw.EventSubscriptionRequest) -> EventSubscriptionRequest:
@@ -1631,7 +1541,7 @@ def market_state_subscription_request_from_pb(
         symbol=Symbol(req.symbol),
         delivery_mode=delivery_mode,
         depth_limit=req.depth_limit if req.HasField("depth_limit") else None,
-        minimum_publish_interval_ms=_optional_uint64(req.minimum_publish_interval_ms)
+        minimum_publish_interval_ms=req.minimum_publish_interval_ms
         if req.HasField("minimum_publish_interval_ms")
         else None,
         supported_schema_versions=tuple(req.supported_schema_versions),
