@@ -56,10 +56,22 @@ message TakerBuySellVolume {
 
 message InstrumentFilter {
   string filter_type = 1;
+  // Existing normalized aliases retained for compatibility.
   optional string price = 2;
   optional string quantity = 3;
   optional string notional = 4;
   optional uint64 limit = 5;
+  // USD-M exchangeInfo filter fields, kept strongly typed and separate.
+  optional string min_price = 6;
+  optional string max_price = 7;
+  optional string tick_size = 8;
+  optional string min_quantity = 9;
+  optional string max_quantity = 10;
+  optional string step_size = 11;
+  optional string multiplier_up = 12;
+  optional string multiplier_down = 13;
+  optional string multiplier_decimal = 14;
+  optional string position_control_side = 15;
 }
 
 message RateLimit {

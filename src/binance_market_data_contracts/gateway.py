@@ -234,8 +234,18 @@ class InstrumentFilter(ContractModel):
     filter_type: NonEmptyText
     price: str | None = None
     quantity: str | None = None
-    notional: str | None = None
+    notional: QuantityString | None = None
     limit: int | None = Field(default=None, ge=0, le=UINT64_MAX)
+    min_price: QuantityString | None = None
+    max_price: QuantityString | None = None
+    tick_size: QuantityString | None = None
+    min_quantity: QuantityString | None = None
+    max_quantity: QuantityString | None = None
+    step_size: QuantityString | None = None
+    multiplier_up: QuantityString | None = None
+    multiplier_down: QuantityString | None = None
+    multiplier_decimal: QuantityString | None = None
+    position_control_side: NonEmptyText | None = None
 
 
 class RateLimit(ContractModel):

@@ -1,0 +1,68 @@
+{
+  "schema_version": "reference-observation.v1",
+  "venue": "BINANCE",
+  "market": "USD_M_PERPETUAL",
+  "symbol": "BTCUSDT",
+  "request_id": "req-ref-instrument-001",
+  "source_kind": "INSTRUMENT",
+  "receive_time_utc_ns": 1690000009000000000,
+  "source_time_ms": 1690000008000,
+  "status": "VALID",
+  "instrument": {
+    "symbol_present": true,
+    "contract_type": "PERPETUAL",
+    "trading_status": "TRADING",
+    "base_asset": "BTC",
+    "quote_asset": "USDT",
+    "margin_asset": "USDT",
+    "price_precision": 2,
+    "quantity_precision": 3,
+    "filters": [
+      {
+        "filter_type": "PRICE_FILTER",
+        "min_price": "0.10",
+        "max_price": "4529764",
+        "tick_size": "0.10"
+      },
+      {
+        "filter_type": "LOT_SIZE",
+        "min_quantity": "0.001",
+        "max_quantity": "1000",
+        "step_size": "0.001"
+      },
+      {
+        "filter_type": "MARKET_LOT_SIZE",
+        "min_quantity": "0",
+        "max_quantity": "120",
+        "step_size": "0"
+      },
+      {
+        "filter_type": "MAX_NUM_ORDERS",
+        "limit": 200
+      },
+      {
+        "filter_type": "MIN_NOTIONAL",
+        "notional": "5"
+      },
+      {
+        "filter_type": "PERCENT_PRICE",
+        "multiplier_up": "1.1500",
+        "multiplier_down": "0.8500",
+        "multiplier_decimal": "4"
+      },
+      {
+        "filter_type": "POSITION_RISK_CONTROL",
+        "position_control_side": "BOTH"
+      }
+    ],
+    "rate_limits": [
+      {
+        "rate_limit_type": "REQUEST_WEIGHT",
+        "interval": "MINUTE",
+        "interval_num": 1,
+        "limit": 2400
+      }
+    ],
+    "server_time_ms": 1690000008000
+  }
+}

@@ -793,6 +793,16 @@ def _instrument_filter_from_pb(value: pb_reference.InstrumentFilter) -> Instrume
         quantity=value.quantity if value.HasField("quantity") else None,
         notional=value.notional if value.HasField("notional") else None,
         limit=value.limit if value.HasField("limit") else None,
+        min_price=value.min_price if value.HasField("min_price") else None,
+        max_price=value.max_price if value.HasField("max_price") else None,
+        tick_size=value.tick_size if value.HasField("tick_size") else None,
+        min_quantity=(value.min_quantity if value.HasField("min_quantity") else None),
+        max_quantity=(value.max_quantity if value.HasField("max_quantity") else None),
+        step_size=value.step_size if value.HasField("step_size") else None,
+        multiplier_up=(value.multiplier_up if value.HasField("multiplier_up") else None),
+        multiplier_down=(value.multiplier_down if value.HasField("multiplier_down") else None),
+        multiplier_decimal=(value.multiplier_decimal if value.HasField("multiplier_decimal") else None),
+        position_control_side=(value.position_control_side if value.HasField("position_control_side") else None),
     )
 
 
@@ -806,6 +816,21 @@ def _instrument_filter_to_pb(value: InstrumentFilter) -> pb_reference.Instrument
         pb.notional = value.notional
     if value.limit is not None:
         pb.limit = value.limit
+    for name in (
+        "min_price",
+        "max_price",
+        "tick_size",
+        "min_quantity",
+        "max_quantity",
+        "step_size",
+        "multiplier_up",
+        "multiplier_down",
+        "multiplier_decimal",
+        "position_control_side",
+    ):
+        item = getattr(value, name)
+        if item is not None:
+            setattr(pb, name, item)
     return pb
 
 

@@ -83,18 +83,38 @@ class TakerBuySellVolume(_message.Message):
     def __init__(self, buy_sell_ratio: _Optional[str] = ..., buy_volume: _Optional[str] = ..., sell_volume: _Optional[str] = ..., source_time_ms: _Optional[int] = ..., period: _Optional[str] = ...) -> None: ...
 
 class InstrumentFilter(_message.Message):
-    __slots__ = ("filter_type", "price", "quantity", "notional", "limit")
+    __slots__ = ("filter_type", "price", "quantity", "notional", "limit", "min_price", "max_price", "tick_size", "min_quantity", "max_quantity", "step_size", "multiplier_up", "multiplier_down", "multiplier_decimal", "position_control_side")
     FILTER_TYPE_FIELD_NUMBER: _ClassVar[int]
     PRICE_FIELD_NUMBER: _ClassVar[int]
     QUANTITY_FIELD_NUMBER: _ClassVar[int]
     NOTIONAL_FIELD_NUMBER: _ClassVar[int]
     LIMIT_FIELD_NUMBER: _ClassVar[int]
+    MIN_PRICE_FIELD_NUMBER: _ClassVar[int]
+    MAX_PRICE_FIELD_NUMBER: _ClassVar[int]
+    TICK_SIZE_FIELD_NUMBER: _ClassVar[int]
+    MIN_QUANTITY_FIELD_NUMBER: _ClassVar[int]
+    MAX_QUANTITY_FIELD_NUMBER: _ClassVar[int]
+    STEP_SIZE_FIELD_NUMBER: _ClassVar[int]
+    MULTIPLIER_UP_FIELD_NUMBER: _ClassVar[int]
+    MULTIPLIER_DOWN_FIELD_NUMBER: _ClassVar[int]
+    MULTIPLIER_DECIMAL_FIELD_NUMBER: _ClassVar[int]
+    POSITION_CONTROL_SIDE_FIELD_NUMBER: _ClassVar[int]
     filter_type: str
     price: str
     quantity: str
     notional: str
     limit: int
-    def __init__(self, filter_type: _Optional[str] = ..., price: _Optional[str] = ..., quantity: _Optional[str] = ..., notional: _Optional[str] = ..., limit: _Optional[int] = ...) -> None: ...
+    min_price: str
+    max_price: str
+    tick_size: str
+    min_quantity: str
+    max_quantity: str
+    step_size: str
+    multiplier_up: str
+    multiplier_down: str
+    multiplier_decimal: str
+    position_control_side: str
+    def __init__(self, filter_type: _Optional[str] = ..., price: _Optional[str] = ..., quantity: _Optional[str] = ..., notional: _Optional[str] = ..., limit: _Optional[int] = ..., min_price: _Optional[str] = ..., max_price: _Optional[str] = ..., tick_size: _Optional[str] = ..., min_quantity: _Optional[str] = ..., max_quantity: _Optional[str] = ..., step_size: _Optional[str] = ..., multiplier_up: _Optional[str] = ..., multiplier_down: _Optional[str] = ..., multiplier_decimal: _Optional[str] = ..., position_control_side: _Optional[str] = ...) -> None: ...
 
 class RateLimit(_message.Message):
     __slots__ = ("rate_limit_type", "interval", "interval_num", "limit")
