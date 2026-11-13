@@ -43,6 +43,23 @@ def _collect_proto_files() -> list[Path]:
     return sorted(PROTO_ROOT.rglob("*.proto"))
 
 
+def expected_proto_artifacts() -> tuple[set[str], set[str], set[str]]:
+    """Return expected wheel-relative (.proto, _pb2.py, _pb2.pyi) paths from PROTO_ROOT."""
+    proto_files = _collect_proto_files()
+    if not proto_files:
+        raise RuntimeError(f"No .proto files found under {PROTO_ROOT}")
+    protos: set[str] = set()
+    pb2: set[str] = set()
+    pyi: set[str] = set()
+    for pf in proto_files:
+        rel = pf.relative_to(PROTO_ROOT)
+        stem = rel.with_suffix("").as_posix()
+        protos.add(f"binance_market_data_contracts/proto/{rel.as_posix()}")
+        pb2.add(f"{stem}_pb2.py")
+        pyi.add(f"{stem}_pb2.pyi")
+    return protos, pb2, pyi
+
+
 def _add_init_files(base_dir: Path) -> None:
     """Add __init__.py files to all directories under base_dir."""
     root_init = base_dir / "__init__.py"

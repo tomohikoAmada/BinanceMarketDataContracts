@@ -13,6 +13,11 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+if __package__:
+    from tools.proto_sources import expected_cpp_objects
+else:
+    from proto_sources import expected_cpp_objects
+
 CONTRACTS_REFERENCE = "binance-market-data-contracts-cpp/0.1.0"
 PROTOBUF_REFERENCE = "protobuf/6.33.5"
 PROTOBUF_RREV = "ca5ff466767b31a1b496ec60247e105c"
@@ -128,20 +133,23 @@ def package_file_manifest(package_folder: Path) -> dict[str, str]:
     }
 
 
-def archive_details(package_folder: Path) -> tuple[Path, dict[str, str]]:
+def archive_details(package_folder: Path, source_root: Path | None = None) -> tuple[Path, dict[str, str]]:
     archives = list((package_folder / "lib").glob("*binance_market_data_contracts_protobuf*.a"))
     if len(archives) != 1:
         raise RuntimeError(f"expected one static Contracts archive, got {archives}")
     archive = archives[0]
     members = subprocess.run(["ar", "-t", str(archive)], check=True, capture_output=True, text=True).stdout.splitlines()
+    expected_objects = expected_cpp_objects(source_root or Path(__file__).resolve().parent.parent)
+    object_members = [member for member in members if member.endswith(".o")]
+    if len(object_members) != len(expected_objects) or set(object_members) != expected_objects:
+        raise RuntimeError(
+            "archive generated object member mismatch: "
+            f"expected {sorted(expected_objects)}, got {sorted(object_members)}"
+        )
     object_hashes: dict[str, str] = {}
-    for member in members:
-        if not member.endswith(".o"):
-            continue
+    for member in object_members:
         content = subprocess.run(["ar", "-p", str(archive), member], check=True, capture_output=True).stdout
         object_hashes[member] = hashlib.sha256(content).hexdigest()
-    if len(object_hashes) != 8:
-        raise RuntimeError(f"expected eight generated object members, got {sorted(object_hashes)}")
     return archive, object_hashes
 
 
@@ -201,6 +209,7 @@ def generate_manifest(
     conan_home: Path,
     profile_host: Path,
     profile_build: Path,
+    source_root: Path | None = None,
     build_type: str = "Release",
     shared: bool = False,
 ) -> dict[str, Any]:
@@ -239,7 +248,7 @@ def generate_manifest(
     if installed["protobuf_runtime_linkage"] != runtime_linkage:
         raise RuntimeError("installed runtime linkage disagrees with Conan graph")
 
-    archive, objects = archive_details(package_folder)
+    archive, objects = archive_details(package_folder, source_root=source_root)
     settings = {key: str(value) for key, value in contracts["settings"].items()}
     options = {key: str(value) for key, value in contracts["options"].items()}
     return {

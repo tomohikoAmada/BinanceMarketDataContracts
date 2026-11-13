@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+from binance_market_data_contracts.proto_codegen import _collect_proto_files, expected_proto_artifacts
+
 
 def _all_proto_files():
     proto_root = Path(__file__).resolve().parent.parent / "src" / "binance_market_data_contracts" / "proto"
@@ -12,14 +14,19 @@ def _all_proto_files():
 
 def test_all_proto_files_exist():
     files = _all_proto_files()
-    assert len(files) >= 8, f"Expected at least 8 .proto files, got {len(files)}"
+    assert files == _collect_proto_files()
+    assert len(files) > 0
 
 
 def test_generated_code_exists():
-    from pathlib import Path
-
     gen_dir = Path(__file__).resolve().parent.parent / "src" / "binance_market_data"
     assert gen_dir.is_dir()
+    src_root = gen_dir.parent
+    _, expected_pb2, expected_pyi = expected_proto_artifacts()
+    actual_pb2 = {p.relative_to(src_root).as_posix() for p in gen_dir.rglob("*_pb2.py")}
+    actual_pyi = {p.relative_to(src_root).as_posix() for p in gen_dir.rglob("*.pyi")}
+    assert actual_pb2 == expected_pb2
+    assert actual_pyi == expected_pyi
 
 
 def test_all_importable():

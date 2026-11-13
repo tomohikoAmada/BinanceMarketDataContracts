@@ -97,6 +97,7 @@ def main() -> int:
         conan_home=conan_home,
         profile_host=args.profile_host,
         profile_build=args.profile_build,
+        source_root=source_root,
     )
     build_a = snapshot(manifest_a)
     build_a_directory = configured_build_directory(args.conan, manifest_a, cwd=source_root, env=env)
@@ -107,6 +108,7 @@ def main() -> int:
         conan_home=conan_home,
         profile_host=args.profile_host,
         profile_build=args.profile_build,
+        source_root=source_root,
     )
     build_b = snapshot(manifest_b)
     build_b_directory = configured_build_directory(args.conan, manifest_b, cwd=source_root, env=env)

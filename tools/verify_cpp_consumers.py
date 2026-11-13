@@ -11,6 +11,11 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+if __package__:
+    from tools.proto_sources import expected_cpp_headers
+else:
+    from proto_sources import expected_cpp_headers
+
 
 def run(command: list[str], *, cwd: Path, env: dict[str, str] | None = None) -> str:
     result = subprocess.run(command, cwd=cwd, env=env, text=True, capture_output=True, check=False)
@@ -88,25 +93,18 @@ def assert_consumer_isolation(build: Path, output: str, source_root: Path, *, al
     if str(source_root / "src" / "binance_market_data_contracts" / "proto") in consumer_commands:
         raise RuntimeError("consumer compiler input references authoritative .proto sources")
     lowered = output.lower()
-    if "generating the eight contracts-owned" in lowered or "protoc " in lowered:
+    if "protoc " in lowered or "protoc.exe" in lowered or "--cpp_out" in lowered or "--grpc_out" in lowered:
         raise RuntimeError("consumer build invoked protoc/code generation")
 
 
 def assert_installed_artifact(prefix: Path, source_root: Path) -> None:
-    expected = {
-        "common/v1/enums.pb.h",
-        "common/v1/identifiers.pb.h",
-        "common/v1/metadata.pb.h",
-        "gateway/v1/gateway_messages.pb.h",
-        "market/v1/market_events.pb.h",
-        "market/v1/reference_data.pb.h",
-        "projection/v1/snapshots.pb.h",
-        "telemetry/v1/telemetry.pb.h",
-    }
+    expected = expected_cpp_headers(source_root)
     include_root = prefix / "include" / "binance_market_data"
-    actual = {str(path.relative_to(include_root)) for path in include_root.rglob("*.pb.h")}
+    actual = {path.relative_to(include_root).as_posix() for path in include_root.rglob("*.pb.h")}
     if actual != expected:
-        raise RuntimeError(f"installed generated header set mismatch: {sorted(actual)}")
+        raise RuntimeError(
+            f"installed generated header set mismatch: expected {sorted(expected)}, got {sorted(actual)}"
+        )
     if list(prefix.rglob("*.proto")) or list(prefix.rglob("*.pb.cc")):
         raise RuntimeError("installed package contains consumer generation inputs")
     if list(prefix.rglob("*grpc*")):

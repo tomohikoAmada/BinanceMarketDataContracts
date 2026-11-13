@@ -51,17 +51,20 @@ jobs:
           from pathlib import Path
           from zipfile import ZipFile
 
+          from binance_market_data_contracts.proto_codegen import expected_proto_artifacts
+
+          expected_protos, expected_pb2, expected_pyi = expected_proto_artifacts()
           wheel = next(Path("dist").glob("*.whl"))
           with ZipFile(wheel) as archive:
               names = set(archive.namelist())
           assert "binance_market_data_contracts/py.typed" in names
           assert "binance_market_data/py.typed" in names
-          proto_files = sorted(n for n in names if n.endswith(".proto"))
-          pb2_files = sorted(n for n in names if n.endswith("_pb2.py"))
-          pyi_files = sorted(n for n in names if n.startswith("binance_market_data/") and n.endswith(".pyi"))
-          assert len(proto_files) == 8, proto_files
-          assert len(pb2_files) == 8, pb2_files
-          assert len(pyi_files) == 8, pyi_files
+          proto_files = {n for n in names if n.endswith(".proto")}
+          pb2_files = {n for n in names if n.endswith("_pb2.py")}
+          pyi_files = {n for n in names if n.startswith("binance_market_data/") and n.endswith(".pyi")}
+          assert proto_files == expected_protos, proto_files ^ expected_protos
+          assert pb2_files == expected_pb2, pb2_files ^ expected_pb2
+          assert pyi_files == expected_pyi, pyi_files ^ expected_pyi
           assert "binance_market_data/gateway/v1/gateway_service_pb2_grpc.py" in names
           print(f"wheel contents: {len(proto_files)} proto, {len(pb2_files)} pb2, {len(pyi_files)} pyi")
           PY

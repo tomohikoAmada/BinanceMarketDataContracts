@@ -112,17 +112,82 @@ class TestPositiveQuantityString:
 
 
 class TestSignedDecimalString:
-    def test_negative_accepted(self):
-        m = SignedModel.model_validate_json(json.dumps({"value": "-0.0001"}))
-        assert m.value == "-0.0001"
+    @pytest.mark.parametrize(
+        "valid_value",
+        [
+            "0",
+            "0.0",
+            "0.00000000",
+            "0.0001",
+            "-0.0001",
+            "-0.00010000",
+            "-1",
+            "-123.4560",
+            "0.123456789012345678901234567890",
+            "-0.000000000000000000000000000001",
+        ],
+    )
+    def test_valid_signed_decimals_json(self, valid_value):
+        m = SignedModel.model_validate_json(json.dumps({"value": valid_value}))
+        assert m.value == valid_value
 
-    def test_positive_accepted(self):
-        m = SignedModel.model_validate_json(json.dumps({"value": "0.0001"}))
-        assert m.value == "0.0001"
-
-    def test_invalid_format(self):
+    @pytest.mark.parametrize(
+        "invalid_value",
+        [
+            "-0",
+            "-0.0",
+            "-0.00000000",
+            "NaN",
+            "nan",
+            "Infinity",
+            "-Infinity",
+            "inf",
+            "1e10",
+            "1e-3",
+            "+1",
+            "+0",
+            "+0.1",
+            ".5",
+            "1.",
+            "00.1",
+            "-00.1",
+            "",
+            " ",
+        ],
+    )
+    def test_invalid_signed_decimals_json(self, invalid_value):
         with pytest.raises(ValidationError):
-            SignedModel.model_validate_json(json.dumps({"value": "1e-3"}))
+            SignedModel.model_validate_json(json.dumps({"value": invalid_value}))
+
+    @pytest.mark.parametrize(
+        "valid_rate",
+        ["0", "0.00000000", "-0.00010000", "0.000123456789012345", "-1.250000000000000001"],
+    )
+    def test_mark_price_funding_rate_valid(self, valid_rate):
+        from pathlib import Path
+
+        from binance_market_data_contracts.market_events import MarkPrice
+
+        fixture = Path(__file__).resolve().parent.parent / "fixtures" / "valid" / "mark-price.v1.json"
+        payload = json.loads(fixture.read_text(encoding="utf-8"))
+        payload["funding_rate"] = valid_rate
+        mp = MarkPrice.model_validate_json(json.dumps(payload))
+        assert mp.funding_rate == valid_rate
+
+    @pytest.mark.parametrize(
+        "invalid_rate",
+        ["-0", "-0.0", "NaN", "Infinity", "1e10", "+1"],
+    )
+    def test_mark_price_funding_rate_invalid(self, invalid_rate):
+        from pathlib import Path
+
+        from binance_market_data_contracts.market_events import MarkPrice
+
+        fixture = Path(__file__).resolve().parent.parent / "fixtures" / "valid" / "mark-price.v1.json"
+        payload = json.loads(fixture.read_text(encoding="utf-8"))
+        payload["funding_rate"] = invalid_rate
+        with pytest.raises(ValidationError):
+            MarkPrice.model_validate_json(json.dumps(payload))
 
 
 class TestStrictCoercion:

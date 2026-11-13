@@ -1,5 +1,7 @@
 """Test wire round-trip: Pydantic → Proto → serialize → parse → Pydantic."""
 
+from pathlib import Path
+
 from binance_market_data_contracts.common import PriceString, QuantityString
 from binance_market_data_contracts.enums import (
     ConsumerGapReason,
@@ -21,6 +23,7 @@ from binance_market_data_contracts.gateway import (
     MarketRuntimeStatus,
     MarketStateStreamItem,
     OrderBookStreamItem,
+    ReferenceObservation,
     StreamSelector,
 )
 from binance_market_data_contracts.identifiers import ConnectionId, GatewayInstanceId, RequestId, SubscriptionId, Symbol
@@ -31,6 +34,8 @@ from binance_market_data_contracts.market_events import (
     BookTickerMetadata,
     DepthUpdate,
     DepthUpdateMetadata,
+    Liquidation,
+    MarkPrice,
 )
 from binance_market_data_contracts.snapshots import (
     ExchangeDepthSnapshot,
@@ -57,14 +62,20 @@ from binance_market_data_contracts.wire.adapters import (
     gateway_status_request_to_pb,
     gateway_status_snapshot_from_pb,
     gateway_status_snapshot_to_pb,
+    liquidation_from_pb,
+    liquidation_to_pb,
     local_order_book_snapshot_from_pb,
     local_order_book_snapshot_to_pb,
+    mark_price_from_pb,
+    mark_price_to_pb,
     market_state_snapshot_from_pb,
     market_state_snapshot_to_pb,
     market_state_stream_item_from_pb,
     market_state_stream_item_to_pb,
     order_book_stream_item_from_pb,
     order_book_stream_item_to_pb,
+    reference_observation_from_pb,
+    reference_observation_to_pb,
     telemetry_envelope_from_pb,
     telemetry_envelope_to_pb,
 )
@@ -354,3 +365,49 @@ class TestWireRoundtrips:
         )
         telemetry2 = _pb_roundtrip(telemetry_envelope_to_pb, telemetry_envelope_from_pb, telemetry, [])
         assert telemetry2 == telemetry
+
+    def test_mark_price_roundtrip(self):
+        fixtures_dir = Path(__file__).resolve().parent.parent / "fixtures" / "valid"
+        mp = MarkPrice.model_validate_json((fixtures_dir / "mark-price.v1.json").read_text(encoding="utf-8"))
+        mp2 = _pb_roundtrip(mark_price_to_pb, mark_price_from_pb, mp, ["funding_rate", "next_funding_time_ms"])
+        assert mp2 == mp
+
+    def test_liquidation_roundtrip(self):
+        fixtures_dir = Path(__file__).resolve().parent.parent / "fixtures" / "valid"
+        lq = Liquidation.model_validate_json((fixtures_dir / "liquidation.v1.json").read_text(encoding="utf-8"))
+        lq2 = _pb_roundtrip(liquidation_to_pb, liquidation_from_pb, lq, ["order_status", "order_trade_time_ms"])
+        assert lq2 == lq
+
+    def test_reference_observation_instrument_filters_roundtrip(self):
+        fixtures_dir = Path(__file__).resolve().parent.parent / "fixtures" / "valid"
+        obs = ReferenceObservation.model_validate_json(
+            (fixtures_dir / "reference-observation.v1.instrument.json").read_text(encoding="utf-8")
+        )
+        obs2 = _pb_roundtrip(reference_observation_to_pb, reference_observation_from_pb, obs, ["symbol", "source_kind"])
+        assert obs2 == obs
+        assert obs2.instrument is not None
+        by_type = {f.filter_type: f for f in obs2.instrument.filters}
+        assert by_type["PRICE_FILTER"].tick_size == "0.10"
+        assert by_type["PRICE_FILTER"].min_price == "0.10"
+        assert by_type["PRICE_FILTER"].max_price == "4529764"
+        assert by_type["LOT_SIZE"].step_size == "0.001"
+        assert by_type["LOT_SIZE"].min_quantity == "0.001"
+        assert by_type["LOT_SIZE"].max_quantity == "1000"
+        assert by_type["MIN_NOTIONAL"].notional == "5"
+        assert by_type["MAX_NUM_ORDERS"].limit == 200
+        assert by_type["PERCENT_PRICE"].multiplier_up == "1.1500"
+        assert by_type["PERCENT_PRICE"].multiplier_down == "0.8500"
+        assert by_type["PERCENT_PRICE"].multiplier_decimal == "4"
+        assert by_type["POSITION_RISK_CONTROL"].position_control_side == "BOTH"
+
+        em = GatewayEnvelopeMetadata(
+            gateway_instance_id=GatewayInstanceId("gw-ref-1"),
+            subscription_id=SubscriptionId("sub-ref-1"),
+            connection_generation=None,
+            session_sequence=1,
+            publish_time_utc_ns=1_690_000_010_000_000_000,
+            protocol_version="gateway-stream.v1",
+        )
+        env = GatewayEventEnvelope(delivery_metadata=em, reference_observation=obs)
+        env2 = _pb_roundtrip(gateway_event_envelope_to_pb, gateway_event_envelope_from_pb, env, [])
+        assert env2 == env

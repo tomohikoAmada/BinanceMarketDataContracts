@@ -50,7 +50,7 @@ python -m pip install -e ".[dev,wire]"
 
 ## C++ packages
 
-- `binance-market-data-contracts-cpp/0.1.0` generates the seven non-service
+- `binance-market-data-contracts-cpp/0.1.0` generates the non-service
   message protos and exports `BinanceMarketDataContracts::Protobuf`. Its host
   and build graphs contain no gRPC dependency.
 - `binance-market-data-contracts-grpc-cpp/0.1.0` generates only the Gateway

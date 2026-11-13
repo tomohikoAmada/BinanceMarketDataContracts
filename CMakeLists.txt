@@ -128,15 +128,17 @@ if(NOT _protoc_result EQUAL 0)
 endif()
 
 set(_proto_root "${CMAKE_CURRENT_SOURCE_DIR}/src/binance_market_data_contracts/proto")
-set(_message_protos
-    binance_market_data/common/v1/enums.proto
-    binance_market_data/common/v1/identifiers.proto
-    binance_market_data/common/v1/metadata.proto
-    binance_market_data/gateway/v1/gateway_messages.proto
-    binance_market_data/market/v1/market_events.proto
-    binance_market_data/market/v1/reference_data.proto
-    binance_market_data/projection/v1/snapshots.proto
-    binance_market_data/telemetry/v1/telemetry.proto)
+file(GLOB_RECURSE _all_protos RELATIVE "${_proto_root}" CONFIGURE_DEPENDS "${_proto_root}/*.proto")
+list(SORT _all_protos)
+set(_service_proto "binance_market_data/gateway/v1/gateway_service.proto")
+if(NOT "${_service_proto}" IN_LIST _all_protos)
+    message(FATAL_ERROR "Expected service proto ${_service_proto} under ${_proto_root}")
+endif()
+set(_message_protos ${_all_protos})
+list(REMOVE_ITEM _message_protos "${_service_proto}")
+if(NOT _message_protos)
+    message(FATAL_ERROR "No Contracts message .proto files found under ${_proto_root}")
+endif()
 set(_fingerprint_roots
     binance_market_data/market/v1/market_events.proto
     binance_market_data/projection/v1/snapshots.proto)
@@ -197,7 +199,7 @@ add_custom_command(
             ${_message_protos}
     WORKING_DIRECTORY "${_proto_root}"
     DEPENDS ${_absolute_protos}
-    COMMENT "Generating the eight Contracts-owned C++ Protobuf message files"
+    COMMENT "Generating Contracts-owned C++ Protobuf message files"
     VERBATIM)
 
 configure_file(
