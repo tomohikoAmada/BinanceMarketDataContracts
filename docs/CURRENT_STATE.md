@@ -13,7 +13,7 @@ Updated 2026-11-13.
 | C1 used internal v1 contract | COMPLETE: fixed used subset, dependency pins and offline validation; merged in PR #23 | [Consumer page](contracts/current-capabilities.md), [HISTORY](HISTORY.md) |
 | C1.1 hygiene | COMPLETE: explicit present-empty `StreamStatus.message` is rejected instead of coerced to absence; documentation scans prune `.venv`/cache/build dirs before traversal | `tests/test_wire_adapters.py`, `tests/test_documentation_consistency.py` |
 | C1.2 simplification | COMPLETE: removed redundant Decimal/enum validators, unused `EnvelopeMetadata`, adapter-local enum maps and no-op conversion helpers. No schema/fingerprint change | `common.py`, `gateway.py`, `telemetry.py`, `wire/adapters.py` |
-| C2 USD-M contract extension | IN PROGRESS: MarkPrice, Liquidation, ReferenceObservation, Stream/Reference enums, AggTrade.normal_quantity and REST event-time presence added; fixtures/adapters/regenerated Python included | `market_events.proto`, `reference_data.proto`, `gateway_messages.proto`, `wire/adapters.py` |
+| C2 USD-M contract extension | COMPLETE (candidate): MarkPrice, Liquidation, ReferenceObservation, Stream/Reference enums, AggTrade.normal_quantity and REST event-time presence; fixtures/adapters/regenerated Python and C++ package lineage | `market_events.proto`, `reference_data.proto`, `gateway_messages.proto`, `wire/adapters.py` |
 | C2 conditional simplification | Not triggered; no evidenced maintenance/performance reason | Sibling Contracts milestone plan |
 
 ## Repository role

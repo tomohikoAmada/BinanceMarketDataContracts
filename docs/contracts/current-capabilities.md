@@ -74,20 +74,19 @@ draft/proposed surface. Existing wire field/enum numbers are preserved.
 
 | Artifact / source | Exact selected identity |
 | --- | --- |
-| Contracts Python/JSON C0 semantic baseline (`0.2.0a1`) | Source `db8156f1e16ba7a4a5ee8d5b26316139b7e218f3`; C1 adds documentation, without changing those models/generated schemas |
-| Contracts C++ messages (`0.1.0`) | `binance-market-data-contracts-cpp/0.1.0#53713fb82c27cf6ea0395f6b8a853006`; installed provenance source `518880bdfa60948c3b65b6b3525d024526995166` |
-| Contracts C++ service/stubs (`0.1.0`) | `binance-market-data-contracts-grpc-cpp/0.1.0#c3661aa735e1eb6450c1a93f635dbc20`; same installed source; requires the exact message RREV above |
-| Projection Core + ProtoAdapter (`0.1.0`) | `binance-market-data-projection/0.1.0#d95fa71d6dca8d931e72fbb5b74114a9`; source `555dd1f4d846e19cfd6fbe55676c86504559048e` reproduces that RREV; `proto_adapter=True` |
+| Contracts Python/JSON C2 semantic surface (`0.2.0a1`) | Source `0ecd024833c8b93ff95287e5fd7593060784b173`; includes USD-M mark-price, liquidation and typed reference observation models/generated schemas |
+| Contracts C++ messages (`0.1.0`) | `binance-market-data-contracts-cpp/0.1.0#e79d88e75cb72b2bb7dae75e6d0b5646`; installed provenance source `0ecd024833c8b93ff95287e5fd7593060784b173` |
+| Contracts C++ service/stubs (`0.1.0`) | `binance-market-data-contracts-grpc-cpp/0.1.0#0237321d3ab670daa101c3214f0778bd`; same installed source; requires the exact message RREV above |
+| Projection Core + ProtoAdapter (`0.1.0`) | `binance-market-data-projection/0.1.0#ef04bfbc02bc79f6b31cb6e30588da76`; source `a4151d4e8ddaedcc8ed0c4c34f4ced6b14f2fd7e` reproduces that RREV; `proto_adapter=True` |
 | C++ Protobuf generator/runtime | `protobuf/6.33.5#ca5ff466767b31a1b496ec60247e105c` (full runtime; libprotoc 33.5) |
 | C++ gRPC runtime/plugin | `grpc/1.83.0#67e377a995d4a1279bffe2b941ac2f55` |
 
 These are internal immutable identities, not formal Package Revision assignments
-or public releases. C0 does not change C++ export inputs or the descriptor;
-therefore the existing message/gRPC/Projection combination stays pinned. The
-v1 descriptor fingerprint is
-`a2a93ca5cf4e17c9a64ca0939ad208f1202c1746628eed5260bd0edb81666c86` for the C2 candidate. The C++/gRPC/Projection RREVs above were exported
-from the pre-C2 descriptor and therefore do not satisfy this fingerprint; they
-must be re-exported before being used as C2 downstream locks.
+or public releases. The v1 descriptor fingerprint is
+`a2a93ca5cf4e17c9a64ca0939ad208f1202c1746628eed5260bd0edb81666c86`
+for the C2 candidate; the message, gRPC and Projection RREVs above were
+re-exported from that schema and form one reviewed lineage. Formal package
+publication and Linux package IDs/PREVs remain separate release evidence.
 C++20, matching host ABI/build type/linkage and a **single** message artifact
 lineage are required. Targets: `BinanceMarketDataContracts::Protobuf`, separate
 `BinanceMarketDataContracts::Grpc`, `BinanceMarketDataProjection::Core` and
