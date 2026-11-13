@@ -140,8 +140,8 @@ def archive_details(package_folder: Path) -> tuple[Path, dict[str, str]]:
             continue
         content = subprocess.run(["ar", "-p", str(archive), member], check=True, capture_output=True).stdout
         object_hashes[member] = hashlib.sha256(content).hexdigest()
-    if len(object_hashes) != 7:
-        raise RuntimeError(f"expected seven generated object members, got {sorted(object_hashes)}")
+    if len(object_hashes) != 8:
+        raise RuntimeError(f"expected eight generated object members, got {sorted(object_hashes)}")
     return archive, object_hashes
 
 

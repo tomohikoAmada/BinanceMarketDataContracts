@@ -88,7 +88,7 @@ def assert_consumer_isolation(build: Path, output: str, source_root: Path, *, al
     if str(source_root / "src" / "binance_market_data_contracts" / "proto") in consumer_commands:
         raise RuntimeError("consumer compiler input references authoritative .proto sources")
     lowered = output.lower()
-    if "generating the seven contracts-owned" in lowered or "protoc " in lowered:
+    if "generating the eight contracts-owned" in lowered or "protoc " in lowered:
         raise RuntimeError("consumer build invoked protoc/code generation")
 
 
@@ -99,6 +99,7 @@ def assert_installed_artifact(prefix: Path, source_root: Path) -> None:
         "common/v1/metadata.pb.h",
         "gateway/v1/gateway_messages.pb.h",
         "market/v1/market_events.pb.h",
+        "market/v1/reference_data.pb.h",
         "projection/v1/snapshots.pb.h",
         "telemetry/v1/telemetry.pb.h",
     }

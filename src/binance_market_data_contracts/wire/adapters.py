@@ -938,10 +938,10 @@ def reference_observation_to_pb(value: ReferenceObservation) -> pb_reference.Ref
     if value.error_code is not None:
         pb.error_code = value.error_code
     if value.open_interest is not None:
-        item = value.open_interest
-        pb.open_interest.open_interest = item.open_interest
-        if item.source_time_ms is not None:
-            pb.open_interest.source_time_ms = item.source_time_ms
+        open_interest = value.open_interest
+        pb.open_interest.open_interest = open_interest.open_interest
+        if open_interest.source_time_ms is not None:
+            pb.open_interest.source_time_ms = open_interest.source_time_ms
     elif value.top_long_short_account_ratio is not None:
         _copy_long_short(value.top_long_short_account_ratio, pb.top_long_short_account_ratio)
     elif value.top_long_short_position_ratio is not None:
@@ -949,13 +949,13 @@ def reference_observation_to_pb(value: ReferenceObservation) -> pb_reference.Ref
     elif value.global_long_short_account_ratio is not None:
         _copy_long_short(value.global_long_short_account_ratio, pb.global_long_short_account_ratio)
     elif value.taker_buy_sell_volume is not None:
-        item = value.taker_buy_sell_volume
-        pb.taker_buy_sell_volume.buy_sell_ratio = item.buy_sell_ratio
-        pb.taker_buy_sell_volume.buy_volume = item.buy_volume
-        pb.taker_buy_sell_volume.sell_volume = item.sell_volume
-        pb.taker_buy_sell_volume.period = item.period
-        if item.source_time_ms is not None:
-            pb.taker_buy_sell_volume.source_time_ms = item.source_time_ms
+        volume = value.taker_buy_sell_volume
+        pb.taker_buy_sell_volume.buy_sell_ratio = volume.buy_sell_ratio
+        pb.taker_buy_sell_volume.buy_volume = volume.buy_volume
+        pb.taker_buy_sell_volume.sell_volume = volume.sell_volume
+        pb.taker_buy_sell_volume.period = volume.period
+        if volume.source_time_ms is not None:
+            pb.taker_buy_sell_volume.source_time_ms = volume.source_time_ms
     elif value.instrument is not None:
         pb.instrument.CopyFrom(_instrument_reference_to_pb(value.instrument))
     elif value.depth_baseline is not None:
